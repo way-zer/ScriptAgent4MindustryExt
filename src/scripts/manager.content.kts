@@ -57,3 +57,22 @@ command("sList","列出ScriptAgent某一模块的所有脚本","[modName]") { ar
                 |${children.joinToString("\n") { "[red]%-20s [green]:%s".format(it.clsName, with(it) { name.get() }) }}
             """.trimMargin())
 }
+
+command("sload", "新加载单个文件", "<filename>") { arg, p ->
+    if(player?.isAdmin ==false)
+        return@command p.sendMessage("[red]你没有权限使用该命令")
+    val file = MindustryMainImpl.manager.rootDir.resolve(arg[0])
+    if (!file.exists() || !file.isFile) p.sendMessage("[red]未找到对应文件")
+    val success = if (file.name.endsWith(".init.kts")) {
+        MindustryMainImpl.manager.loadModule(file) != null
+    } else {
+        val list = MindustryMainImpl.manager.loadedInitScripts
+        val initS = list.firstOrNull { it.clsName.equals(arg[0].split("/")[0],true)}
+                ?: return@command p.sendMessage("[red]找不到模块,请确定模块已先加载")
+        MindustryMainImpl.manager.loadContent(initS, file) != null
+    }
+    if (success)
+        p.sendMessage("[green]加载成功")
+    else
+        p.sendMessage("[red]]加载失败")
+}
