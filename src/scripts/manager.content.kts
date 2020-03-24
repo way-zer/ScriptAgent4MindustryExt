@@ -1,4 +1,7 @@
+//WayZer 版权所有(请勿删除版权注解)
 import cf.wayzer.script_agent.MindustryMainImpl
+
+name.set("基础: 插件管理")
 
 command("sMod","ScriptAgent模块控制指令","<reload/list> [name]"){arg, player ->
     if(player?.isAdmin ==false)

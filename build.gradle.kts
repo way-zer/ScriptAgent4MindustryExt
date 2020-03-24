@@ -4,7 +4,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.0.0"
-val pluginVersion = "1.0"
+val pluginVersion = "1.0.1"
 val mindustryVersion = "v104"
 
 repositories {

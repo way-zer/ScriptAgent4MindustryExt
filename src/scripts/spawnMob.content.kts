@@ -1,6 +1,9 @@
+//WayZer 版权所有(请勿删除版权注解)
 import mindustry.ctype.ContentType
 import mindustry.game.Team
 import mindustry.type.UnitType
+
+name.set("扩展功能: 召唤单位")
 
 command("spawn", "召唤单位", "[类型ID=列出] [队伍ID,默认为sharded] [数量=1]") { arg, player ->
     if (player?.isAdmin == false)//限制管理员或者后台使用
