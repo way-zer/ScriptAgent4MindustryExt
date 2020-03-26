@@ -38,7 +38,7 @@ command("sMod","ScriptAgent模块控制指令","<reload/list> [name]"){arg, play
 command("sReload","重载ScriptAgent一个脚本","<name> [modName]"){arg, player ->
     if(player?.isAdmin ==false)
         return@command player.sendMessage("[red]你没有权限使用该命令")
-    val initS = getModuleByName(arg.getOrNull(0))?: return@command player.sendMessage("[red]找不到模块")
+    val initS = getModuleByName(arg.getOrNull(1))?: return@command player.sendMessage("[red]找不到模块")
     val contentS = with(initS){children.get().firstOrNull { it.clsName.equals(arg[0],true)}}
         ?: return@command player.sendMessage("[red]找不到脚本")
     if(MindustryMainImpl.manager.reloadContent(initS,contentS)!=null)
