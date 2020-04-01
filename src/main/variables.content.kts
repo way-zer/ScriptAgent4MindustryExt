@@ -1,5 +1,5 @@
 //WayZer 版权所有(请勿删除版权注解)
-package scripts
+package main
 
 import arc.util.Time
 import cf.wayzer.placehold.DynamicVar
@@ -7,7 +7,7 @@ import mindustry.entities.type.Player
 import mindustry.game.Team
 import mindustry.maps.Map
 
-name.set("基础: 全局变量")
+name="基础: 全局变量"
 
 //SystemVars
 PlaceHoldApi.registerGlobalDynamicVar("fps") { _, _ ->
