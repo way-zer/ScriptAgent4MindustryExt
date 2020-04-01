@@ -1,2 +1,2 @@
-rootProject.name = "ScriptAgent4MindustryExt"
+rootProject.name = "ScriptAgent4Mindustry"
 

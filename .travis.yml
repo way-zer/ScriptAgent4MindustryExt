@@ -1,0 +1,13 @@
+language: java
+install:
+  - ./gradlew buildPlugin
+deploy:
+  provider: releases
+  api_key: "$GITHUB_TOKEN"
+  file_glob: true
+  file:
+    - build/distributions/*
+    - build/libs/*
+  skip_cleanup: true
+  on:
+    tags: true

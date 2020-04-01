@@ -1,11 +1,23 @@
 plugins {
     kotlin("jvm") version "1.3.70"
+    id("me.qoomon.git-versioning") version "2.1.1"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 group = "cf.wayzer"
-version = "v1.0.0"
-val pluginVersion = "1.0.2"
+version = "v1" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
+val pluginVersion = "1.1-cd9fe5b"
 val mindustryVersion = "v104"
+
+gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
+    tag(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.VersionDescription> {
+        pattern = "v(?<tagVersion>[0-9].*)"
+        versionFormat = "\${tagVersion}"
+    })
+    commit(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.CommitVersionDescription> {
+        versionFormat = "\${version}-\${commit.short}\${dirty}"
+    })
+})
 
 repositories {
     mavenLocal()
@@ -17,12 +29,19 @@ sourceSets {
     main {
         java.srcDir("src")
     }
+    create("plugin") {
+        this.compileClasspath += main.get().compileClasspath
+        java.srcDir("plugin/src")
+        resources.srcDir("plugin/res")
+    }
 }
 dependencies {
-    implementation("cf.wayzer:ScriptAgent4Mindustry:$pluginVersion")
+    api("cf.wayzer:ScriptAgent:$pluginVersion")
     implementation(kotlin("script-runtime"))
     implementation(kotlin("stdlib-jdk8"))
     implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
+
+    implementation("com.h2database:h2-mvstore:1.4.200")
 }
 
 tasks {
@@ -31,5 +50,28 @@ tasks {
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
+    }
+    processResources {
+        inputs.property("version", rootProject.version)
+        filter(
+                filterType = org.apache.tools.ant.filters.ReplaceTokens::class,
+                properties = mapOf("tokens" to mapOf("version" to rootProject.version))
+        )
+    }
+    create<Zip>("scriptsZip"){
+        group = "plugin"
+        from(sourceSets.main.get().allSource)
+        archiveClassifier.set("scripts")
+    }
+    create<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildPlugin") {
+        dependsOn("scriptsZip")
+        group = "plugin"
+        from(sourceSets.getByName("plugin").output)
+        archiveClassifier.set("")
+        configurations = listOf(project.configurations.getByName("compileClasspath"))
+        dependencies {
+            include(dependency("cf.wayzer:ScriptAgent:$pluginVersion"))
+            include(dependency("cf.wayzer:LibraryManager"))
+        }
     }
 }

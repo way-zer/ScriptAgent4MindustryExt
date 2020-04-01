@@ -1,0 +1,7 @@
+{
+  "name": "ScriptAgent4Mindustry",
+  "author": "WayZer",
+  "main": "cf.wayzer.ScriptAgent4Mindustry",
+  "description": "More commands and features.",
+  "version": "@version@"
+}
