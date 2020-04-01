@@ -6,7 +6,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val pluginVersion = "1.1-cd9fe5b"
+val libraryVersion = "1.1-a82ccb4"
 val mindustryVersion = "v104"
 
 gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
@@ -36,11 +36,13 @@ sourceSets {
     }
 }
 dependencies {
-    api("cf.wayzer:ScriptAgent:$pluginVersion")
+    api("cf.wayzer:ScriptAgent:$libraryVersion")
     implementation(kotlin("script-runtime"))
     implementation(kotlin("stdlib-jdk8"))
     implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
 
+    //coreLibrary
+    api("cf.wayzer:PlaceHoldLib:2.0")
     implementation("com.h2database:h2-mvstore:1.4.200")
 }
 
@@ -70,7 +72,7 @@ tasks {
         archiveClassifier.set("")
         configurations = listOf(project.configurations.getByName("compileClasspath"))
         dependencies {
-            include(dependency("cf.wayzer:ScriptAgent:$pluginVersion"))
+            include(dependency("cf.wayzer:ScriptAgent:$libraryVersion"))
             include(dependency("cf.wayzer:LibraryManager"))
         }
     }
