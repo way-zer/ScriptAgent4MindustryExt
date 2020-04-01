@@ -7,7 +7,7 @@ import kotlin.reflect.KProperty
 
 object DataStoreApi {
     private lateinit var db: MVStore
-    private val transDB = TransactionStore(db)
+    private val transDB by lazy { TransactionStore(db) }
 
     class DataStoreKey<T : Any>(private val name: String, private val cls: Class<T>, private val default: DataEntity.() -> T) {
         operator fun getValue(t: DataEntity, prop: KProperty<*>): T {

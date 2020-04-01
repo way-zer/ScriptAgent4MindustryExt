@@ -4,17 +4,15 @@ import arc.util.CommandHandler
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.ScriptAgent
 import cf.wayzer.script_agent.ScriptManager
-import cf.wayzer.script_agent.util.DSLBuilder.Companion.dataKey
+import cf.wayzer.ConfigExt.clientCommands
+import cf.wayzer.ConfigExt.serverCommands
 import mindustry.Vars
 import mindustry.plugin.Plugin
 
 class ScriptAgent4Mindustry: Plugin() {
-    private var Config.clientCommands by dataKey<CommandHandler>()
-    private var Config.serverCommands by dataKey<CommandHandler>()
     init {
         ScriptAgent.load()
     }
-
     override fun registerClientCommands(handler: CommandHandler) {
         Config.clientCommands = handler
     }
@@ -24,6 +22,6 @@ class ScriptAgent4Mindustry: Plugin() {
     }
 
     override fun init() {
-        ScriptManager().loadDir(Vars.dataDirectory.file())
+        ScriptManager().loadDir(Vars.dataDirectory.child("scripts").file())
     }
 }
