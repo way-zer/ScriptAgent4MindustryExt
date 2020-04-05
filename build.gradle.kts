@@ -47,13 +47,10 @@ dependencies {
 }
 
 tasks {
-    compileKotlin {
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
     }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
-    }
-    processResources {
+    withType<ProcessResources> {
         inputs.property("version", rootProject.version)
         filter(
                 filterType = org.apache.tools.ant.filters.ReplaceTokens::class,
