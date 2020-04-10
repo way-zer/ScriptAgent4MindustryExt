@@ -6,7 +6,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.1.1"
+val libraryVersion = "1.1.3"
 val mindustryVersion = "v104"
 
 gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
@@ -43,7 +43,9 @@ dependencies {
 
     //coreLibrary
     api("cf.wayzer:PlaceHoldLib:2.0")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1")
     implementation("com.h2database:h2-mvstore:1.4.200")
+    implementation("io.github.config4k:config4k:0.4.1")
 }
 
 tasks {
