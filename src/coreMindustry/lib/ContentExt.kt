@@ -4,16 +4,13 @@ import arc.func.Cons
 import arc.util.Log
 import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.content.ContentScript
-import coreMindustry.lib.ContentExt.allCommands
-import coreMindustry.lib.ContentExt.allTasks
-import coreMindustry.lib.ContentExt.listener
 import cf.wayzer.script_agent.util.DSLBuilder.Companion.dataKeyWithDefault
-import cf.wayzer.script_agent.util.ScheduleTask
+import coreMindustry.lib.ContentExt.allCommands
+import coreMindustry.lib.ContentExt.listener
 import mindustry.entities.type.Player
 
 object ContentExt {
     val IContentScript.allCommands by dataKeyWithDefault { mutableListOf<CommandInfo>() }
-    val IContentScript.allTasks by dataKeyWithDefault { mutableMapOf<String, TaskData>() }
     val IContentScript.listener by dataKeyWithDefault { mutableListOf<Listener<*>>() }
 
     data class CommandInfo(
@@ -37,11 +34,6 @@ object ContentExt {
             }
         }
     }
-
-    data class TaskData(
-        val task: ScheduleTask<*>,
-        val autoCancel: Boolean = true
-    )
 }
 
 enum class CommandType {
@@ -64,8 +56,3 @@ fun ContentScript.command(
 ) {
     allCommands.add(ContentExt.CommandInfo(name, description, param, type, runner))
 }
-
-fun ContentScript.registerScheduleTask(name: String, autoCancel: Boolean = true, task: ScheduleTask<*>) =
-    allTasks.putIfAbsent(name, ContentExt.TaskData(task, autoCancel))?.let { error("Registered Task: $name") }
-
-fun ContentScript.getScheduleTask(name: String) = (allTasks[name]?.task ?: error("Unregister Task: $name"))
