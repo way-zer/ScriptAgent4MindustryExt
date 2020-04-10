@@ -7,19 +7,20 @@ import mindustry.entities.type.Player
 import mindustry.game.Team
 import mindustry.maps.Map
 
-name="基础: 全局变量"
+name = "基础: 全局变量"
 
 //SystemVars
-PlaceHoldApi.registerGlobalDynamicVar("fps") { _, _ ->
+registerVar("fps", "服务器fps", DynamicVar<Int> {
     (60f / Time.delta()).toInt()
-}
-PlaceHoldApi.registerGlobalDynamicVar("heapUse") { _, _ ->
+})
+registerVar("heapUse", "内存占用(MB)", DynamicVar<Long> {
     Core.app.javaHeap / 1024 / 1024  //MB
-}
-
+})
 //GameVars
-PlaceHoldApi.registerGlobalDynamicVar("map") { _, _ -> world.map }
-PlaceHoldApi.typeBinder<Map>().apply {
+registerVar("map", "当前游戏中的地图", DynamicVar<Map> {
+    world.map
+})
+registerVarForType<Map>("地图的基础属性").apply {
     registerChild("name", DynamicVar { it, _ -> it.name() })
 //        registerChild("id",DynamicVar{it,_->it.name()})
     registerChild("desc", DynamicVar { it, _ -> it.description() })
@@ -28,22 +29,21 @@ PlaceHoldApi.typeBinder<Map>().apply {
     registerChild("height", DynamicVar { it, _ -> it.height })
     registerChild("fileName", DynamicVar { it, _ -> it.file?.nameWithoutExtension() })
 }
-PlaceHoldApi.registerGlobalDynamicVar("state.allUnit") { _, _ -> unitGroup.size() }
-PlaceHoldApi.registerGlobalDynamicVar("state.allBan") { _, _ -> netServer.admins.banned.size }
-PlaceHoldApi.registerGlobalDynamicVar("state.playerSize") { _, _ -> playerGroup.size() }
-PlaceHoldApi.registerGlobalDynamicVar("state.wave") { _, _ -> state.wave }
-PlaceHoldApi.registerGlobalDynamicVar("state.enemies") { _, _ -> state.enemies }
+registerVar("state.allUnit", "总单位数量", DynamicVar<Int> { unitGroup.size() })
+registerVar("state.allBan", "总禁封人数", DynamicVar<Int> { netServer.admins.banned.size })
+registerVar("state.playerSize", "当前玩家数量", DynamicVar<Int> { playerGroup.size() })
+registerVar("state.wave", "当前波数", DynamicVar<Int> { state.wave })
+registerVar("state.enemies", "当前敌人数量", DynamicVar<Int> { state.enemies })
 
 //PlayerVars
-PlaceHoldApi.typeBinder<Player>().apply {
+registerVarForType<Player>("玩家基础信息").apply {
     registerChild("name", DynamicVar { it, _ -> it.name })
     registerChild("uuid", DynamicVar { it, _ -> it.uuid })
     registerChild("ip", DynamicVar { it, _ -> it.con?.address })
-//        registerChild("_info",DynamicVar{it,_->it.info})
     registerChild("team", DynamicVar { it, _ -> it.team })
 }
-PlaceHoldApi.registerGlobalDynamicVar("team") { _, _ -> getVar("player.team") }
-PlaceHoldApi.typeBinder<Team>().apply {
+registerVar("team", "当前玩家的队伍", DynamicVar<Any> { getVar("player.team") })
+registerVarForType<Team>("队伍的基础信息").apply {
     registerChild("name", DynamicVar { it, _ -> it.name })
     registerChild("color", DynamicVar { it, _ -> it.let { "[#${it.color}]" } })
     registerChild("colorizeName", DynamicVar { it, _ -> typeResolve(it, "color")?.toString() + typeResolve(it, "name")?.toString() })

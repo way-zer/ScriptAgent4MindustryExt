@@ -6,10 +6,11 @@ import arc.struct.Array
 import arc.struct.ObjectMap
 import arc.util.Log
 import cf.wayzer.script_agent.Config
-import coreMindustry.lib.*
+import coreMindustry.lib.ContentExt
 import coreMindustry.lib.ContentExt.allCommands
 import coreMindustry.lib.ContentExt.listener
-import coreMindustry.lib.ContentExt.allTasks
+import coreMindustry.lib.clientCommands
+import coreMindustry.lib.serverCommands
 import mindustry.Vars
 
 name = "Mindustry 核心脚本模块"
@@ -57,5 +58,4 @@ onBeforeContentDisable{child->
         if(type.server())
             Config.serverCommands.removeCommand(name)
     }}
-    child.allTasks.values.forEach { if(it.autoCancel)it.task.cancel() }
 }
