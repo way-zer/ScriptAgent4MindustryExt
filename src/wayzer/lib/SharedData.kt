@@ -18,8 +18,8 @@ object SharedData {
     }
     interface IAdmin{
         fun isAdmin(player:Player):Boolean
-        fun ban(player: Player,uuid:String)
-        fun secureLog(tag:String,string: String)
+        fun ban(player: Player, uuid: String)
+        fun secureLog(tag: String, text: String)
     }
     lateinit var mapManager: IMapManager
     lateinit var admin: IAdmin

@@ -68,7 +68,7 @@ allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
     }
 }
 
-private val lastResetTime by PlaceHold.reference<Long>("lastResetTime")
+private var lastResetTime = 0L
 allSub["skipWave".toLowerCase()] = fun(_: Player, arg: String?) {
     VoteHandler.apply {
         supportSingle = true
@@ -149,9 +149,6 @@ inner class VoteHandler {
     lateinit var requireNum: () -> Int
     lateinit var canVote: (Player) -> Boolean
 
-    //TODO extended variables or other way to implement
-    private val lastResetTime by PlaceHold.reference<Long>("lastResetTime")
-    private val lastPlayerJoin by PlaceHold.reference<Long>("lastPlayerJoin")
     fun start(voteDesc: PlaceHoldContext, onSuccess: () -> Unit) {
         if (voting.get()) return
         voting.set(true)
@@ -163,7 +160,6 @@ inner class VoteHandler {
                 broadcast("[yellow]{type}[yellow]投票开始,输入y同意".i18n("type" to voteDesc))
                 repeat(voteTime.seconds.toInt()) {
                     delay(1000L)
-                    supportSingle = supportSingle && lastPlayerJoin < startTime
                     if (lastResetTime > startTime) return@launch
                     if (voted.size > requireNum()) {//提前结束
                         broadcast("[yellow]{type}[yellow]投票结束,投票成功.[green]{voted}/{state.playerSize}[yellow],超过[red]{require}[yellow]人"
@@ -209,5 +205,11 @@ listen<EventType.PlayerChatEvent> { e ->
 
 listen<EventType.PlayerJoin> {
     if (VoteHandler.voting.get()) return@listen
+    VoteHandler.supportSingle = false
     player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y同意".i18n("type" to VoteHandler.voteDesc))
+}
+
+listen<EventType.ResetEvent> {
+    if (VoteHandler.voting.get()) return@listen
+    lastResetTime = Time.millis()
 }
