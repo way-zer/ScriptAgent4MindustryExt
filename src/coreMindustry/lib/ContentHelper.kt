@@ -6,7 +6,6 @@ import arc.util.Log
 import cf.wayzer.placehold.PlaceHoldApi
 import cf.wayzer.placehold.PlaceHoldContext
 import cf.wayzer.script_agent.Config
-import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.util.DSLBuilder
 import mindustry.Vars
 import mindustry.entities.type.Player
@@ -24,17 +23,18 @@ object ContentHelper{
     }
 }
 enum class MsgType{Message, InfoMessage, InfoToast}
-fun IContentScript.broadcast(text:PlaceHoldContext, type: MsgType = MsgType.Message, time:Float=10f, quite: Boolean = false, players: Iterable<Player> = Vars.playerGroup){
-    if(!quite) ContentHelper.logToConsole(text.toString())
-    players.forEach{
-        if(it.con!=null)
-            it.sendMessage(text,type, time)
+fun broadcast(text: PlaceHoldContext, type: MsgType = MsgType.Message, time: Float = 10f, quite: Boolean = false, players: Iterable<Player> = Vars.playerGroup) {
+    if (!quite) ContentHelper.logToConsole(text.toString())
+    players.forEach {
+        if (it.con != null)
+            it.sendMessage(text, type, time)
     }
 }
-fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message, time: Float = 10f){
-    if(this == null) ContentHelper.logToConsole(text.toString())
+
+fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message, time: Float = 10f) {
+    if (this == null) ContentHelper.logToConsole(text.toString())
     else {
-        val msg = "{text}".with("text" to text,"_player" to this).toString()
+        val msg = "{text}".with("text" to text, "_player" to this).toString()
         when(type){
             MsgType.Message -> Call.sendMessage(this.con,msg,null,null)
             MsgType.InfoMessage -> Call.onInfoMessage(this.con, msg)

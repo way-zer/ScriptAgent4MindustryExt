@@ -38,10 +38,12 @@ object DataStoreApi {
             return DataEntity("$name@$key", db.openMap("$name@$key"))
         }
 
+        fun <K, V> subMap(key: String) = DataCollections("$name#$key", db.openMap<K, V>("$name#$key"))
         operator fun contains(key: String): Boolean = db.hasMap("$name@$key")
     }
 
     open class DataEntity(val key: String, val data: MutableMap<String, Any>)
+    open class DataCollections<K, V>(val key: String, map: MutableMap<K, V>) : MutableMap<K, V> by map
 
     fun open(filePath: String) {
         db = MVStore.Builder().fileName(filePath).compress().open()!!
