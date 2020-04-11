@@ -5,6 +5,8 @@ import mindustry.entities.type.Player
 import mindustry.net.Administration
 import java.util.*
 
+name = "基础: 管理员与禁封"
+
 val DataStoreApi.DataEntity.lastJoin by dataStoreKey("lastJoin") { Date(0) }
 var admins by config.key(emptySet<String>(), "管理员列表(UUID)")
 val pluginLog by config.key(dataDirectory.child("logs").child("secureLog.log").file()!!, "安全日记文件")

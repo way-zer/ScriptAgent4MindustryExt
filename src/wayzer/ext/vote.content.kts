@@ -1,4 +1,4 @@
-package wayzer
+package wayzer.ext
 
 import arc.util.Time
 import cf.wayzer.placehold.PlaceHoldContext
@@ -9,12 +9,13 @@ import mindustry.game.EventType
 import mindustry.gen.Call
 import mindustry.io.SaveIO
 import java.time.Duration
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 import kotlin.random.Random
 
-name = "投票功能"
+name = "投票"
 
 val voteTime by config.key(Duration.ofSeconds(60)!!, "投票时间")
 
@@ -68,7 +69,7 @@ allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
     }
 }
 
-private var lastResetTime = 0L
+private val lastResetTime by PlaceHold.reference<Date>("state.startTime")
 allSub["skipWave".toLowerCase()] = fun(_: Player, arg: String?) {
     VoteHandler.apply {
         supportSingle = true
@@ -82,7 +83,7 @@ allSub["skipWave".toLowerCase()] = fun(_: Player, arg: String?) {
                         delay(waitTime * 1000L)
                         waitTime *= 2
                     }
-                    if (lastResetTime > startTime) return@launch //Have change map
+                    if (lastResetTime.time > startTime) return@launch //Have change map
                     Core.app.post { logic.runWave() }
                     delay(waitTime * 1000L)
                 }
@@ -160,7 +161,7 @@ inner class VoteHandler {
                 broadcast("[yellow]{type}[yellow]投票开始,输入y同意".i18n("type" to voteDesc))
                 repeat(voteTime.seconds.toInt()) {
                     delay(1000L)
-                    if (lastResetTime > startTime) return@launch
+                    if (lastResetTime.time > startTime) return@launch
                     if (voted.size > requireNum()) {//提前结束
                         broadcast("[yellow]{type}[yellow]投票结束,投票成功.[green]{voted}/{state.playerSize}[yellow],超过[red]{require}[yellow]人"
                                 .i18n("type" to voteDesc, "voted" to voted.size, "require" to requireNum()))
@@ -207,9 +208,4 @@ listen<EventType.PlayerJoin> {
     if (VoteHandler.voting.get()) return@listen
     VoteHandler.supportSingle = false
     player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y同意".i18n("type" to VoteHandler.voteDesc))
-}
-
-listen<EventType.ResetEvent> {
-    if (VoteHandler.voting.get()) return@listen
-    lastResetTime = Time.millis()
 }
