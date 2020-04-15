@@ -22,6 +22,7 @@ addDefaultImport("coreMindustry.lib.*")
 generateHelper()
 
 onEnable{
+    ConfigBuilder.init(Vars.dataDirectory.child("scriptsConfig.conf").file())
     DataStoreApi.open(Vars.dataDirectory.child("scriptAgent.db").absolutePath())
 }
 
