@@ -61,7 +61,7 @@ allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
         supportSingle = true
         start("投降".i18n()) {
             world.tiles.forEach { arr ->
-                arr.forEach {
+                arr.filter { it.entity != null }.forEach {
                     Time.run(Random.nextFloat() * 60 * 6, it.entity::kill)
                 }
             }
@@ -129,7 +129,6 @@ allSub["kick"] = fun(player: Player, arg: String?) {
 fun onVote(player: Player, type: String, arg: String?) {
     if (VoteHandler.voting.get()) return player.sendMessage("[red]投票进行中".i18n())
     if (type.toLowerCase() !in allSub) return player.sendMessage("[red]请检查输入是否正确".i18n())
-    if (playerGroup.size() == 1) player.sendMessage("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票(kick除外)".i18n())
     allSub[type]!!.invoke(player, arg)
     if (VoteHandler.voting.get()) {//success
         Call.sendMessage("/vote $type ${arg ?: ""}", mindustry.core.NetClient.colorizeName(player.id, player.name), player)
@@ -150,6 +149,10 @@ inner class VoteHandler {
     lateinit var requireNum: () -> Int
     lateinit var canVote: (Player) -> Boolean
 
+    init {
+        reset()
+    }
+
     fun start(voteDesc: PlaceHoldContext, onSuccess: () -> Unit) {
         if (voting.get()) return
         voting.set(true)
@@ -157,11 +160,10 @@ inner class VoteHandler {
         supportSingle = supportSingle && playerGroup.size() <= 1
         SharedCoroutineScope.launch {
             try {
-                val startTime = Time.millis()
+                if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".i18n())
                 broadcast("[yellow]{type}[yellow]投票开始,输入y同意".i18n("type" to voteDesc))
                 repeat(voteTime.seconds.toInt()) {
                     delay(1000L)
-                    if (lastResetTime.time > startTime) return@launch
                     if (voted.size > requireNum()) {//提前结束
                         broadcast("[yellow]{type}[yellow]投票结束,投票成功.[green]{voted}/{state.playerSize}[yellow],超过[red]{require}[yellow]人"
                                 .i18n("type" to voteDesc, "voted" to voted.size, "require" to requireNum()))
@@ -196,7 +198,7 @@ inner class VoteHandler {
         if (p.uuid in voted) return p.sendMessage("[red]你已经投票".i18n())
         if (!canVote(p)) return p.sendMessage("[red]你不能对此投票".i18n())
         voted.add(p.uuid)
-        broadcast("[green]投票成功,还需{left}投票".i18n("last" to (requireNum() - requireNum() + 1)), quite = true)
+        broadcast("[green]投票成功,还需{left}人投票".i18n("left" to (requireNum() - requireNum() + 1)), quite = true)
     }
 }
 
@@ -205,7 +207,7 @@ listen<EventType.PlayerChatEvent> { e ->
 }
 
 listen<EventType.PlayerJoin> {
-    if (VoteHandler.voting.get()) return@listen
+    if (!VoteHandler.voting.get()) return@listen
     VoteHandler.supportSingle = false
     player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y同意".i18n("type" to VoteHandler.voteDesc))
 }

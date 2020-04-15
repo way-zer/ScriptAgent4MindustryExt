@@ -27,8 +27,7 @@ inner class MapManager : SharedData.IMapManager {
     override val maps: Array<Map>
         get() {
             Vars.maps.reload()
-            @Suppress("ConstantConditionIf")
-            return if (configEnableInternMaps) Vars.maps.all().items else Vars.maps.customMaps()!!.items
+            return if (configEnableInternMaps) Vars.maps.all().toArray(Map::class.java) else Vars.maps.customMaps()!!.toArray(Map::class.java)
         }
 
     override fun loadMap(map: Map, mode: Gamemode) {
@@ -125,7 +124,7 @@ command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, 
 }
 onEnable {
     //hack to stop origin gameOver logic
-    val control = Core.app.listeners.find { it.javaClass.simpleName == "SererControl" }
+    val control = Core.app.listeners.find { it.javaClass.simpleName == "ServerControl" }
     val field = control.javaClass.getDeclaredField("inExtraRound")
     field.apply {
         isAccessible = true
@@ -138,7 +137,7 @@ val gameOverMsgType by config.key(MsgType.InfoMessage, "游戏结束消息是显
 listen<EventType.GameOverEvent> { event ->
     ContentHelper.logToConsole(
             if (state.rules.pvp) "&lcGame over! Team &ly${event.winner.name}&lc is victorious with &ly${playerGroup.size()}&lc players online on map &ly${world.map.name()}&lc."
-            else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${playerGroup.size()}&lc players online on map &ly${Vars()}&lc."
+            else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${playerGroup.size()}&lc players online on map &ly${world.map.name()}&lc."
     )
     val map = MapManager.nextMap(world.map)
     val winnerMsg: Any = if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".i18n("team" to event.winner) else ""

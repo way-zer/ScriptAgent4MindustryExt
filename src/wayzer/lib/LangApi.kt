@@ -10,20 +10,24 @@ import java.util.*
 object LangApi{
     const val DEFAULT = "default"
     const val COMMENT = """
-        |Auto generated(自动生成的文件)
-        |backup before modify(修改前注意备份)
+        |# Auto generated(自动生成的文件)
+        |# backup before modify(修改前注意备份)
+        |
     """
     class Lang(val lang:String):Properties(){
         val file: File get() = Vars.dataDirectory.child("lang").child("$lang.properties").file()
         init {
             if (file.exists())file.reader().use(this::load)
         }
-        fun save(){
+        fun save() {
             file.parentFile.mkdirs()
-            file.writer().use { store(it, COMMENT.trimMargin()) }
+            file.writer().use {
+                it.write(COMMENT.trimMargin())
+                store(it, null)
+            }
         }
         fun trans(origin: String):String = getProperty(origin.hashCode().toString())?:let{
-            put(origin.hashCode(),origin)
+            put("HASH" + origin.hashCode().toString(), origin)
             save()
             origin
         }

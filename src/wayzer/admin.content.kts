@@ -1,11 +1,14 @@
 package wayzer
 
+import arc.util.Time
 import mindustry.entities.type.Player
+import mindustry.game.EventType
+import mindustry.net.Packets
 import java.util.*
 
 name = "基础: 管理员与禁封"
 
-var admins by config.key(emptySet<String>(), "管理员列表(UUID)")
+var admins by config.key<Set<String>>(hashSetOf<String>(), "管理员列表(UUID)")
 val pluginLog by config.key(dataDirectory.child("logs").child("secureLog.log").file()!!, "安全日记文件")
 
 @Suppress("PropertyName")
@@ -30,6 +33,11 @@ inner class Admin : SharedData.IAdmin {
     }
 }
 SharedData.admin = Admin
+
+listen<EventType.PlayerBanEvent> {
+    it.player?.info?.lastKicked = Time.millis()
+    it.player?.con?.kick(Packets.KickReason.banned)
+}
 
 command("list", "列出当前玩家") { _, p ->
     val list = playerGroup.all().map {
@@ -73,7 +81,7 @@ command("madmin", "列出或添加删除管理", "[uuid]", CommandType.Server) {
             admins = admins - uuid
             return@command p.sendMessage("[red]$uuid [green] has been removed from Admins[]")
         }
-        val info = netServer.admins.getInfo(uuid)
+        val info = netServer.admins.getInfoOptional(uuid)
                 ?: return@command p.sendMessage("[red]Can't found player")
         admins = admins + uuid
         p.sendMessage("[red] ${info.lastName}($uuid) [green] has been added to Admins")
