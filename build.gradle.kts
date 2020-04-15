@@ -42,7 +42,7 @@ dependencies {
     implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
 
     //coreLibrary
-    api("cf.wayzer:PlaceHoldLib:2.0")
+    api("cf.wayzer:PlaceHoldLib:2.1.0")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1")
     implementation("com.h2database:h2-mvstore:1.4.200")
     implementation("io.github.config4k:config4k:0.4.1")
