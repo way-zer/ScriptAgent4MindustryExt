@@ -121,7 +121,7 @@ command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, 
             |{list}
             |[green]===[white] {page}/{totalPage} [green]===
         """.trimMargin().i18n("list" to list, "page" to page,
-            "totalPage" to ceil(MapManager.maps.size / mapsPrePage.toDouble()).toInt())
+            "totalPage" to ceil(MapManager.maps.size / mapsPrePage.toDouble()).toInt()))
 }
 onEnable {
     //hack to stop origin gameOver logic
@@ -174,5 +174,5 @@ command("load", "管理指令: 加载存档", "<slot>") { arg, p ->
     if (!file.exists() || !SaveIO.isSaveValid(file))
         return@command p.sendMessage("[red]存档不存在或者损坏")
     MapManager.loadSave(file)
-    broadcast("[green]强制加载存档{slot}".i18n("slot" to arg[0])
+    broadcast("[green]强制加载存档{slot}".i18n("slot" to arg[0]))
 }
