@@ -14,23 +14,23 @@ import cf.wayzer.script_agent.IBaseScript
 import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.util.DSLBuilder
 import com.typesafe.config.*
-import com.typesafe.config.Config
 import io.github.config4k.ClassContainer
 import io.github.config4k.TypeReference
 import io.github.config4k.readers.SelectReader
 import java.io.File
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 open class ConfigBuilder(private val path: String) {
     /**
      * @param desc only display the first line using command
      */
-    data class ConfigKey<T : Any>(val path: String, val default: T, val desc: List<String>) {
+    data class ConfigKey<T : Any>(val path: String, val cls: ClassContainer, val default: T, val desc: List<String>) {
+
         fun get(): T {
-            val v = fileConfig.extract(default::class,path) ?: return default
-            if(default.javaClass.isInstance(v))
-                return default.javaClass.cast(v)
+            val v = fileConfig.extract(cls, path) ?: return default
+            @Suppress("UNCHECKED_CAST")
+            if (cls.mapperClass.isInstance(v))
+                return v as T
             error("Wrong config type: $path get $v")
         }
 
@@ -44,6 +44,7 @@ open class ConfigBuilder(private val path: String) {
             }
             saveFile()
         }
+
         fun getString(): String {
             return ConfigFactory.parseMap(mapOf(path to get())).getValue(path).render()
         }
@@ -52,10 +53,10 @@ open class ConfigBuilder(private val path: String) {
          * @return format like [getString]
          * @throws IllegalArgumentException when parse fail
          */
-        fun setString(strV:String):String{
+        fun setString(strV: String): String {
             val str = "$path = $strV"
-            val v = ConfigFactory.parseString(str).extract(default::class,path)
-            if(default.javaClass.isInstance(v)){
+            val v = ConfigFactory.parseString(str).extract(cls, path)
+            if (default.javaClass.isInstance(v)) {
                 set(default.javaClass.cast(v))
                 return str
             }
@@ -64,23 +65,28 @@ open class ConfigBuilder(private val path: String) {
 
         operator fun getValue(thisRef: Any?, prop: KProperty<*>) = get()
         operator fun setValue(thisRef: Any?, prop: KProperty<*>, v: T) = set(v)
-        companion object{
+
+        companion object {
             /**
              * Copy from config4k as can't use reified param
              */
-            fun <T:Any> Config.extract(cls: KClass<T>, path: String):Any?{
-                if(!hasPath(path))return null
-                val genericType = object : TypeReference<T>() {}.genericType()
-                return SelectReader.getReader(ClassContainer(cls, genericType)).invoke(this,path)
+            fun Config.extract(cls: ClassContainer, path: String): Any? {
+                if (!hasPath(path)) return null
+                return SelectReader.getReader(cls).invoke(this, path)
             }
         }
     }
 
     fun child(sub: String) = ConfigBuilder("$path.$sub")
-    fun <T:Any> key(default: T, vararg desc: String) = DSLBuilder.Companion.ProvideDelegate<IBaseScript,ConfigKey<T>>{script,name->
-        val key = ConfigKey("$path.$name", default, desc.toList())
+    fun <T : Any> key(cls: ClassContainer, default: T, vararg desc: String) = DSLBuilder.Companion.ProvideDelegate<IBaseScript, ConfigKey<T>> { script, name ->
+        val key = ConfigKey("$path.$name", cls, default, desc.toList())
         script.configs.add(key)
         return@ProvideDelegate key
+    }
+
+    inline fun <reified T : Any> key(default: T, vararg desc: String): DSLBuilder.Companion.ProvideDelegate<IBaseScript, ConfigKey<T>> {
+        val genericType = object : TypeReference<T>() {}.genericType()
+        return key(ClassContainer(T::class, genericType), default, *desc)
     }
 
     companion object {
