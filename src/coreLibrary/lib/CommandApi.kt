@@ -54,6 +54,9 @@ open class ICommand<S : ISender<*>>(
     }
 }
 
+/**
+ * For rootCommand,can overwrite [addSub] and [removeSub]
+ */
 @Suppress("MemberVisibilityCanBePrivate")
 open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, description: String, aliases: List<String> = emptyList()) : ICommand<S>(
         script, name, description, "[help]", aliases, {}
@@ -64,7 +67,7 @@ open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, descrip
         cmd.handle(sender, arg.subList(1, arg.size), prefix + " " + cmd.name)
     }
 
-    private fun addSub(name: String, command: ICommand<in S>, isAliases: Boolean) {
+    protected open fun addSub(name: String, command: ICommand<in S>, isAliases: Boolean) {
         val existed = subCommands[name.toLowerCase()] ?: let {
             subCommands[name.toLowerCase()] = command
             return
@@ -77,11 +80,15 @@ open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, descrip
         }
     }
 
-    open fun addSub(command: ICommand<in S>) {
+    fun addSub(command: ICommand<in S>) {
         addSub(command.name, command, false)
         command.aliases.forEach {
             addSub(it, command, true)
         }
+    }
+
+    protected open fun removeSub(name: String) {
+        subCommands.remove(name)
     }
 
     open fun removeAll(script: IContentScript) {
@@ -89,7 +96,7 @@ open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, descrip
         subCommands.forEach { (k, s) ->
             if (s.script == script) toRemove.add(k)
         }
-        toRemove.forEach { subCommands.remove(it) }
+        toRemove.forEach(::removeSub)
     }
 
     init {
