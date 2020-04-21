@@ -5,10 +5,7 @@ package coreMindustry.lib
 import arc.util.CommandHandler
 import arc.util.Log
 import cf.wayzer.script_agent.Config
-import coreLibrary.lib.ICommand
-import coreLibrary.lib.ICommands
-import coreLibrary.lib.ISender
-import coreLibrary.lib.PlaceHoldString
+import coreLibrary.lib.*
 import mindustry.entities.type.Player
 
 /**

@@ -3,10 +3,10 @@ package coreMindustry.lib
 import arc.util.ColorCodes
 import arc.util.CommandHandler
 import arc.util.Log
-import cf.wayzer.placehold.PlaceHoldApi
 import cf.wayzer.placehold.PlaceHoldContext
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.util.DSLBuilder
+import coreLibrary.lib.with
 import mindustry.Vars
 import mindustry.entities.type.Player
 import mindustry.gen.Call
@@ -43,7 +43,6 @@ fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message,
     }
 }
 fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) = sendMessage(text.with(),type,time)
-fun String.with(vararg arg:Pair<String,Any>) = PlaceHoldApi.getContext(this,arg.toMap())
 
 val Config.clientCommands by DSLBuilder.dataKeyWithDefault<CommandHandler>{Vars.netServer.clientCommands}
 val Config.serverCommands by DSLBuilder.dataKeyWithDefault<CommandHandler>{ error("Can't find serverCommands")}
