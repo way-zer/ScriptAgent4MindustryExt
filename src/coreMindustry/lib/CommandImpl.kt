@@ -28,10 +28,10 @@ class RootCommands(private val mindustryHandler: CommandHandler) : Commands(null
     override fun addSub(name: String, command: ICommand<in Sender>, isAliases: Boolean) {
         if (command is ICommands<*>.HelpCommand) return //RootCommands don't need help
         removeSub(name)
-        mindustryHandler.register(name, command.usage, command.description) { arg, player: Player? ->
+        mindustryHandler.register(name, "[arg...]", command.description) { arg, player: Player? ->
             val sender = Sender(player)
             try {
-                command.handle(sender, arg.toList(), "/$name")
+                command.handle(sender, arg.getOrNull(0)?.split(' ') ?: emptyList(), "/$name")
             } catch (e: Throwable) {
                 Log.err("Execute command $name(${command.script?.clsName}) error", e)
                 sender.sendMessage("[red]error happen when execute command!".with())

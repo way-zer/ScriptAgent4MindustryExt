@@ -64,7 +64,7 @@ open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, descrip
     protected val subCommands = mutableMapOf<String, ICommand<in S>>()
     override fun handle(sender: S, arg: List<String>, prefix: String) {
         val cmd: ICommand<in S> = subCommands[arg.getOrNull(0)?.toLowerCase()] ?: subCommands["help"]!!
-        cmd.handle(sender, arg.subList(1, arg.size), prefix + " " + cmd.name)
+        cmd.handle(sender, if (arg.isNotEmpty()) arg.subList(1, arg.size) else emptyList(), prefix + " " + cmd.name)
     }
 
     protected open fun addSub(name: String, command: ICommand<in S>, isAliases: Boolean) {
@@ -107,7 +107,7 @@ open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, descrip
         override fun handle(sender: ISender<*>, arg: List<String>, prefix: String) {//Need to use prefix
             //TODO abstract for COLOR
             val list = subCommands.values.map {
-                "[purple]{prefix} {name}[maroon]({aliases}) [purple]{usage} [magenta]{desc} [purple]FROM [violet]{script}\n".with("prefix" to prefix, "name" to it.name, "aliases" to aliases.joinToString(),
+                "[purple]{prefix} {name}[maroon]({aliases}) [purple]{usage} [magenta]{desc} [purple]FROM [violet]{script}\n".with("prefix" to prefix.removeSuffix(" help"), "name" to it.name, "aliases" to aliases.joinToString(),
                         "usage" to it.usage, "desc" to it.description, "script" to (it.script?.clsName ?: "UNKNOWN"))
             }
             sender.sendMessage("""
