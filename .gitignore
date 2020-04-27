@@ -90,3 +90,5 @@ fabric.properties
 /scripts/libs/
 /libs/
 /data/
+.cache.jar
+.idea
