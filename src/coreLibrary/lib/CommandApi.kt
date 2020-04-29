@@ -106,14 +106,18 @@ open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, descrip
     inner class HelpCommand : ICommand<ISender<*>>(null, "help", "帮助", handle = {}) {
         override fun handle(sender: ISender<*>, arg: List<String>, prefix: String) {//Need to use prefix
             //TODO abstract for COLOR
-            val list = subCommands.values.map {
-                "[purple]{prefix} {name}[maroon]({aliases}) [purple]{usage} [magenta]{desc} [purple]FROM [violet]{script}\n".with("prefix" to prefix.removeSuffix(" help"), "name" to it.name, "aliases" to aliases.joinToString(),
-                        "usage" to it.usage, "desc" to it.description, "script" to (it.script?.clsName ?: "UNKNOWN"))
+            val list = subCommands.values.toSet().map {
+                "[purple]{prefix} {name}[blue]({aliases}) [purple]{usage} [light_purple]{desc} [purple]FROM [light_purple]{script}\n".with(
+                        "prefix" to prefix.removeSuffix(" help"), "name" to it.name, "aliases" to it.aliases.joinToString(),
+                        "usage" to it.usage, "desc" to it.description, "script" to (it.script?.clsName ?: "UNKNOWN")
+                )
             }
-            sender.sendMessage("""
-                [goldenrod]==== [gold]{name}[goldenrod] ====
+            sender.sendMessage(
+                    """
+                [yellow]==== [light_yellow]{name}[yellow] ====
                 {list}
-            """.trimIndent().with("list" to list, "name" to name))
+            """.trimIndent().with("list" to list, "name" to name)
+            )
         }
     }
 }

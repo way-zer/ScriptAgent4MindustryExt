@@ -18,7 +18,11 @@ class Sender(override val player: Player?) : ISender<Player?> {
     }
 
     fun sendMessage(text: PlaceHoldString, type: MsgType = MsgType.Message, time: Float = 10f) {
-        player.sendMessage(text, type, time)
+        if (player == null) {
+            println(ColorApi.handle("$text[RESET]", ColorApi::consoleColorHandler))
+        } else {
+            player.sendMessage("{msg}".with("msg" to text, "player" to player), type, time)
+        }
     }
 }
 typealias Command = ICommand<Sender>

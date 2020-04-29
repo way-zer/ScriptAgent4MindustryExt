@@ -9,32 +9,35 @@ import coreLibrary.lib.ICommands
 import coreLibrary.lib.ISender
 import coreLibrary.lib.with
 
-class ControlCommand<S : ISender<*>>(val checkPermission: S.() -> Boolean) : ICommands<S>(null, "ScriptAgent", "ScriptAgent 控制指令", listOf("sa")) {
-    //TODO abstract for COLOR
+class ControlCommand<S : ISender<*>>(val checkPermission: S.() -> Boolean) :
+        ICommands<S>(null, "ScriptAgent", "ScriptAgent 控制指令", listOf("sa")) {
     private val manager = Config.inst
 
     init {
-        addSub(ICommand(null, "mods", "列出所有模块") {
+        addSub(ICommand(null, "list", "列出所有模块或模块内所有脚本", "[module]") { arg ->
             if (!checkPermission(this)) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
-            val list = manager.loadedInitScripts.values.map {
-                "[purple]{name} [magenta]{desc}\n".with("name" to it.clsName.padEnd(20), "desc" to it.name)
+            if (arg.isEmpty()) {
+                val list = manager.loadedInitScripts.values.map {
+                    "[purple]{name} [blue]{desc}\n".with("name" to it.clsName.padEnd(20), "desc" to it.name)
+                }
+                return@ICommand sendMessage(
+                        """
+                    [yellow]==== [light_yellow]已加载模块[yellow] ====
+                    {list}
+                """.trimIndent().with("list" to list)
+                )
             }
-            sendMessage("""
-                [goldenrod]==== [gold]已加载模块[goldenrod] ====
-                {list}
-            """.trimIndent().with("list" to list))
-        })
-        addSub(ICommand(null, "list", "列出模块内所有脚本", "<module>") { arg ->
-            if (!checkPermission(this)) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
-            val module = arg.getOrNull(0)?.let(::getScript)?.let { it as? IInitScript }
+            val module = arg[0].let(::getScript)?.let { it as? IInitScript }
                     ?: return@ICommand sendMessage("[red]找不到模块".with())
             val list = module.children.map {
-                "[purple]{name} [magenta]{desc}\n".with("name" to it.clsName.padEnd(20), "desc" to it.name)
+                "[purple]{name} [blue]{desc}\n".with("name" to it.clsName.padEnd(20), "desc" to it.name)
             }
-            sendMessage("""
-                [goldenrod]==== [gold]{module}脚本[goldenrod] ====
+            sendMessage(
+                    """
+                [yellow]==== [light_yellow]{module}脚本[yellow] ====
                 {list}
-            """.trimIndent().with("module" to module.name, "list" to list))
+            """.trimIndent().with("module" to module.name, "list" to list)
+            )
         })
         addSub(ICommand(null, "reload", "重载一个脚本或者模块", "<module[/script]>") { arg ->
             if (!checkPermission(this)) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
