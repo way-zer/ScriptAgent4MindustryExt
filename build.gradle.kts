@@ -22,6 +22,7 @@ gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPlugin
 repositories {
     mavenLocal()
     mavenCentral()
+    jcenter()
     maven(url = "https://www.jitpack.io")
     maven("https://dl.bintray.com/way-zer/maven")
 }
@@ -46,6 +47,8 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1")
     implementation("com.h2database:h2-mvstore:1.4.200")
     implementation("io.github.config4k:config4k:0.4.1")
+    //mirai
+    implementation("net.mamoe:mirai-core:0.39.5")
 }
 
 tasks {
