@@ -6,11 +6,10 @@ import arc.struct.Array
 import arc.struct.ObjectMap
 import arc.util.Log
 import cf.wayzer.script_agent.Config
-import coreMindustry.lib.ContentExt
+import coreLibrary.lib.commands.ControlCommand
+import coreMindustry.lib.*
 import coreMindustry.lib.ContentExt.allCommands
 import coreMindustry.lib.ContentExt.listener
-import coreMindustry.lib.clientCommands
-import coreMindustry.lib.serverCommands
 import mindustry.Vars
 
 name = "Mindustry 核心脚本模块"
@@ -24,6 +23,9 @@ generateHelper()
 onEnable{
     ConfigBuilder.init(Vars.dataDirectory.child("scriptsConfig.conf").file())
     DataStoreApi.open(Vars.dataDirectory.child("scriptAgent.db").absolutePath())
+
+    clientRootCommands.addSub(ControlCommand { player == null || player.isAdmin })
+    serverRootCommands.addSub(ControlCommand { player == null || player.isAdmin })
 }
 
 onDisable{

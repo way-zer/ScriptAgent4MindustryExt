@@ -1,11 +1,11 @@
 package cf.wayzer
 
 import arc.util.CommandHandler
+import cf.wayzer.ConfigExt.clientCommands
+import cf.wayzer.ConfigExt.serverCommands
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.ScriptAgent
 import cf.wayzer.script_agent.ScriptManager
-import cf.wayzer.ConfigExt.clientCommands
-import cf.wayzer.ConfigExt.serverCommands
 import mindustry.Vars
 import mindustry.plugin.Plugin
 
@@ -22,6 +22,6 @@ class ScriptAgent4Mindustry: Plugin() {
     }
 
     override fun init() {
-        ScriptManager().loadDir(Vars.dataDirectory.child("scripts").file())
+        ScriptManager.loadDir(Vars.dataDirectory.child("scripts").file())
     }
 }
