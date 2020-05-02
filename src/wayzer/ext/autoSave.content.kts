@@ -29,6 +29,7 @@ val nextSaveTime: Date
     }
 
 fun saveMap(task: TimerTask) {
+    if (!enabled) return
     if (state.`is`(GameState.State.playing)) {
         val minute = ((task.scheduledExecutionTime() / TimeUnit.MINUTES.toMillis(1)) % 60).toInt() //Get the minute
         Core.app.post {

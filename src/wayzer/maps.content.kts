@@ -1,6 +1,7 @@
 package wayzer
 
 import arc.files.Fi
+import cf.wayzer.placehold.DynamicVar
 import mindustry.Vars
 import mindustry.game.EventType
 import mindustry.game.Gamemode
@@ -95,19 +96,23 @@ inner class MapManager : SharedData.IMapManager {
     }
 }
 SharedData.mapManager = MapManager
+PlaceHold.registerForType<Map>(this).apply {
+    registerChild("id", "在/maps中的id", DynamicVar { obj, _ ->
+        MapManager.maps.indexOf(obj) + 1
+    })
+}
 
 command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, p ->
     val mode: Gamemode? = arg.getOrNull(0).let {
         when {
-            !mapsDistinguishMode -> null
             "pvp".equals(it, true) -> Gamemode.pvp
             "attack".equals(it, true) -> Gamemode.attack
             "all".equals(it, true) -> null
-            else -> Gamemode.survival
+            else -> Gamemode.survival.takeIf { mapsDistinguishMode }
         }
     }
     val page = arg.lastOrNull()?.toIntOrNull() ?: 1
-    p.sendMessage("[yellow]默认只显示所有生存图,输入[green]/maps pvp[yellow]显示pvp图,[green]/maps attack[yellow]显示攻城图[green]/maps all[yellow]显示所有".i18n())
+    if (mapsDistinguishMode) p.sendMessage("[yellow]默认只显示所有生存图,输入[green]/maps pvp[yellow]显示pvp图,[green]/maps attack[yellow]显示攻城图[green]/maps all[yellow]显示所有".i18n())
     val list = MapManager.maps.mapIndexed { index, map -> (index + 1) to map }
             .filter { mode == null || MapManager.bestMode(it.second) == mode }
             .page(page, mapsPrePage).map { (id, map) ->
@@ -120,7 +125,7 @@ command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, 
             |{list}
             |[green]===[white] {page}/{totalPage} [green]===
         """.trimMargin().i18n("list" to list, "page" to page,
-            "totalPage" to ceil(MapManager.maps.size / mapsPrePage.toDouble()).toInt()))
+            "totalPage" to ceil(list.size / mapsPrePage.toDouble()).toInt()))
 }
 onEnable {
     //hack to stop origin gameOver logic
