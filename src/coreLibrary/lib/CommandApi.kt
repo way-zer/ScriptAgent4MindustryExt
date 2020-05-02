@@ -2,6 +2,8 @@ package coreLibrary.lib
 
 import cf.wayzer.script_agent.IBaseScript
 import cf.wayzer.script_agent.IContentScript
+import coreLibrary.lib.commands.IControlCommands
+import coreLibrary.lib.util.Provider
 import java.util.logging.Logger
 
 /**
@@ -16,6 +18,7 @@ import java.util.logging.Logger
 
 interface ISender<G> {
     fun sendMessage(msg: PlaceHoldString)
+    fun hasPermission(node: String): Boolean
     val player: G
 }
 
@@ -105,7 +108,6 @@ open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, descrip
 
     inner class HelpCommand : ICommand<ISender<*>>(null, "help", "帮助", handle = {}) {
         override fun handle(sender: ISender<*>, arg: List<String>, prefix: String) {//Need to use prefix
-            //TODO abstract for COLOR
             val list = subCommands.values.toSet().map {
                 "[purple]{prefix} {name}[blue]({aliases}) [purple]{usage} [light_purple]{desc} [purple]FROM [light_purple]{script}\n".with(
                         "prefix" to prefix.removeSuffix(" help"), "name" to it.name, "aliases" to it.aliases.joinToString(),
@@ -118,6 +120,17 @@ open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, descrip
                 {list}
             """.trimIndent().with("list" to list, "name" to name)
             )
+        }
+    }
+
+    companion object {
+        val rootProvider = Provider<ICommands<out ISender<*>>>()
+        val controlCommand = IControlCommands()
+
+        init {
+            rootProvider.every {
+                it.addSub(controlCommand)
+            }
         }
     }
 }
