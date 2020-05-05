@@ -1,4 +1,4 @@
-@file:DependsModule("coreMindustry")
+@file:DependsModule("coreLibrary")
 @file:MavenDepends("net.mamoe:mirai-core:0.39.5", single = false)
 @file:MavenDepends("net.mamoe:mirai-core-qqandroid:0.39.5", single = false)
 
@@ -40,6 +40,9 @@ onEnable {
                 }
                 SimpleLogger.LogPriority.ERROR -> {
                     Log.err("[$it]$msg", throwable)
+                }
+                else -> {
+                    // ignore
                 }
             }
         }

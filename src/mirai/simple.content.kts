@@ -1,4 +1,4 @@
-import net.mamoe.mirai.message.data.At
+package mirai
 
 botListen<GroupMessage> {
     if (message.contentToString().contains("hello", true)) {
