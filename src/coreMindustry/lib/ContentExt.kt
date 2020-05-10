@@ -3,7 +3,6 @@ package coreMindustry.lib
 import arc.func.Cons
 import arc.util.Log
 import cf.wayzer.script_agent.IContentScript
-import cf.wayzer.script_agent.content.ContentScript
 import cf.wayzer.script_agent.util.DSLBuilder.Companion.dataKeyWithDefault
 import coreMindustry.lib.ContentExt.allCommands
 import coreMindustry.lib.ContentExt.listener
@@ -43,11 +42,11 @@ enum class CommandType {
     fun server() = this == Server || this == Both
 }
 
-inline fun <reified T : Any> ContentScript.listen(noinline handler: (T) -> Unit) {
+inline fun <reified T : Any> IContentScript.listen(noinline handler: (T) -> Unit) {
     listener.add(ContentExt.Listener(this, T::class.java, handler))
 }
 
-fun ContentScript.command(
+fun IContentScript.command(
         name: String,
         description: String,
         param: String = "",

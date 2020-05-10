@@ -10,7 +10,7 @@ class Provider<T> {
         if (_data == null) {
             onceListener.add(body)
         } else {
-            body(_data!!);
+            body(_data!!)
         }
     }
 
@@ -40,5 +40,5 @@ class Provider<T> {
     fun get(): T? = _data
 
     @Throws(TypeCastException::class, NullPointerException::class)
-    inline operator fun <reified G : T> invoke() = get()!! as T
+    inline operator fun <reified G : T> invoke() = get()!! as G
 }
