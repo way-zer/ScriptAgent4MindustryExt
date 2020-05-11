@@ -9,7 +9,8 @@ onEnable {
             if (!hasPermission("scriptAgent.control.list")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
             if (arg.isEmpty()) {
                 val list = manager.loadedInitScripts.values.map {
-                    "[purple]{name} [blue]{desc}\n".with("name" to it.clsName.padEnd(20), "desc" to it.name)
+                    val enable = if (it.enabled) "purple" else "reset"
+                    "[{enable}]{name} [blue]{desc}\n".with("enable" to enable, "name" to it.id.padEnd(20), "desc" to it.name)
                 }
                 return@ICommand sendMessage(
                         """
@@ -21,7 +22,8 @@ onEnable {
             val module = arg[0].let(::getScript)?.let { it as? IInitScript }
                     ?: return@ICommand sendMessage("[red]找不到模块".with())
             val list = module.children.map {
-                "[purple]{name} [blue]{desc}\n".with("name" to it.clsName.padEnd(20), "desc" to it.name)
+                val enable = if (it.enabled) "purple" else "reset"
+                "[{enable}]{name} [blue]{desc}\n".with("enable" to enable, "name" to it.id.padEnd(30), "desc" to it.name)
             }
             sendMessage(
                     """

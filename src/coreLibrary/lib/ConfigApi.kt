@@ -55,8 +55,9 @@ open class ConfigBuilder(private val path: String) {
         fun setString(strV: String): String {
             val str = "$path = $strV"
             val v = ConfigFactory.parseString(str).extract(cls, path)
-            if (default.javaClass.isInstance(v)) {
-                set(default.javaClass.cast(v))
+            if (cls.mapperClass.isInstance(v)) {
+                @Suppress("UNCHECKED_CAST")
+                set(v as T)
                 return str
             }
             throw IllegalArgumentException("Parse \"$str\" fail: get $v")
@@ -110,4 +111,4 @@ open class ConfigBuilder(private val path: String) {
 }
 
 val globalConfig = ConfigBuilder("global")
-val IBaseScript.config get() = ConfigBuilder("scripts.${clsName}")
+val IBaseScript.config get() = ConfigBuilder(id.replace('/', '.'))
