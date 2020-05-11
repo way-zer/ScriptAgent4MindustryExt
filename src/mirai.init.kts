@@ -41,6 +41,10 @@ onEnable {
                 SimpleLogger.LogPriority.ERROR -> {
                     Log.err("[$it]$msg", throwable)
                 }
+                SimpleLogger.LogPriority.INFO -> {
+                    if (it?.startsWith("Bot") == true)
+                        Log.info("[$it]$msg", throwable)
+                }
                 else -> {
                     // ignore
                 }

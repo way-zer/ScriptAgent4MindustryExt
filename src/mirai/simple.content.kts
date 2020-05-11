@@ -1,7 +1,5 @@
 package mirai
 
-import kotlinx.coroutines.launch
-
 botListen<GroupMessage> {
     if (message.contentToString().contains("hello", true)) {
         quoteReply(buildMessageChain {
