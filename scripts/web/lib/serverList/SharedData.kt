@@ -6,10 +6,14 @@ import kotlinx.coroutines.launch
 
 object SharedData {
     val servers = mutableMapOf<String, PingUtil.Info>()//address->info
-    fun add(addressWithPort: String) {
+    fun add(addressWithPort: String): String {
         if (servers.containsKey(addressWithPort.removeSuffix(":6567"))) error("Replicate server")
         val info = PingUtil.ping(addressWithPort)
+        if (servers.values.find { it.name == info.name } != null) {
+            return "服务器已存在"
+        }
         servers[info.address] = info
+        return "OK"
     }
 
 

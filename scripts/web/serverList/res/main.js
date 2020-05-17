@@ -25,7 +25,7 @@ function colorize(text) {
                 '': 'black',
 
                 white: 'black',
-                lightgray: '#bfbfbfff',
+                lightgray: '#898989',
                 gray: '#7f7f7fff',
                 darkgray: '#3f3f3fff',
                 black: 'black',
@@ -35,41 +35,41 @@ function colorize(text) {
                 navy: '#00007fff',
                 royal: '#4169e1ff',
                 slate: '#708090ff',
-                sky: '#87ceebff',
-                cyan: '#00ffffff',
+                sky: '#6eafc4',
+                cyan: '#00b3b3',
                 teal: '#007f7fff',
 
-                green: '#00ff00ff',
-                acid: '#7fff00ff',
-                lime: '#32cd32ff',
+                green: '#009900',
+                acid: '#59b300',
+                lime: '#259925',
                 forest: '#228b22ff',
                 olive: '#6b8e23ff',
 
-                yellow: '#ffff00ff',
-                gold: '#ffd700ff',
+                yellow: '#bfbf00',
+                gold: '#bf9f00',
                 goldenrod: '#daa520ff',
-                orange: '#ffa500ff',
+                orange: '#cc8500',
 
                 brown: '#8b4513ff',
-                tan: '#d2b48cff',
+                tan: '#d2b48c',
                 brick: '#b22222ff',
 
-                red: '#ff0000ff',
+                red: '#bf0000',
                 scarlet: '#ff341cff',
-                coral: '#ff7f50ff',
-                salmon: '#fa8072ff',
-                pink: '#ff69b4ff',
+                coral: '#cc653f',
+                salmon: '#cc695e',
+                pink: '#cc5490',
                 magenta: '#7f007fff',
 
-                purple: '#a020f0ff',
-                violet: '#ee82eeff',
+                purple: '#a020f0',
+                violet: '#cc70cc',
                 maroon: '#b03060ff',
 
                 // alias?
-                crimson: '#ff341cff', // scarlet
+                crimson: '#bf2615', // scarlet
 
                 // special
-                accent: '#ffcb39ff'
+                accent: '#bf972a'
             };
             return colors[str.toLowerCase()]
         }
@@ -91,11 +91,11 @@ let maxVersion = 0;
 table.render({
     elem: "#main",
     url: "/servers/list",
-    initSort: {
-        field: 'players', type: 'desc'
-    },
+    // initSort: {
+    //     field: 'players', type: 'desc'
+    // },
     cols: [[
-        {field: 'address', title: '地址', minWidth: 140, sort: true, fixed: 'left'},
+        {field: 'address', title: '地址', minWidth: 150, sort: true, fixed: 'left'},
         {
             field: 'name', title: '名字', minWidth: 260, templet(d) {
                 return colorize(d.name);
@@ -155,14 +155,15 @@ table.render({
             }
         },
         {
-            field: 'lastUpdate', title: '最后更新时间', minWidth: 130, templet(d) {
-                return ((Date.now() - d.lastUpdate) / 1000).toFixed(1) + " 秒前"
+            field: 'lastOnline', title: '最后在线时间', minWidth: 130, templet(d) {
+                return ((Date.now() - d.lastOnline) / 1000).toFixed(1) + " 秒前"
             }
         },
     ]],
     parseData(res) {
         res.forEach(e => {
-            maxVersion = Math.max(maxVersion, e.version)
+            if (e.version < 1000)
+                maxVersion = Math.max(maxVersion, e.version)
         });
         return {
             code: 0,
@@ -188,6 +189,8 @@ $("#openAdd").click(function () {
         }).error((jqXHR, textStatus, exception) => {
             if (jqXHR.status === 406) {
                 layer.alert("连接失败,请检查地址是否正确")
+            } else if (jqXHR.status === 403) {
+                layer.alert("错误: " + jqXHR.responseText);
             } else {
                 layer.alert("添加失败: " + textStatus);
                 console.error(exception)

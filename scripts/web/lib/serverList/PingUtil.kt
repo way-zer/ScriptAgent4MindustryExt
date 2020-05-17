@@ -23,13 +23,14 @@ object PingUtil {
         val limit: Int,
         val description: String,
         val timeMs: Int,
+        val lastOnline: Long,
         var online: Boolean,
         var lastUpdate: Long
     ) {
         constructor(address: String, timeMs: Int, buffer: ByteBuffer) : this(
             buffer.string, address, buffer.string, buffer.int, buffer.int, buffer.int,
             buffer.string, GameMode.values()[buffer.get().toInt()], buffer.int, buffer.string,
-            timeMs, true, System.currentTimeMillis()
+            timeMs, System.currentTimeMillis(), true, System.currentTimeMillis()
         )
 
         companion object {
@@ -49,7 +50,7 @@ object PingUtil {
         val port = sp.getOrNull(1)?.toIntOrNull() ?: 6567
         val socket = DatagramSocket()
         socket.send(DatagramPacket(byteArrayOf(-2, 1), 2, InetAddress.getByName(sp[0]), port))
-        socket.soTimeout = 2000
+        socket.soTimeout = 5000
         val packet = DatagramPacket(ByteArray(512), 512)
         val start = System.currentTimeMillis()
         socket.receive(packet)
