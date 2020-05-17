@@ -14,7 +14,11 @@ typealias Command = ICommand<Sender>
 
 object RootCommands : ICommands<Sender>(null, "Root", "") {
     fun handle(sender: Sender, text: String) {
-        handle(sender, text.split(' ').toList(), "*")
+        try {
+            handle(sender, text.split(' ').toList(), "*")
+        } catch (e: Throwable) {
+            sender.sendMessage("exception happened:{e}".with("e" to e))
+        }
     }
 
     init {
