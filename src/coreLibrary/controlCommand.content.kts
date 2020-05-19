@@ -1,6 +1,7 @@
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.IInitScript
+import kotlinx.coroutines.launch
 
 val thisRef = this
 onEnable {
@@ -34,27 +35,33 @@ onEnable {
         })
         addSub(ICommand(thisRef, "reload", "重载一个脚本或者模块", "<module[/script]>") { arg ->
             if (!hasPermission("scriptAgent.control.reload")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
-            val success: Boolean = when (val script = arg.getOrNull(0)?.let(::getScript)) {
-                is IInitScript -> manager.reloadInit(script) != null
-                is IContentScript -> manager.reloadContent(script.module!!, script) != null
-                else -> return@ICommand sendMessage("[red]找不到模块或者脚本".with())
+            SharedCoroutineScope.launch {
+                sendMessage("[yellow]异步处理中".with())
+                val success: Boolean = when (val script = arg.getOrNull(0)?.let(::getScript)) {
+                    is IInitScript -> manager.reloadInit(script) != null
+                    is IContentScript -> manager.reloadContent(script.module!!, script) != null
+                    else -> return@launch sendMessage("[red]找不到模块或者脚本".with())
+                }
+                sendMessage((if (success) "[green]重载成功" else "[red]加载失败").with())
             }
-            sendMessage((if (success) "[green]重载成功" else "[red]加载失败").with())
         })
         addSub(ICommand(thisRef, "loadScript", "加载一个新脚本或者模块", "<filePath>", listOf("load")) { arg ->
             if (!hasPermission("scriptAgent.control.load")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
             val file = arg.getOrNull(0)?.let(Config.rootDir::resolve)
                     ?: return@ICommand sendMessage("[red]未找到对应文件".with())
-            val success: Boolean = when {
-                file.name.endsWith(Config.moduleDefineSuffix) -> manager.loadModule(file) != null
-                file.name.endsWith(Config.contentScriptSuffix) -> {
-                    val module = getScript(arg[0].split('/')[0]) as? IInitScript
-                            ?: return@ICommand sendMessage("[red]找不到模块,请确定模块已先加载".with())
-                    manager.loadContent(module, file) != null
+            SharedCoroutineScope.launch {
+                sendMessage("[yellow]异步处理中".with())
+                val success: Boolean = when {
+                    file.name.endsWith(Config.moduleDefineSuffix) -> manager.loadModule(file) != null
+                    file.name.endsWith(Config.contentScriptSuffix) -> {
+                        val module = getScript(arg[0].split('/')[0]) as? IInitScript
+                                ?: return@launch sendMessage("[red]找不到模块,请确定模块已先加载".with())
+                        manager.loadContent(module, file) != null
+                    }
+                    else -> return@launch sendMessage("[red]不支持的文件格式".with())
                 }
-                else -> return@ICommand sendMessage("[red]不支持的文件格式".with())
+                sendMessage((if (success) "[green]加载脚本成功" else "[red]加载失败,查看后台以了解详情").with())
             }
-            sendMessage((if (success) "[green]加载脚本成功" else "[red]加载失败,查看后台以了解详情").with())
         })
         onDisable { removeAll(thisRef) }
     }
