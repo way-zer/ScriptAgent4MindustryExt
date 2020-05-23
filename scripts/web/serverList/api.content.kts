@@ -9,7 +9,11 @@ import web.lib.serverList.SharedData
 handle {
     get("/servers/list") { context ->
         context.json(SharedData.servers.values.sortedWith(Comparator<Info> { o1, o2 ->
-            if (o1.online && !o2.online) -1 else 0
+            when {
+                o1.online && !o2.online -> -1
+                !o1.online && o2.online -> 1
+                else -> 0
+            }
         }.thenByDescending { it.players }))
     }
     get("/servers/add") { ctx ->
