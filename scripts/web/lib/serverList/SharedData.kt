@@ -1,6 +1,6 @@
 package web.lib.serverList
 
-import coreLibrary.lib.SharedCoroutineScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -17,9 +17,9 @@ object SharedData {
     }
 
 
-    fun updateAll() {
+    fun updateAll(scope: CoroutineScope) {
         servers.values.forEach {
-            SharedCoroutineScope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.IO) {
                 try {
                     servers[it.address] = PingUtil.ping(it.address)
                 } catch (e: Throwable) {

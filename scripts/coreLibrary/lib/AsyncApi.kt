@@ -13,10 +13,12 @@ import java.util.*
 /**
  * use script.enabled to cancel to prevent leak
  */
+@Deprecated("use Coroutines")
 object SharedTimer : Timer("ScriptAgentTimer", true)
 
 /**
  * use script.enabled to cancel to prevent leak
  */
+@Deprecated("use script's")
 val SharedCoroutineScope = GlobalScope +
         SupervisorJob() + Dispatchers.Default + CoroutineName("ScriptAgentCoroutine")

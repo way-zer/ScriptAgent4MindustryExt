@@ -7,7 +7,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.1.4"
+val libraryVersion = "1.2.1"
 
 gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
     tag(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.VersionDescription> {
@@ -55,6 +55,10 @@ tasks {
             filterType = org.apache.tools.ant.filters.ReplaceTokens::class,
             properties = mapOf("tokens" to mapOf("version" to rootProject.version))
         )
+    }
+    named<Delete>("clean") {
+        this.delete += fileTree("scripts").filter { it.name.endsWith(".cache.jar") }
+        this.delete += fileTree("scripts").filter { it.name.endsWith(".ktc") }
     }
     create<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildApplication") {
         dependsOn("scriptsZip")

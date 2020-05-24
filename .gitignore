@@ -92,3 +92,4 @@ fabric.properties
 /data/
 .cache.jar
 .idea
+*.ktc
