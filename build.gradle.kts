@@ -6,7 +6,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.1.7"
+val libraryVersion = "1.2.4"
 //val libraryVersion = "1.1.5"
 val mindustryVersion = "v104"
 
@@ -33,6 +33,7 @@ sourceSets {
     }
     create("plugin") {
         this.compileClasspath += main.get().compileClasspath
+        this.runtimeClasspath += main.get().runtimeClasspath
         java.srcDir("plugin/src")
         resources.srcDir("plugin/res")
     }
@@ -65,9 +66,17 @@ tasks {
                 properties = mapOf("tokens" to mapOf("version" to rootProject.version))
         )
     }
-    create<Zip>("scriptsZip"){
+    named<Delete>("clean") {
+        this.delete += fileTree("src").filter { it.name.endsWith(".cache.jar") }
+        this.delete += fileTree("src").filter { it.name.endsWith(".ktc") }
+    }
+    create<Zip>("scriptsZip") {
         group = "plugin"
-        from(sourceSets.main.get().allSource)
+        from(sourceSets.main.get().allSource) {
+            exclude("*.ktc")
+            exclude("cache.jar")
+            exclude(".metadata")
+        }
         archiveClassifier.set("scripts")
     }
     create<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildPlugin") {

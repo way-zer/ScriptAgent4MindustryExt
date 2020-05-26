@@ -17,3 +17,5 @@ gradle-app.setting
 .idea
 .iml
 .cache.jar
+*.ktc
+/libs

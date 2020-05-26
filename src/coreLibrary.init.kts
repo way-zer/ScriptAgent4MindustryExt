@@ -6,14 +6,12 @@
 @file:MavenDepends("org.jetbrains.exposed:exposed-dao:0.24.1", single = false)
 @file:MavenDepends("org.jetbrains.exposed:exposed-jdbc:0.24.1", single = false)
 @file:MavenDepends("com.h2database:h2:1.4.200", single = false)
-@file:ImportByClass("kotlinx.coroutines.GlobalScope")
 
 name = "ScriptAgent 库模块"
 /*
 本模块实现一些平台无关的库
  */
 
-addLibraryByClass("kotlinx.coroutines.GlobalScope")
 addLibraryByClass("org.jetbrains.exposed.sql.Database")
 addLibraryByClass("org.jetbrains.exposed.dao.Entity")
 addLibraryByClass("cf.wayzer.placehold.PlaceHoldApi")

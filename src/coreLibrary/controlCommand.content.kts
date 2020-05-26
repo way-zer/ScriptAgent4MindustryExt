@@ -1,6 +1,7 @@
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.IInitScript
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 val thisRef = this
@@ -35,7 +36,7 @@ onEnable {
         })
         addSub(ICommand(thisRef, "reload", "重载一个脚本或者模块", "<module[/script]>") { arg ->
             if (!hasPermission("scriptAgent.control.reload")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
-            SharedCoroutineScope.launch {
+            GlobalScope.launch {
                 sendMessage("[yellow]异步处理中".with())
                 val success: Boolean = when (val script = arg.getOrNull(0)?.let(::getScript)) {
                     is IInitScript -> manager.reloadInit(script) != null
@@ -49,7 +50,7 @@ onEnable {
             if (!hasPermission("scriptAgent.control.load")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
             val file = arg.getOrNull(0)?.let(Config.rootDir::resolve)
                     ?: return@ICommand sendMessage("[red]未找到对应文件".with())
-            SharedCoroutineScope.launch {
+            GlobalScope.launch {
                 sendMessage("[yellow]异步处理中".with())
                 val success: Boolean = when {
                     file.name.endsWith(Config.moduleDefineSuffix) -> manager.loadModule(file) != null
