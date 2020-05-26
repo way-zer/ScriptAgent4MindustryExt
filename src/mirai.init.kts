@@ -4,20 +4,14 @@
 
 import arc.util.Log
 import kotlinx.coroutines.launch
-import mirai.lib.BotListener
-import mirai.lib.bot
-import mirai.lib.botListeners
 import net.mamoe.mirai.Bot
-import net.mamoe.mirai.alsoLogin
-import net.mamoe.mirai.event.ListeningStatus
-import net.mamoe.mirai.event.events.BotEvent
-import net.mamoe.mirai.event.subscribe
-import net.mamoe.mirai.join
 import net.mamoe.mirai.utils.DefaultLogger
 import net.mamoe.mirai.utils.SimpleLogger
 
 addDefaultImport("mirai.lib.*")
 addLibraryByClass("net.mamoe.mirai.Bot")
+addDefaultImport("net.mamoe.mirai.Bot")
+addDefaultImport("net.mamoe.mirai.event.*")
 addDefaultImport("net.mamoe.mirai.message.*")
 addDefaultImport("net.mamoe.mirai.message.data.*")
 generateHelper()
@@ -51,19 +45,7 @@ onEnable {
             }
         }
     }
-    onBeforeContentEnable { it.bot = bot }
-    onAfterContentEnable { item ->
-        item.botListeners.forEach {
-            fun <E : BotEvent> BotListener<E>.listen() {
-                bot.subscribe(cls) {
-                    listener(this)
-                    if (item.enabled) ListeningStatus.LISTENING else ListeningStatus.STOPPED
-                }
-            }
-            it.listen()
-        }
-    }
-    SharedCoroutineScope.launch {
+    launch {
         bot.alsoLogin()
         bot.join()
     }
