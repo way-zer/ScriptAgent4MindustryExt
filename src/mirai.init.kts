@@ -4,20 +4,14 @@
 
 import arc.util.Log
 import kotlinx.coroutines.launch
-import mirai.lib.BotListener
-import mirai.lib.bot
-import mirai.lib.botListeners
 import net.mamoe.mirai.Bot
-import net.mamoe.mirai.alsoLogin
-import net.mamoe.mirai.event.ListeningStatus
-import net.mamoe.mirai.event.events.BotEvent
-import net.mamoe.mirai.event.subscribe
-import net.mamoe.mirai.join
 import net.mamoe.mirai.utils.DefaultLogger
 import net.mamoe.mirai.utils.SimpleLogger
 
 addDefaultImport("mirai.lib.*")
 addLibraryByClass("net.mamoe.mirai.Bot")
+addDefaultImport("net.mamoe.mirai.Bot")
+addDefaultImport("net.mamoe.mirai.event.*")
 addDefaultImport("net.mamoe.mirai.message.*")
 addDefaultImport("net.mamoe.mirai.message.data.*")
 generateHelper()
@@ -31,7 +25,6 @@ onEnable {
         println("机器人未开启,请先修改配置文件")
         return@onEnable
     }
-    val bot = Bot(qq, password)
     DefaultLogger = {
         SimpleLogger { priority, msg, throwable ->
             when (priority) {
@@ -51,21 +44,9 @@ onEnable {
             }
         }
     }
-    onBeforeContentEnable { it.bot = bot }
-    onAfterContentEnable { item ->
-        item.botListeners.forEach {
-            fun <E : BotEvent> BotListener<E>.listen() {
-                bot.subscribe(cls) {
-                    listener(this)
-                    if (item.enabled) ListeningStatus.LISTENING else ListeningStatus.STOPPED
-                }
-            }
-            it.listen()
-        }
-    }
-    SharedCoroutineScope.launch {
-        bot.alsoLogin()
-        bot.join()
+    val bot = Bot(qq, password)
+    launch {
+        bot.login()
     }
     onDisable {
         bot.close()
