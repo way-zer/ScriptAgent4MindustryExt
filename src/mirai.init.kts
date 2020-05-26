@@ -25,7 +25,6 @@ onEnable {
         println("机器人未开启,请先修改配置文件")
         return@onEnable
     }
-    val bot = Bot(qq, password)
     DefaultLogger = {
         SimpleLogger { priority, msg, throwable ->
             when (priority) {
@@ -45,9 +44,9 @@ onEnable {
             }
         }
     }
+    val bot = Bot(qq, password)
     launch {
-        bot.alsoLogin()
-        bot.join()
+        bot.login()
     }
     onDisable {
         bot.close()
