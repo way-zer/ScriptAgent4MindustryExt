@@ -1,8 +1,6 @@
 package main
 //WayZer 版权所有(请勿删除版权注解)
 import arc.util.Align
-import coreLibrary.lib.SharedCoroutineScope
-import coreMindustry.lib.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mindustry.gen.Call
@@ -39,5 +37,5 @@ command("broad", "开关积分板显示", type = CommandType.Client) { _, p ->
 }
 
 onEnable {
-    SharedCoroutineScope.launch { loop() }
+    launch { loop() }
 }
