@@ -17,6 +17,12 @@ class Sender(override val player: Player?) : ISender<Player?> {
         sendMessage(msg, MsgType.Message)
     }
 
+    override fun hasPermission(node: String): Boolean {
+        if (node.startsWith("scriptAgent") || node.contains("admin"))
+            return player == null || player.isAdmin
+        return true
+    }
+
     fun sendMessage(text: PlaceHoldString, type: MsgType = MsgType.Message, time: Float = 10f) {
         if (player == null) {
             println(ColorApi.handle("$text[RESET]", ColorApi::consoleColorHandler))

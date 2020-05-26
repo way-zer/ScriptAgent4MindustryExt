@@ -1,17 +1,12 @@
-import net.mamoe.mirai.message.data.At
+package mirai
 
-botListen<GroupMessage> {
-    if (message.contentToString().contains("hello", true)) {
+subscribeGroupMessages {
+    contains("hello", true) {
         quoteReply(buildMessageChain {
             +"你好"
             +At(sender)
         })
     }
-}
-botListen<GroupMessage> {
-    if (message.contentToString().contains("欢迎")) {
-        val at = message.getOrNull(At.Key)
-        if (at == null) reply("欢迎新人!")
-        else reply("欢迎".toMessage() + at)
-    }
+    content { message.filterIsInstance<PlainText>().any { it.stringValue.contains("欢迎新人") } }
+            .reply { message.getOrNull(At.Key)?.let { "欢迎".toMessage() + it } ?: "欢迎新人!" }
 }

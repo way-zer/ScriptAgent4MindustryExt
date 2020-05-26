@@ -16,3 +16,6 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 .idea
 .iml
+.cache.jar
+*.ktc
+/libs

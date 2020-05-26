@@ -6,7 +6,8 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.1.5"
+val libraryVersion = "1.2.4"
+//val libraryVersion = "1.1.5"
 val mindustryVersion = "v104"
 
 gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
@@ -32,6 +33,7 @@ sourceSets {
     }
     create("plugin") {
         this.compileClasspath += main.get().compileClasspath
+        this.runtimeClasspath += main.get().runtimeClasspath
         java.srcDir("plugin/src")
         resources.srcDir("plugin/res")
     }
@@ -46,6 +48,8 @@ dependencies {
     api("cf.wayzer:PlaceHoldLib:2.1.0")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1")
     implementation("com.h2database:h2-mvstore:1.4.200")
+    implementation("org.jetbrains.exposed:exposed-core:0.24.1")
+    implementation("org.jetbrains.exposed:exposed-dao:0.24.1")
     implementation("io.github.config4k:config4k:0.4.1")
     //mirai
     implementation("net.mamoe:mirai-core:0.39.5")
@@ -62,9 +66,17 @@ tasks {
                 properties = mapOf("tokens" to mapOf("version" to rootProject.version))
         )
     }
-    create<Zip>("scriptsZip"){
+    named<Delete>("clean") {
+        this.delete += fileTree("src").filter { it.name.endsWith(".cache.jar") }
+        this.delete += fileTree("src").filter { it.name.endsWith(".ktc") }
+    }
+    create<Zip>("scriptsZip") {
         group = "plugin"
-        from(sourceSets.main.get().allSource)
+        from(sourceSets.main.get().allSource) {
+            exclude("*.ktc")
+            exclude("cache.jar")
+            exclude(".metadata")
+        }
         archiveClassifier.set("scripts")
     }
     create<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildPlugin") {

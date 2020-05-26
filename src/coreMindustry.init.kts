@@ -6,7 +6,6 @@ import arc.struct.Array
 import arc.struct.ObjectMap
 import arc.util.Log
 import cf.wayzer.script_agent.Config
-import coreLibrary.lib.commands.ControlCommand
 import coreMindustry.lib.*
 import coreMindustry.lib.ContentExt.allCommands
 import coreMindustry.lib.ContentExt.listener
@@ -23,9 +22,8 @@ generateHelper()
 onEnable{
     ConfigBuilder.init(Vars.dataDirectory.child("scriptsConfig.conf").file())
     DataStoreApi.open(Vars.dataDirectory.child("scriptAgent.db").absolutePath())
-
-    clientRootCommands.addSub(ControlCommand { player == null || player.isAdmin })
-    serverRootCommands.addSub(ControlCommand { player == null || player.isAdmin })
+    ICommands.rootProvider.set(serverRootCommands)
+    clientRootCommands.addSub(ICommands.controlCommand)
 }
 
 onDisable{
