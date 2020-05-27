@@ -12,10 +12,14 @@ package coreLibrary.lib
  */
 import cf.wayzer.script_agent.IBaseScript
 import cf.wayzer.script_agent.util.DSLBuilder
-import com.typesafe.config.*
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigOriginFactory
+import com.typesafe.config.ConfigRenderOptions
 import io.github.config4k.ClassContainer
 import io.github.config4k.TypeReference
 import io.github.config4k.readers.SelectReader
+import io.github.config4k.toConfig
 import java.io.File
 import kotlin.reflect.KProperty
 
@@ -38,14 +42,14 @@ open class ConfigBuilder(private val path: String) {
                 if (!fileConfig.hasPath(path)) return
                 fileConfig.withoutPath(path)
             } else {
-                fileConfig.withValue(path, ConfigValueFactory.fromAnyRef(v)
+                fileConfig.withValue(path, v.toConfig(path).getValue(path)
                         .withOrigin(ConfigOriginFactory.newSimple().withComments(desc)))
             }
             saveFile()
         }
 
         fun getString(): String {
-            return ConfigFactory.parseMap(mapOf(path to get())).getValue(path).render()
+            return get().toConfig(path).getValue(path).render()
         }
 
         /**
