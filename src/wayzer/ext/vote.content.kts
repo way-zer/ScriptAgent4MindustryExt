@@ -161,7 +161,7 @@ inner class VoteHandler {
         SharedCoroutineScope.launch {
             try {
                 if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".i18n())
-                broadcast("[yellow]{type}[yellow]投票开始,输入y同意".i18n("type" to voteDesc))
+                broadcast("[yellow]{type}[yellow]投票开始,输入y或1同意".i18n("type" to voteDesc))
                 repeat(voteTime.seconds.toInt()) {
                     delay(1000L)
                     if (voted.size > requireNum()) {//提前结束
@@ -203,11 +203,11 @@ inner class VoteHandler {
 }
 
 listen<EventType.PlayerChatEvent> { e ->
-    if (e.message.equals("y", true)) VoteHandler.onVote(e.player)
+    if (e.message.equals("y", true) || e.message == "1") VoteHandler.onVote(e.player)
 }
 
 listen<EventType.PlayerJoin> {
     if (!VoteHandler.voting.get()) return@listen
     VoteHandler.supportSingle = false
-    player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y同意".i18n("type" to VoteHandler.voteDesc))
+    player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y或1同意".i18n("type" to VoteHandler.voteDesc))
 }
