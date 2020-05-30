@@ -2,6 +2,7 @@ package wayzer.ext
 
 import arc.util.Time
 import cf.wayzer.placehold.PlaceHoldContext
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mindustry.entities.type.Player
@@ -38,7 +39,9 @@ allSub["map"] = fun(p: Player, arg: String?) {
             if (!SaveIO.isSaveValid(map.file))
                 return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".i18n("nextMap" to map))
             SharedData.mapManager.loadMap(map)
-            broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".i18n())
+            Core.app.post { // 推后,确保地图成功加载
+                broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".i18n())
+            }
         }
     }
 }
@@ -51,8 +54,8 @@ allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
         VoteHandler.apply {
             requireNum = { playerGroup.count { it.team == p.team } }
             canVote = { it.team == team }
-            start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队)".i18n("player" to player, "team" to team)) {
-                state.teams.get(player.team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
+            start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队)".i18n("player" to p, "team" to team)) {
+                state.teams.get(p.team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
             }
         }
         return
@@ -74,7 +77,7 @@ allSub["skipWave".toLowerCase()] = fun(_: Player, arg: String?) {
     VoteHandler.apply {
         supportSingle = true
         start("跳波".i18n()) {
-            SharedCoroutineScope.launch {
+            launch {
                 val startTime = Time.millis()
                 var waitTime = 3
                 repeat(arg?.toIntOrNull() ?: 10) {
@@ -158,7 +161,7 @@ inner class VoteHandler {
         voting.set(true)
         this.voteDesc = voteDesc
         supportSingle = supportSingle && playerGroup.size() <= 1
-        SharedCoroutineScope.launch {
+        GlobalScope.launch {
             try {
                 if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".i18n())
                 broadcast("[yellow]{type}[yellow]投票开始,输入y或1同意".i18n("type" to voteDesc))
@@ -209,5 +212,5 @@ listen<EventType.PlayerChatEvent> { e ->
 listen<EventType.PlayerJoin> {
     if (!VoteHandler.voting.get()) return@listen
     VoteHandler.supportSingle = false
-    player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y或1同意".i18n("type" to VoteHandler.voteDesc))
+    it.player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y或1同意".i18n("type" to VoteHandler.voteDesc))
 }
