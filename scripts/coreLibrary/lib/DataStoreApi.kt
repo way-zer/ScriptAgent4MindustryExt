@@ -13,7 +13,7 @@ package coreLibrary.lib
  * println(testKey)
  * }
  */
-import cf.wayzer.script_agent.IContentScript
+import cf.wayzer.script_agent.IBaseScript
 import org.h2.mvstore.MVStore
 import kotlin.reflect.KProperty
 
@@ -59,5 +59,5 @@ object DataStoreApi {
 inline fun <reified T : Any> dataStoreKey(name: String, noinline default: DataStoreApi.DataEntity.() -> T) =
     DataStoreApi.DataStoreKey(name, T::class.java, default)
 
-fun IContentScript.dbKey(name: String) = DataStoreApi.DBKey(name)
+fun IBaseScript.dbKey(name: String) = DataStoreApi.DBKey(name)
 val playerData = DataStoreApi.DBKey("player")

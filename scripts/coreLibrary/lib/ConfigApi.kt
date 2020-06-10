@@ -11,12 +11,15 @@ package coreLibrary.lib
  * println(welcomeMsg)
  */
 import cf.wayzer.script_agent.IBaseScript
-import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.util.DSLBuilder
-import com.typesafe.config.*
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigOriginFactory
+import com.typesafe.config.ConfigRenderOptions
 import io.github.config4k.ClassContainer
 import io.github.config4k.TypeReference
 import io.github.config4k.readers.SelectReader
+import io.github.config4k.toConfig
 import java.io.File
 import kotlin.reflect.KProperty
 
@@ -40,7 +43,7 @@ open class ConfigBuilder(private val path: String) {
                 fileConfig.withoutPath(path)
             } else {
                 fileConfig.withValue(
-                    path, ConfigValueFactory.fromAnyRef(v)
+                    path, v.toConfig(path).getValue(path)
                         .withOrigin(ConfigOriginFactory.newSimple().withComments(desc))
                 )
             }
@@ -48,7 +51,7 @@ open class ConfigBuilder(private val path: String) {
         }
 
         fun getString(): String {
-            return ConfigFactory.parseMap(mapOf(path to get())).getValue(path).render()
+            return get().toConfig(path).getValue(path).render()
         }
 
         /**
@@ -58,8 +61,9 @@ open class ConfigBuilder(private val path: String) {
         fun setString(strV: String): String {
             val str = "$path = $strV"
             val v = ConfigFactory.parseString(str).extract(cls, path)
-            if (default.javaClass.isInstance(v)) {
-                set(default.javaClass.cast(v))
+            if (cls.mapperClass.isInstance(v)) {
+                @Suppress("UNCHECKED_CAST")
+                set(v as T)
                 return str
             }
             throw IllegalArgumentException("Parse \"$str\" fail: get $v")
@@ -84,6 +88,7 @@ open class ConfigBuilder(private val path: String) {
         DSLBuilder.Companion.ProvideDelegate<IBaseScript, ConfigKey<T>> { script, name ->
             val key = ConfigKey("$path.$name", cls, default, desc.toList())
             script.configs.add(key)
+            all[key.path] = key
             return@ProvideDelegate key
         }
 
@@ -97,6 +102,7 @@ open class ConfigBuilder(private val path: String) {
 
     companion object {
         val IBaseScript.configs by DSLBuilder.dataKeyWithDefault { mutableSetOf<ConfigKey<*>>() }
+        val all = mutableMapOf<String, ConfigKey<*>>()
         private lateinit var configFile: File
         private lateinit var fileConfig: Config
         fun init(configFile: File) {
@@ -115,4 +121,4 @@ open class ConfigBuilder(private val path: String) {
 }
 
 val globalConfig = ConfigBuilder("global")
-val IContentScript.config get() = ConfigBuilder("scripts.${clsName}")
+val IBaseScript.config get() = ConfigBuilder(id.replace('/', '.'))
