@@ -7,7 +7,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.2.1"
+val libraryVersion = "1.2.4"
 
 gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
     tag(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.VersionDescription> {
@@ -66,22 +66,28 @@ tasks {
         from(sourceSets.getByName("main").output)
         archiveClassifier.set("all")
         configurations = listOf(project.configurations.getByName("compileClasspath"))
+        dependencies {
+            include(dependency("cf.wayzer:LibraryManager"))
+        }
+//        into("lib"){
+//            from(configurations.first().files{ it.name=="ScriptAgent"}.also(::println))
+//        }
+        manifest {
+            attributes("Main-Class" to "cf.wayzer.scriptAgent.MainKt")
+        }
     }
 }
 val scriptsZip by tasks.registering(Zip::class) {
     group = "application"
-    from(sourceSets.getByName("scripts").allSource)
+    from(sourceSets.getByName("scripts").allSource) {
+        exclude("*.ktc")
+        exclude("cache.jar")
+        exclude(".metadata")
+    }
     archiveClassifier.set("scripts")
 }
-application {
-    val debug = true
-    mainClassName = "cf.wayzer.scriptAgent.MainKt"
-    applicationDefaultJvmArgs = listOf(
-        "-Dfile.encoding=UTF-8",
-        if (!debug) "" else "-agentlib:jdwp=transport=dt_socket,server=n,address=127.0.0.1:5005,suspend=y"
-    )
-}
 tasks.create("showDependency") {
+    group = "application"
     val set = scriptsCompile.resolvedConfiguration.resolvedArtifacts.toSet()
     println(set.joinToString("\n") { it.id.componentIdentifier.displayName })
 }
