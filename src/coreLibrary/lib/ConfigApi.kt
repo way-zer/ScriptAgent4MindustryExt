@@ -38,14 +38,25 @@ open class ConfigBuilder(private val path: String) {
         }
 
         fun set(v: T) {
-            fileConfig = if (v == default) {
-                if (!fileConfig.hasPath(path)) return
-                fileConfig.withoutPath(path)
-            } else {
-                fileConfig.withValue(path, v.toConfig(path).getValue(path)
-                        .withOrigin(ConfigOriginFactory.newSimple().withComments(desc)))
-            }
+            fileConfig.withValue(path, v.toConfig(path).getValue(path)
+                    .withOrigin(ConfigOriginFactory.newSimple().withComments(desc)))
             saveFile()
+        }
+
+        /**
+         * 清除设定值
+         */
+        fun reset() {
+            if (!fileConfig.hasPath(path)) return
+            fileConfig = fileConfig.withoutPath(path)
+            saveFile()
+        }
+
+        /**
+         * 写入默认值到文件中
+         */
+        fun writeDefault() {
+            set(default)
         }
 
         fun getString(): String {
