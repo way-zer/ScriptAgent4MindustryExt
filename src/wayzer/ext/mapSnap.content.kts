@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.imageio.ImageIO
+import kotlinx.coroutines.launch
 
 //参考 mindustry.graphics.MinimapRenderer
 object MapRenderer {
@@ -85,8 +86,9 @@ onEnable {
 }
 registerVar("wayzer.ext.mapSnap._get", "地图快照截图接口", { MapRenderer.img })
 
-command("saveSnap", "保存当前服务器地图截图", type = CommandType.Server) { _, _ ->
+command("saveSnap", "保存当前服务器地图截图", type = CommandType.Server) { _, p ->
     val dir = dataDirectory.child("mapSnap").apply { mkdirs() }
-    dir.child("mapSnap-${SimpleDateFormat("YYMMdd-hhmm").format(Date())}.png").write()
-            .use { ImageIO.write(MapRenderer.img, "png", it) }
+    val file = dir.child("mapSnap-${SimpleDateFormat("YYYYMMdd-hhmm").format(Date())}.png")
+    file.write().use { ImageIO.write(MapRenderer.img, "png", it) }
+    p.sendMessage("[green]快照已保存到{file}".with("file" to file))
 }
