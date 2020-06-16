@@ -16,6 +16,7 @@ name = "WayZer Mindustry Plugin"
  * TODO: (ext/pvpProtect)
  * TODO: (ext/playerInfo) /info /mInfo(server)
  * (ext/serverStatus) /status | 获取服务器状态
+ * (ext/mapSnap) /mapSnap | 保存地图快照到data/mapSnap下
  * TODO: (ext/playerLevel)
  * TODO: (ext/lang)
  * TODO: (ext/reGrief/unitLimit)
