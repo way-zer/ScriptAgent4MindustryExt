@@ -100,6 +100,9 @@ PlaceHold.registerForType<Map>(this).apply {
     registerChild("id", "在/maps中的id", DynamicVar { obj, _ ->
         MapManager.maps.indexOf(obj) + 1
     })
+    registerChild("mode", "地图设定模式", DynamicVar { obj, _ ->
+        MapManager.bestMode(obj)
+    })
 }
 
 command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, p ->

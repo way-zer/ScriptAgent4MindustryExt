@@ -15,7 +15,7 @@ name = "WayZer Mindustry Plugin"
  * TODO: (ext/betterTeam)
  * TODO: (ext/pvpProtect)
  * TODO: (ext/playerInfo) /info /mInfo(server)
- * TODO: (ext/serverStatus) /status
+ * (ext/serverStatus) /status | 获取服务器状态
  * TODO: (ext/playerLevel)
  * TODO: (ext/lang)
  * TODO: (ext/reGrief/unitLimit)
