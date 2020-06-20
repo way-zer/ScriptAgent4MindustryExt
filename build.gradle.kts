@@ -50,6 +50,7 @@ dependencies {
     implementation("com.h2database:h2-mvstore:1.4.200")
     implementation("org.jetbrains.exposed:exposed-core:0.24.1")
     implementation("org.jetbrains.exposed:exposed-dao:0.24.1")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.24.1")
     implementation("io.github.config4k:config4k:0.4.1")
     //mirai
     implementation("net.mamoe:mirai-core:0.39.5")
