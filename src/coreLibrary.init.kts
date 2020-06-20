@@ -4,6 +4,7 @@
 @file:MavenDepends("com.typesafe:config:1.3.3")
 @file:MavenDepends("org.jetbrains.exposed:exposed-core:0.24.1", single = false)
 @file:MavenDepends("org.jetbrains.exposed:exposed-dao:0.24.1", single = false)
+@file:MavenDepends("org.jetbrains.exposed:exposed-java-time:0.24.1", single = false)
 @file:MavenDepends("org.jetbrains.exposed:exposed-jdbc:0.24.1", single = false)
 @file:MavenDepends("com.h2database:h2:1.4.200", single = false)
 
@@ -14,6 +15,7 @@ name = "ScriptAgent 库模块"
 
 addLibraryByClass("org.jetbrains.exposed.sql.Database")
 addLibraryByClass("org.jetbrains.exposed.dao.Entity")
+addLibraryByClass("org.jetbrains.exposed.sql.java-time.CurrentTimestamp")
 addLibraryByClass("cf.wayzer.placehold.PlaceHoldApi")
 addDefaultImport("coreLibrary.lib.*")
 generateHelper()
