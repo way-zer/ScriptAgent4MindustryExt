@@ -14,7 +14,7 @@ name = "WayZer Mindustry Plugin"
  * (ext/autoHost) autoHost after startup | 启动后自动开服
  * (ext/autoSave) autoSave every 10 minutes | 自动保存(10分钟)
  * (ext/welcomeMsg) join Welcome | 进服欢迎信息
- * TODO: (ext/alert)
+ * (ext/alert) alert per interval | 定时轮播公告
  * TODO: (ext/betterTeam)
  * TODO: (ext/pvpProtect)
  * TODO: (ext/playerInfo) /info /mInfo(server)
