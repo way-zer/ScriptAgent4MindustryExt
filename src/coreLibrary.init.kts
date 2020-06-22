@@ -5,7 +5,7 @@
 @file:MavenDepends("org.jetbrains.exposed:exposed-core:0.24.1", single = false)
 @file:MavenDepends("org.jetbrains.exposed:exposed-dao:0.24.1", single = false)
 @file:MavenDepends("org.jetbrains.exposed:exposed-java-time:0.24.1", single = false)
-@file:MavenDepends("org.jetbrains.exposed:exposed-jdbc:0.24.1", single = false)
+@file:MavenDepends("org.jetbrains.exposed:exposed-jdbc:0.24.1")
 @file:MavenDepends("com.h2database:h2:1.4.200", single = false)
 
 name = "ScriptAgent 库模块"

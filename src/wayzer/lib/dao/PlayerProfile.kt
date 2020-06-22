@@ -12,7 +12,7 @@ class PlayerProfile(id:EntityID<Int>):IntEntity(id){
     var totalExp by T.totalExp
     var totalTime by T.totalTime //time in s
     var lastTime by T.lastTime
-    object T:IntIdTable(){
+    object T:IntIdTable("PlayerProfile"){
         val qq = long("qq").index()
         val totalExp = integer("totalExp").default(0)
         val totalTime = integer("totalTime").default(0)

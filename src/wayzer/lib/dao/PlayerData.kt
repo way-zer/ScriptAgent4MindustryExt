@@ -18,8 +18,8 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     var lastTime by T.lastTime
     var profile by PlayerProfile optionalReferencedOn T.profile
 
-    object T : IdTable<String>() {
-        override val id: Column<EntityID<String>> = varchar("uid", 24).entityId()
+    object T : IdTable<String>("PlayerData") {
+        override val id: Column<EntityID<String>> = varchar("UID", 24).entityId()
         override val primaryKey: PrimaryKey = PrimaryKey(id)
         val lastName = varchar("lastName", 48)
         val firstIp = varchar("firstIp", 15)
