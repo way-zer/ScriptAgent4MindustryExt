@@ -13,7 +13,7 @@ name = "WayZer Mindustry Plugin"
  * (ext/vote) Vote System includes: changeMap gameOver skipWave kick rollBack | 投票系统(换图,投降,跳波,踢人,回滚)
  * (ext/autoHost) autoHost after startup | 启动后自动开服
  * (ext/autoSave) autoSave every 10 minutes | 自动保存(10分钟)
- * TODO: (ext/welcomeMsg)
+ * (ext/welcomeMsg) join Welcome | 进服欢迎信息
  * TODO: (ext/alert)
  * TODO: (ext/betterTeam)
  * TODO: (ext/pvpProtect)
