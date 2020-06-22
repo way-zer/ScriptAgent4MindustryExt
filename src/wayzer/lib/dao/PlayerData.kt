@@ -1,6 +1,7 @@
 package wayzer.lib.dao
 
 import mindustry.entities.type.Player
+import mindustry.net.Administration
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -33,6 +34,11 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
             lastName = p.name
             firstIP = p.con.address
             lastIp = p.con.address
+        }
+        operator fun get(p: Administration.PlayerInfo) = findById(p.id)?: new(p.id) {
+            lastName = p.lastName
+            firstIP = p.lastIP
+            lastIp = p.lastIP
         }
     }
 }
