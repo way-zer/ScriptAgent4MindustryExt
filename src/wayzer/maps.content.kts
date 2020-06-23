@@ -11,7 +11,6 @@ import mindustry.maps.Map
 import java.time.Duration
 import java.util.*
 import kotlin.concurrent.schedule
-import kotlin.math.ceil
 
 name = "基础: 地图控制与管理"
 
@@ -98,10 +97,10 @@ inner class MapManager : SharedData.IMapManager {
 SharedData.mapManager = MapManager
 PlaceHold.registerForType<Map>(this).apply {
     registerChild("id", "在/maps中的id", DynamicVar { obj, _ ->
-        MapManager.maps.indexOf(obj) + 1
+        MapManager.maps.indexOfFirst { it.file == obj.file } + 1
     })
     registerChild("mode", "地图设定模式", DynamicVar { obj, _ ->
-        MapManager.bestMode(obj)
+        MapManager.bestMode(obj).name
     })
 }
 
@@ -114,21 +113,14 @@ command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, 
             else -> Gamemode.survival.takeIf { mapsDistinguishMode }
         }
     }
-    val page = arg.lastOrNull()?.toIntOrNull() ?: 1
     if (mapsDistinguishMode) p.sendMessage("[yellow]默认只显示所有生存图,输入[green]/maps pvp[yellow]显示pvp图,[green]/maps attack[yellow]显示攻城图[green]/maps all[yellow]显示所有".i18n())
+    val page = arg.lastOrNull()?.toIntOrNull()
     val maps = MapManager.maps.mapIndexed { index, map -> (index + 1) to map }
             .filter { mode == null || MapManager.bestMode(it.second) == mode }
-    val list = maps.page(page, mapsPrePage).map { (id, map) ->
+    p.sendMenuPhone("服务器地图 By WayZer", maps, page, mapsPrePage) { (id, map) ->
         "[red]{id}[green]({map.width},{map.height})[]:[yellow]{map.fileName}[] | [blue]{map.name}\n"
                 .i18n("id" to "%2d".format(id), "map" to map)
     }
-    p.sendMessage("""
-            |[green]===[white] 服务器地图 [green]===
-            |  [green]插件作者:[yellow]wayZer
-            |{list}
-            |[green]===[white] {page}/{totalPage} [green]===
-        """.trimMargin().i18n("list" to list, "page" to page,
-            "totalPage" to ceil(list.size / mapsPrePage.toDouble()).toInt()))
 }
 onEnable {
     //hack to stop origin gameOver logic
