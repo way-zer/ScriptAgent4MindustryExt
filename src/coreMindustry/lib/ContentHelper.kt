@@ -34,7 +34,8 @@ fun broadcast(text: PlaceHoldContext, type: MsgType = MsgType.Message, time: Flo
 fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message, time: Float = 10f) {
     if (this == null) ContentHelper.logToConsole(text.toString())
     else {
-        val msg = "{text}".with("text" to text, "_player" to this).toString()
+        if (con == null) return
+        val msg = "{text}".with("text" to text, "player" to this).toString()
         when(type){
             MsgType.Message -> Call.sendMessage(this.con,msg,null,null)
             MsgType.InfoMessage -> Call.onInfoMessage(this.con, msg)
