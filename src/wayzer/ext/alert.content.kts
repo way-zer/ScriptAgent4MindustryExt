@@ -8,6 +8,7 @@ val list by config.key(emptyList<String>(),"公告列表,支持颜色和变量")
 
 var i = 0
 fun broadcast(){
+    if(list.isEmpty())return
     i %= list.size
     broadcast(list[i].with(),type,15f)
     i++
