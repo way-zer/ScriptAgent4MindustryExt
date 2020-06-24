@@ -51,6 +51,7 @@ listen<EventType.BlockBuildEndEvent> {
         log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Place(it.player.uuid, Instant.now(), it.tile.block()))
 }
 listen<EventType.TapConfigEvent> {
+    if(it.player == null)return@listen
     log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Config(it.player.uuid, Instant.now(), it.value))
 }
 listen<EventType.DepositEvent> {
