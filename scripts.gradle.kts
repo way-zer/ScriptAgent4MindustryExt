@@ -17,4 +17,7 @@ dependencies {
     scriptsCompile("com.fasterxml.jackson.core:jackson-databind:2.10.1")
 
     scriptsCompile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.2.1")
+    scriptsCompile("org.jline:jline-terminal:3.15.0")
+    scriptsCompile("org.jline:jline-terminal-jansi:3.15.0")
+    scriptsCompile("org.jline:jline-reader:3.15.0")
 }
