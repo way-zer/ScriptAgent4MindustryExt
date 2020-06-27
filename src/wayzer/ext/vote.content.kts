@@ -14,6 +14,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.random.Random
 
 name = "投票"
@@ -72,15 +73,16 @@ allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
     }
 }
 
-private val lastResetTime by PlaceHold.reference<Date>("state.startTime")
+val lastResetTime by PlaceHold.reference<Date>("state.startTime")
 allSub["skipWave".toLowerCase()] = fun(_: Player, arg: String?) {
     VoteHandler.apply {
         supportSingle = true
-        start("跳波".i18n()) {
+        val t = min(arg?.toIntOrNull() ?: 10,50)
+        start("跳波({t}波)".i18n("t" to t)) {
             launch {
                 val startTime = Time.millis()
                 var waitTime = 3
-                repeat(arg?.toIntOrNull() ?: 10) {
+                repeat(t) {
                     while (state.enemies > 300) {//延长等待时间
                         if (waitTime > 60) return@launch //等待超时
                         delay(waitTime * 1000L)
@@ -201,7 +203,7 @@ inner class VoteHandler {
         if (p.uuid in voted) return p.sendMessage("[red]你已经投票".i18n())
         if (!canVote(p)) return p.sendMessage("[red]你不能对此投票".i18n())
         voted.add(p.uuid)
-        broadcast("[green]投票成功,还需{left}人投票".i18n("left" to (requireNum() - requireNum() + 1)), quite = true)
+        broadcast("[green]投票成功,还需{left}人投票".i18n("left" to (requireNum() - voted.size + 1)), quite = true)
     }
 }
 
