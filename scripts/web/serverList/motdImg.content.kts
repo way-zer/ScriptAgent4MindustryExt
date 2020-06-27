@@ -12,7 +12,7 @@ import javax.imageio.ImageIO
 
 val width by config.key(500)
 val height by config.key(120)
-val defaultFont = Font("黑体", 0, 16)
+val defaultFont = Font("Source Han Sans CN Normal", 0, 16)
 
 fun generateImg(info: Info, out: OutputStream) {
     val image = BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR)

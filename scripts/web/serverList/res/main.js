@@ -95,7 +95,11 @@ table.render({
     //     field: 'players', type: 'desc'
     // },
     cols: [[
-        {field: 'address', title: '地址', minWidth: 150, sort: true, fixed: 'left'},
+        {
+            field: 'address', title: '地址', minWidth: 170, sort: true, fixed: 'left', templet(d) {
+                return `<i class="layui-icon layui-icon-circle-dot" style="padding-right: 0.5rem;color: ${d.online ? "green" : "red"}"></i>${d.address}`;
+            }
+        },
         {
             field: 'name', title: '名字', minWidth: 260, templet(d) {
                 return colorize(d.name);
@@ -148,12 +152,6 @@ table.render({
             }
         },
         {field: 'timeMs', title: '延迟(ms)', minWidth: 110, sort: true},
-        {
-            field: 'online', title: '状态', templet(d) {
-                if (d.online === true) return green("在线");
-                else return warn("离线");
-            }
-        },
         {
             field: 'lastOnline', title: '最后在线时间', minWidth: 130, templet(d) {
                 return ((Date.now() - d.lastOnline) / 1000).toFixed(1) + " 秒前"
