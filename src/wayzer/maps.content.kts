@@ -48,7 +48,7 @@ inner class MapManager : SharedData.IMapManager {
     override fun nextMap(map: Map?, mode: Gamemode): Map {
         val maps = maps.toMutableList()
         maps.shuffle()
-        val ret = maps.filter { bestMode(it) == mode }.firstOrNull { it != map } ?: maps[0]
+        val ret = maps.filter { bestMode(it) == mode }.firstOrNull { it.file != map?.file } ?: maps[0]
         if (!SaveIO.isSaveValid(ret.file)) {
             ContentHelper.logToConsole("[yellow]invalid map ${ret.file.nameWithoutExtension()}, auto change")
             return nextMap(map, mode)
@@ -161,10 +161,9 @@ command("host", "管理指令: 换图", "[mapId] [mode]") { arg, p ->
                 ?: return@command p.sendMessage("[red]请输入正确的地图ID".i18n())
     val mode = arg.getOrNull(1)?.let { name ->
         Gamemode.values().find { it.name == name } ?: return@command p.sendMessage("[red]请输入正确的模式".i18n())
-    }
-            ?: MapManager.bestMode(map)
+    } ?: MapManager.bestMode(map)
     MapManager.loadMap(map, mode)
-    broadcast("[green]强制换图为{map.name},模式{mode}".i18n("map" to map, "mode" to mode))
+    broadcast("[green]强制换图为{map.name},模式{map.mode}".i18n("map" to map,"map.mode" to mode.name))
 }
 command("load", "管理指令: 加载存档", "<slot>") { arg, p ->
     if (p != null && !SharedData.admin.isAdmin(p))
