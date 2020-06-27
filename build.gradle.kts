@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.3.70"
+    kotlin("jvm") version "1.3.72"
     id("me.qoomon.git-versioning") version "2.1.1"
     id("com.github.johnrengelman.shadow") version "5.2.0"
     application
@@ -7,7 +7,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.2.4"
+val libraryVersion = "1.2.7"
 
 gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
     tag(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.VersionDescription> {

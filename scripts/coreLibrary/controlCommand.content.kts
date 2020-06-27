@@ -1,7 +1,8 @@
+package coreLibrary
+
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.IInitScript
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 val thisRef = this
@@ -47,8 +48,11 @@ onEnable {
             GlobalScope.launch {
                 sendMessage("[yellow]异步处理中".with())
                 val success: Boolean = when (val script = arg.getOrNull(0)?.let(::getScript)) {
-                    is IInitScript -> manager.reloadInit(script) != null
-                    is IContentScript -> manager.reloadContent(script.module!!, script) != null
+                    is IInitScript -> manager.loadModule(script.sourceFile, force = true, enable = true) != null
+                    is IContentScript -> manager.loadContent(script.module, script.sourceFile,
+                        force = true,
+                        enable = true
+                    ) != null
                     else -> return@launch sendMessage("[red]找不到模块或者脚本".with())
                 }
                 sendMessage((if (success) "[green]重载成功" else "[red]加载失败").with())
@@ -61,11 +65,11 @@ onEnable {
             GlobalScope.launch {
                 sendMessage("[yellow]异步处理中".with())
                 val success: Boolean = when {
-                    file.name.endsWith(Config.moduleDefineSuffix) -> manager.loadModule(file) != null
+                    file.name.endsWith(Config.moduleDefineSuffix) -> manager.loadModule(file,enable=true) != null
                     file.name.endsWith(Config.contentScriptSuffix) -> {
                         val module = getScript(arg[0].split('/')[0]) as? IInitScript
                             ?: return@launch sendMessage("[red]找不到模块,请确定模块已先加载".with())
-                        manager.loadContent(module, file) != null
+                        manager.loadContent(module, file,enable=true) != null
                     }
                     else -> return@launch sendMessage("[red]不支持的文件格式".with())
                 }

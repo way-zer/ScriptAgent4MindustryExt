@@ -1,5 +1,8 @@
 package coreLibrary
 
+import coreLibrary.lib.ConfigBuilder.Companion.configs
+import coreLibrary.lib.PlaceHold.registeredVars
+
 val thisRef = this
 onEnable {
     ICommands.controlCommand.run {

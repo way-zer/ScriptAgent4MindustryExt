@@ -6,7 +6,7 @@ import java.io.File
 import java.nio.file.Paths
 
 fun main(arg: Array<String?>?) {
-    var version = "1.2.4"
+    var version = "1.2.7"
     if (arg != null && arg.isNotEmpty() && arg[0] != null) version = arg[0].toString()
     LibraryManager(Paths.get("libs")).apply {
         addRepository("wayzer", "https://dl.bintray.com/way-zer/maven/")
