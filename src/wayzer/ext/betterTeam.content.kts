@@ -20,8 +20,8 @@ onDisable {
 val teams = mutableMapOf<String, Team>()
 onEnable {
     netServer.assigner = object : NetServer.TeamAssigner {
-        override fun assign(p0: Player, p1: MutableIterable<Player>): Team {
-            if(!enableTeamLock)return backup.assign(p0, p1)
+        override fun assign(player: Player, p1: MutableIterable<Player>): Team {
+            if(!enableTeamLock)return backup.assign(player, p1)
             if (!state.rules.pvp) return state.rules.defaultTeam
             if (teams[player.uuid]?.active() == false)
                 teams.remove(player.uuid)
