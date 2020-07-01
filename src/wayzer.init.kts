@@ -15,7 +15,7 @@ name = "WayZer Mindustry Plugin"
  * (ext/autoSave) autoSave every 10 minutes | 自动保存(10分钟)
  * (ext/welcomeMsg) join Welcome | 进服欢迎信息
  * (ext/alert) alert per interval | 定时轮播公告
- * (ext/betterTeam) | 更好的PVP队伍管理，以及观察者支持
+ * (ext/betterTeam) | 更好的PVP队伍管理，管理员强制换队以及观察者支持
  * TODO: (ext/pvpProtect)
  * TODO: (ext/playerInfo) /info /mInfo(server)
  * (ext/serverStatus) /status | 获取服务器状态

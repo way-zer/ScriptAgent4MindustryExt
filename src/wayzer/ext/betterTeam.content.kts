@@ -54,3 +54,20 @@ command("ob", "切换为观察者", type = CommandType.Client) { _, p ->
         Call.onPlayerDeath(this)
     }
 }
+
+command("team","管理指令: 修改自己或他人队伍(PVP模式)","[队伍,不填列出] [玩家3位id,默认自己]"){arg,p->
+    if(p!=null&&!SharedData.admin.isAdmin(p))
+        return@command p.sendMessage("[red]你没有权限使用该命令".i18n())
+    if (!state.rules.pvp) p.sendMessage("[red]仅PVP模式可用".i18n())
+    val team = arg.getOrNull(0)?.toIntOrNull()?.let { Team.get(it) } ?: let {
+        val teams = Team.base().mapIndexed { i, t -> "{id}({team.colorizeName}[]) ".i18n("id" to i, "team" to t) }
+        return@command p.sendMessage("[yellow]可用队伍: []{list}".i18n("list" to teams))
+    }
+    val player = arg.getOrNull(1)?.let {
+        playerGroup.find { p -> p.uuid.startsWith(it) } ?: return@command p.sendMessage("[red]找不到玩家,请使用/list查询正确的3位id")
+    } ?: p?:return@command p.sendMessage("[red]请输入玩家ID")
+    teams[player.uuid] = team
+    player.team = team
+    Call.onPlayerDeath(player)
+    broadcast("[green]管理员更改了{player.name}[green]为{team.colorizeName}".i18n("player" to player, "team" to team))
+}
