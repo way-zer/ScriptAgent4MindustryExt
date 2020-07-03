@@ -115,8 +115,11 @@ command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, 
     }
     if (mapsDistinguishMode) p.sendMessage("[yellow]默认只显示所有生存图,输入[green]/maps pvp[yellow]显示pvp图,[green]/maps attack[yellow]显示攻城图[green]/maps all[yellow]显示所有".i18n())
     val page = arg.lastOrNull()?.toIntOrNull()
-    val maps = MapManager.maps.mapIndexed { index, map -> (index + 1) to map }
-            .filter { mode == null || MapManager.bestMode(it.second) == mode }
+    var maps = MapManager.maps.mapIndexed { index, map -> (index + 1) to map }
+    maps = if (arg.getOrNull(0) == "new")
+        maps.sortedByDescending { it.second.file.lastModified() }
+    else
+        maps.filter { mode == null || MapManager.bestMode(it.second) == mode }
     p.sendMenuPhone("服务器地图 By WayZer", maps, page, mapsPrePage) { (id, map) ->
         "[red]{id}[green]({map.width},{map.height})[]:[yellow]{map.fileName}[] | [blue]{map.name}\n"
                 .i18n("id" to "%2d".format(id), "map" to map)
@@ -163,7 +166,7 @@ command("host", "管理指令: 换图", "[mapId] [mode]") { arg, p ->
         Gamemode.values().find { it.name == name } ?: return@command p.sendMessage("[red]请输入正确的模式".i18n())
     } ?: MapManager.bestMode(map)
     MapManager.loadMap(map, mode)
-    broadcast("[green]强制换图为{map.name},模式{map.mode}".i18n("map" to map,"map.mode" to mode.name))
+    broadcast("[green]强制换图为{map.name},模式{map.mode}".i18n("map" to map, "map.mode" to mode.name))
 }
 command("load", "管理指令: 加载存档", "<slot>") { arg, p ->
     if (p != null && !SharedData.admin.isAdmin(p))
