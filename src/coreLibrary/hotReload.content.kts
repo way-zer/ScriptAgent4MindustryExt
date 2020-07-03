@@ -1,3 +1,5 @@
+package coreLibrary
+
 import cf.wayzer.placehold.PlaceHoldApi.with
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.IInitScript
@@ -24,12 +26,13 @@ fun enableWatch() {
                 if (event.count() != 1) return@forEach
                 val file = (key.watchable() as Path).resolve(event.context() as? Path ?: return@forEach)
                 when {
-                    file.fileName.endsWith(Config.moduleDefineSuffix) -> //处理模块重载
+                    file.toString().endsWith(Config.moduleDefineSuffix) -> //处理模块重载
                         ScriptManager.loadModule(file.toFile(), force = true, enable = true)
-                    file.fileName.endsWith(Config.contentScriptSuffix) -> { //处理子脚本重载
+                    file.toString().endsWith(Config.contentScriptSuffix) -> { //处理子脚本重载
                         val module = Config.findModuleBySource(file.toFile())?.let {
                             ScriptManager.getScript(it) as? IInitScript
                         } ?: return@forEach println("[WARN]Can't get Module by $file")
+                        println("重载脚本:$file")
                         ScriptManager.loadContent(module, file.toFile(), force = true, enable = true)
                     }
                     file.toFile().isDirectory -> {//添加子目录到Watch
