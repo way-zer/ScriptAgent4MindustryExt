@@ -16,6 +16,7 @@ name = "WayZer Mindustry Plugin"
  * (ext/welcomeMsg) join Welcome | 进服欢迎信息
  * (ext/alert) alert per interval | 定时轮播公告
  * (ext/betterTeam) | 更好的PVP队伍管理，管理员强制换队以及观察者支持
+ * (ext/mapInfo) | 在游戏内显示地图信息
  * TODO: (ext/pvpProtect)
  * TODO: (ext/playerInfo) /info /mInfo(server)
  * (ext/serverStatus) /status | 获取服务器状态
