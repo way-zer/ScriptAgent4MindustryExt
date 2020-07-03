@@ -23,7 +23,7 @@ interface ISender<G> {
 }
 
 open class ICommand<S : ISender<*>>(
-        val script: IBaseScript?,
+        val script: IContentScript?,
         val name: String,
         val description: String,
         val usage: String = "",
@@ -61,7 +61,7 @@ open class ICommand<S : ISender<*>>(
  * For rootCommand,can overwrite [addSub] and [removeSub]
  */
 @Suppress("MemberVisibilityCanBePrivate")
-open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, description: String, aliases: List<String> = emptyList()) : ICommand<S>(
+open class ICommands<S : ISender<*>>(script: IContentScript?, name: String, description: String, aliases: List<String> = emptyList()) : ICommand<S>(
         script, name, description, "[help]", aliases, {}
 ) {
     protected val subCommands = mutableMapOf<String, ICommand<in S>>()
@@ -71,7 +71,7 @@ open class ICommands<S : ISender<*>>(script: IBaseScript?, name: String, descrip
     }
 
     protected open fun addSub(name: String, command: ICommand<in S>, isAliases: Boolean) {
-        val existed = subCommands[name.toLowerCase()] ?: let {
+        val existed = subCommands[name.toLowerCase()]?.takeIf { it.script?.cancelled !=true } ?: let {
             subCommands[name.toLowerCase()] = command
             return
         }
