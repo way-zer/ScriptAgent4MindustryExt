@@ -38,7 +38,7 @@ open class ConfigBuilder(private val path: String) {
         }
 
         fun set(v: T) {
-            fileConfig.withValue(path, v.toConfig(path).getValue(path)
+            fileConfig=fileConfig.withValue(path, v.toConfig(path).getValue(path)
                     .withOrigin(ConfigOriginFactory.newSimple().withComments(desc)))
             saveFile()
         }
