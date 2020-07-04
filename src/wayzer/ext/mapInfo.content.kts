@@ -28,13 +28,13 @@ fun CoreBlock.CoreEntity.showInfo(p:Player){
 listen<EventType.WorldLoadEvent>{
     Core.app.post{
         playerGroup.forEach {
-            it.team.core()?.showInfo(it)
+            it.team.cores().firstOrNull()?.showInfo(it)
         }
     }
 }
 
 listen<EventType.PlayerJoin>{e->
     Core.app.post {
-        e.player.team.core()?.showInfo(e.player)
+        e.player.team.cores().firstOrNull()?.showInfo(e.player)
     }
 }
