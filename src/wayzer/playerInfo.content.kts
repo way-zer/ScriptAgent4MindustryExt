@@ -27,8 +27,6 @@ registerVarForType<Administration.PlayerInfo>().apply {
     registerChild("profile", "统一账号信息(可能不存在)", DynamicVar { obj, _ -> PlayerData[obj].profile })
 }
 
-//TODO PlayerData 和 PlaceProfile相关逻辑
-
 listen<EventType.PlayerJoin> {
     val p = it.player
     transaction {
@@ -36,6 +34,7 @@ listen<EventType.PlayerJoin> {
             lastIp = p.con.address
             lastName = p.name
             lastTime = Instant.now()
+            profile?.lastTime = Instant.now()
         }
     }
 }
