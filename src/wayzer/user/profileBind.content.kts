@@ -10,33 +10,42 @@ import kotlin.random.Random
 export(::generate)// 生成绑定码
 export(::check)// 检测绑定码
 
-class ExpireMutableMap<K, V>() {
+class ExpireMutableMap<K, V> {
+    class ExpireItem<V>(val time:Long,val v:V):Comparable<ExpireItem<V>>{
+        override fun compareTo(other: ExpireItem<V>): Int {
+            return compareValuesBy(this,other){it.time}
+        }
+    }
     private val map = mutableMapOf<K, V>()
-    private val expireQueue = PriorityQueue<Pair<Long, K>>()
+    private val expireQueue = PriorityQueue<ExpireItem<K>>()
     fun add(expireTime: Long, key: K, value: V): Boolean {
         if (key in this) return false
         map[key] = value
-        return expireQueue.add(System.currentTimeMillis() + expireTime to key)
+        return expireQueue.add(ExpireItem(System.currentTimeMillis() + expireTime,key))
     }
 
     operator fun get(key: K): V? {
-        expireQueue.peek().takeIf { it.first > System.currentTimeMillis() }?.let {
+        expireQueue.peek()?.takeIf { it.time < System.currentTimeMillis() }?.let {
             expireQueue.poll()
-            map.remove(key)
+            map.remove(it.v)
         }
         return map[key]
     }
-    operator fun contains(key:K):Boolean = get(key) != null
+    fun removeValue(v:V){
+        map.entries.removeIf{it.value==v}
+    }
+    private operator fun contains(key:K):Boolean = get(key) != null
 }
 
 val expireTime: Duration by config.key(Duration.ofMinutes(10), "随机绑定码到期时间")
 val map = ExpireMutableMap<Int, Long>()
 
 fun generate(qq: Long): Int {
+    map.removeValue(qq)
     var code: Int
     do {
         code = Random.nextInt(1000000)
-    } while (map.add(expireTime.toMillis(), code, qq))
+    } while (!map.add(expireTime.toMillis(), code, qq))
     return code
 }
 
