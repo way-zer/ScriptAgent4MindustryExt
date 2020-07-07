@@ -1,7 +1,6 @@
 @file:DependsModule("coreMindustry")
 
-import wayzer.lib.dao.PlayerData
-import wayzer.lib.dao.PlayerProfile
+import wayzer.lib.dao.*
 
 name = "WayZer Mindustry Plugin"
 /**
@@ -33,4 +32,4 @@ name = "WayZer Mindustry Plugin"
 addDefaultImport("wayzer.lib.*")
 addDefaultImport("wayzer.lib.dao.*")
 generateHelper()
-registerTable(PlayerProfile.T, PlayerData.T)
+registerTable(PlayerProfile.T, PlayerData.T,Achievement.T)

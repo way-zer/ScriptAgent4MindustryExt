@@ -1,11 +1,15 @@
 package wayzer.user
 
 import cf.wayzer.placehold.PlaceHoldApi.with
+import cf.wayzer.script_agent.IContentScript
+import cf.wayzer.script_agent.depends
+import mindustry.entities.type.Player
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Duration
 import java.time.Instant
 import java.util.*
 import kotlin.random.Random
+import kotlin.reflect.KCallable
 
 export(::generate)// 生成绑定码
 export(::check)// 检测绑定码
@@ -69,6 +73,9 @@ command("bind", "绑定用户", "<六位code>", CommandType.Client) { arg, p ->
                 lastTime = Instant.now()
             }
         }
+        @Suppress("UNCHECKED_CAST")
+        val finishAchievement = depends("wayzer/user/achievement").let { it as? IContentScript }?.import<KCallable<*>>("finishAchievement") as? (Player,String,Int,Boolean)->Unit
+        finishAchievement?.invoke(p,"绑定账号",100,false)
     }
     p.sendMessage("[green]绑定账号[yellow]$qq[green]成功.")
 }
