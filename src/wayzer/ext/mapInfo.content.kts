@@ -16,7 +16,7 @@ fun CoreBlock.CoreEntity.showInfo(p:Player){
         var lastEnd=-1
         var pos = -20f
         while (lastEnd<length) {
-            val newEnd = indexOf(' ', lastEnd + 30).takeUnless { it==-1 }?:length
+            val newEnd = indexOfAny(charArrayOf(' ','，',',','.'), lastEnd + 30).takeUnless { it==-1 }?:length
             draw(pos, substring(lastEnd + 1, newEnd))
             lastEnd = newEnd
             pos += -10f
