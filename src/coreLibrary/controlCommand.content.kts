@@ -3,6 +3,7 @@ package coreLibrary
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.IInitScript
+import cf.wayzer.script_agent.ScriptManager
 import kotlinx.coroutines.launch
 
 val thisRef = this
@@ -11,7 +12,7 @@ onEnable {
         addSub(ICommand(thisRef, "list", "列出所有模块或模块内所有脚本", "[module]") { arg ->
             if (!hasPermission("scriptAgent.control.list")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
             if (arg.isEmpty()) {
-                val list = manager.loadedInitScripts.values.map {
+                val list = ScriptManager.loadedInitScripts.values.map {
                     val enable = if (it.enabled) "purple" else "reset"
                     "[{enable}]{name} [blue]{desc}\n".with(
                             "enable" to enable,
@@ -26,7 +27,7 @@ onEnable {
                 """.trimIndent().with("list" to list)
                 )
             }
-            val module = arg[0].let(::getScript)?.let { it as? IInitScript }
+            val module = arg[0].let(ScriptManager::getScript)?.let { it as? IInitScript }
                     ?: return@ICommand sendMessage("[red]找不到模块".with())
             val list = module.children.map {
                 val enable = if (it.enabled) "purple" else "reset"
@@ -47,9 +48,9 @@ onEnable {
             if (!hasPermission("scriptAgent.control.reload")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
             GlobalScope.launch {
                 sendMessage("[yellow]异步处理中".with())
-                val success: Boolean = when (val script = arg.getOrNull(0)?.let(::getScript)) {
-                    is IInitScript -> manager.loadModule(script.sourceFile, force = true, enable = true) != null
-                    is IContentScript -> manager.loadContent(script.module, script.sourceFile,
+                val success: Boolean = when (val script = arg.getOrNull(0)?.let(ScriptManager::getScript)) {
+                    is IInitScript -> ScriptManager.loadModule(script.sourceFile, force = true, enable = true) != null
+                    is IContentScript -> ScriptManager.loadContent(script.module, script.sourceFile,
                             force = true,
                             enable = true
                     ) != null
@@ -65,11 +66,11 @@ onEnable {
             GlobalScope.launch {
                 sendMessage("[yellow]异步处理中".with())
                 val success: Boolean = when {
-                    file.name.endsWith(Config.moduleDefineSuffix) -> manager.loadModule(file,enable=true) != null
+                    file.name.endsWith(Config.moduleDefineSuffix) -> ScriptManager.loadModule(file,enable=true) != null
                     file.name.endsWith(Config.contentScriptSuffix) -> {
-                        val module = getScript(arg[0].split('/')[0]) as? IInitScript
+                        val module = ScriptManager.getScript(arg[0].split('/')[0]) as? IInitScript
                                 ?: return@launch sendMessage("[red]找不到模块,请确定模块已先加载".with())
-                        manager.loadContent(module, file,enable=true) != null
+                        ScriptManager.loadContent(module, file,enable=true) != null
                     }
                     else -> return@launch sendMessage("[red]不支持的文件格式".with())
                 }

@@ -1,8 +1,6 @@
 package coreLibrary.lib
 
-import cf.wayzer.script_agent.IBaseScript
 import cf.wayzer.script_agent.IContentScript
-import coreLibrary.lib.commands.IControlCommands
 import coreLibrary.lib.util.Provider
 import java.util.logging.Logger
 
@@ -125,7 +123,7 @@ open class ICommands<S : ISender<*>>(script: IContentScript?, name: String, desc
 
     companion object {
         val rootProvider = Provider<ICommands<out ISender<*>>>()
-        val controlCommand = IControlCommands()
+        val controlCommand = ICommands<ISender<*>>(null, "ScriptAgent", "ScriptAgent 控制指令", listOf("sa"))
 
         init {
             rootProvider.every {

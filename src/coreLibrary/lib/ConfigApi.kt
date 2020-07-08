@@ -108,10 +108,9 @@ open class ConfigBuilder(private val path: String) {
     companion object {
         val IBaseScript.configs by DSLBuilder.dataKeyWithDefault { mutableSetOf<ConfigKey<*>>() }
         val all = mutableMapOf<String, ConfigKey<*>>()
-        private lateinit var configFile: File
+        var configFile: File = cf.wayzer.script_agent.Config.dataDirectory.resolve("config.conf")
         private lateinit var fileConfig: Config
-        fun init(configFile: File) {
-            this.configFile = configFile
+        init {
             reloadFile()
         }
 
