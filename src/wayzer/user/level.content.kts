@@ -46,7 +46,7 @@ listen<EventType.PlayerJoin> {
     it.player.apply {
         name = "[white]<.>[#$color]$name"
         updateExp(this,0)
-        sendMessage("[cyan][+]{player.name}[gold]加入了服务器".with("player" to it.player))
+        sendMessage("[cyan][+]{player.name} [gold]加入了服务器".with("player" to it.player))
     }
-    broadcast("[cyan][+]{player.name}[goldenrod]加入了服务器".with("player" to it.player))
+    broadcast("[cyan][+]{player.name} [goldenrod]加入了服务器".with("player" to it.player))
 }
