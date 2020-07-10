@@ -28,8 +28,11 @@ onEnable{
     Vars.dataDirectory.child("scriptAgent.db").file().takeIf { it.exists() }?.let {
         println("检测到旧数据储存文件,已弃用，请手动移除 $it")
     }
-    ICommands.rootProvider.set(serverRootCommands)
-    clientRootCommands.addSub(ICommands.controlCommand)
+    Commands.rootProvider.set(serverRootCommands)
+    clientRootCommands.addSub(CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令", {
+        aliases = listOf("sa")
+        permission = "scriptAgent.admin"
+    },Commands.controlCommand))
 }
 
 onAfterContentEnable{child->

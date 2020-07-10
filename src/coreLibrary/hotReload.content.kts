@@ -49,17 +49,21 @@ fun enableWatch() {
     }
 }
 
-ICommands.controlCommand.addSub(ICommand(this, "hotReload", "开关脚本自动热重载") {
-    if (!hasPermission("scriptAgent.control.hotReload")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
-    if (watcher == null) {
-        enableWatch()
-        sendMessage("[green]脚本自动热重载监测启动".with())
-    } else {
-        watcher?.close()
-        watcher = null
-        sendMessage("[yellow]脚本自动热重载监测关闭".with())
-    }
-})
+onEnable{
+    Commands.controlCommand.addSub(CommandInfo(this, "hotReload", "开关脚本自动热重载",{
+        permission="scriptAgent.control.hotReload"
+    }) {
+        if (watcher == null) {
+            enableWatch()
+            reply("[green]脚本自动热重载监测启动".with())
+        } else {
+            watcher?.close()
+            watcher = null
+            reply("[yellow]脚本自动热重载监测关闭".with())
+        }
+    })
+    onDisable { Commands.controlCommand.removeAll(this) }
+}
 
 onDisable {
     watcher?.close()
