@@ -23,6 +23,7 @@ onEnable{
     Vars.dataDirectory.child("scriptsConfig.conf").file().takeIf { it.exists() }?.apply {
         println("检测到旧配置文件,自动迁移")
         copyTo(Config.dataDirectory.resolve("config.conf"),true)
+        ConfigBuilder.reloadFile()
         delete()
     }
     Vars.dataDirectory.child("scriptAgent.db").file().takeIf { it.exists() }?.let {
