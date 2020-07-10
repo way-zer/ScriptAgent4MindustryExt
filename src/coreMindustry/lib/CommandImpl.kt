@@ -3,56 +3,54 @@
 package coreMindustry.lib
 
 import arc.util.CommandHandler
-import arc.util.Log
 import cf.wayzer.script_agent.Config
+import cf.wayzer.script_agent.getContextModule
+import cf.wayzer.script_agent.listenTo
+import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.*
+import coreLibrary.lib.event.PermissionRequestEvent
 import mindustry.entities.type.Player
 
-/**
- * @param player null for console
- */
-@Suppress("MemberVisibilityCanBePrivate")
-class Sender(override val player: Player?) : ISender<Player?> {
-    override fun sendMessage(msg: PlaceHoldString) {
-        sendMessage(msg, MsgType.Message)
-    }
-
-    override fun hasPermission(node: String): Boolean {
-        if (node.startsWith("scriptAgent") || node.contains("admin"))
-            return player == null || player.isAdmin
-        return true
-    }
-
-    fun sendMessage(text: PlaceHoldString, type: MsgType = MsgType.Message, time: Float = 10f) {
-        if (player == null) {
-            println(ColorApi.handle("$text[RESET]", ColorApi::consoleColorHandler))
-        } else {
-            player.sendMessage("{msg}".with("msg" to text, "player" to player), type, time)
-        }
-    }
-}
-typealias Command = ICommand<Sender>
-typealias Commands = ICommands<Sender>
-
-class RootCommands(private val mindustryHandler: CommandHandler) : Commands(null, "Root", "Root") {
-    override fun addSub(name: String, command: ICommand<in Sender>, isAliases: Boolean) {
-        if (command is ICommands<*>.HelpCommand) return //RootCommands don't need help
+class RootCommands(private val mindustryHandler: CommandHandler) : Commands() {
+    override fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
+        if (name == "help") return //RootCommands don't need help
         removeSub(name)
         mindustryHandler.register(name, "[arg...]", command.description) { arg, player: Player? ->
-            val sender = Sender(player)
-            try {
-                command.handle(sender, arg.getOrNull(0)?.split(' ') ?: emptyList(), "/$name")
-            } catch (e: Throwable) {
-                Log.err("Execute command $name(${command.script?.clsName}) error", e)
-                sender.sendMessage("[red]error happen when execute command!".with())
-            }
+            command(CommandContext().apply{
+                reply = {reply(it, MsgType.Message)}
+                this.player = player
+                thisCommand = command
+                prefix = "/$name"
+                this.arg = arg.getOrNull(0)?.split(' ')?: emptyList()
+            })
         }
     }
 
     override fun removeSub(name: String) {
         mindustryHandler.removeCommand(name)
     }
+    companion object{
+        init {
+            RootCommands::class.java.getContextModule()!!.apply {
+                listenTo<PermissionRequestEvent> {
+                    if(context.player?.isAdmin!=false)
+                        result = true
+                }
+            }
+        }
+    }
 }
 
+/**
+ * null for console or other
+ */
+var CommandContext.player by DSLBuilder.dataKey<Player>()
+fun CommandContext.reply(text: PlaceHoldString, type: MsgType = MsgType.Message, time: Float = 10f){
+    if (player == null) {
+        println(ColorApi.handle("$text[RESET]", ColorApi::consoleColorHandler))
+    } else {
+        player.sendMessage("{msg}".with("msg" to text, "player" to player!!), type, time)
+    }
+}
 val clientRootCommands = RootCommands(Config.clientCommands)
 val serverRootCommands = RootCommands(Config.serverCommands)

@@ -20,14 +20,20 @@ addDefaultImport("coreMindustry.lib.*")
 generateHelper()
 
 onEnable{
-    ConfigBuilder.init(Vars.dataDirectory.child("scriptsConfig.conf").file())
-    DataStoreApi.open(Vars.dataDirectory.child("scriptAgent.db").absolutePath())
-    ICommands.rootProvider.set(serverRootCommands)
-    clientRootCommands.addSub(ICommands.controlCommand)
-}
-
-onDisable{
-    DataStoreApi.close()
+    Vars.dataDirectory.child("scriptsConfig.conf").file().takeIf { it.exists() }?.apply {
+        println("检测到旧配置文件,自动迁移")
+        copyTo(Config.dataDirectory.resolve("config.conf"),true)
+        ConfigBuilder.reloadFile()
+        delete()
+    }
+    Vars.dataDirectory.child("scriptAgent.db").file().takeIf { it.exists() }?.let {
+        println("检测到旧数据储存文件,已弃用，请手动移除 $it")
+    }
+    Commands.rootProvider.set(serverRootCommands)
+    clientRootCommands.addSub(CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令", {
+        aliases = listOf("sa")
+        permission = "scriptAgent.admin"
+    },Commands.controlCommand))
 }
 
 onAfterContentEnable{child->

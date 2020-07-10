@@ -26,13 +26,17 @@ fun enableWatch() {
                 if (event.count() != 1) return@forEach
                 val file = (key.watchable() as Path).resolve(event.context() as? Path ?: return@forEach)
                 when {
-                    file.toString().endsWith(Config.moduleDefineSuffix) -> //处理模块重载
+                    file.toString().endsWith(Config.moduleDefineSuffix) ->{ //处理模块重载
+                        println("模板文件更新: ${event.kind().name()} ${Config.getIdByFile(file.toFile())}")
+                        delay(1000)
                         ScriptManager.loadModule(file.toFile(), force = true, enable = true)
+                    }
                     file.toString().endsWith(Config.contentScriptSuffix) -> { //处理子脚本重载
+                        println("脚本文件更新: ${event.kind().name()} ${Config.getIdByFile(file.toFile())}")
+                        delay(1000)
                         val module = Config.findModuleBySource(file.toFile())?.let {
                             ScriptManager.getScript(it) as? IInitScript
                         } ?: return@forEach println("[WARN]Can't get Module by $file")
-                        println("重载脚本:$file")
                         ScriptManager.loadContent(module, file.toFile(), force = true, enable = true)
                     }
                     file.toFile().isDirectory -> {//添加子目录到Watch
@@ -45,17 +49,21 @@ fun enableWatch() {
     }
 }
 
-ICommands.controlCommand.addSub(ICommand(this, "hotReload", "开关脚本自动热重载") {
-    if (!hasPermission("scriptAgent.control.hotReload")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
-    if (watcher == null) {
-        enableWatch()
-        sendMessage("[green]脚本自动热重载监测启动".with())
-    } else {
-        watcher?.close()
-        watcher = null
-        sendMessage("[yellow]脚本自动热重载监测关闭".with())
-    }
-})
+onEnable{
+    Commands.controlCommand.addSub(CommandInfo(this, "hotReload", "开关脚本自动热重载",{
+        permission="scriptAgent.control.hotReload"
+    }) {
+        if (watcher == null) {
+            enableWatch()
+            reply("[green]脚本自动热重载监测启动".with())
+        } else {
+            watcher?.close()
+            watcher = null
+            reply("[yellow]脚本自动热重载监测关闭".with())
+        }
+    })
+    onDisable { Commands.controlCommand.removeAll(this) }
+}
 
 onDisable {
     watcher?.close()
