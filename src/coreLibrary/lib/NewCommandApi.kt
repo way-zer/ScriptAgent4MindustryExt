@@ -4,12 +4,18 @@ package coreLibrary.lib
 
 import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.util.DSLBuilder
+import coreLibrary.lib.event.PermissionRequestEvent
 import java.util.logging.Logger
 
 
 class CommandContext : DSLBuilder() {
     lateinit var reply: (msg: PlaceHoldString)->Unit
-    lateinit var hasPermission:(node: String)->Boolean
+    var hasPermission:(node: String)->Boolean={
+        PermissionRequestEvent(it,this).run {
+            emit()
+            result == true
+        }
+    }
     lateinit var thisCommand: CommandInfo
     var prefix: String = ""
     var arg = emptyList<String>()
@@ -19,14 +25,28 @@ class CommandContext : DSLBuilder() {
             body(it)
         }
     }
+    fun replyNoPermission(){
+        reply("[red]你没有执行该命令的权限".with())
+    }
+    fun replyUsage(){
+        reply("[red]参数错误: {prefix} {usage}".with("prefix" to prefix,"usage" to thisCommand.usage))
+    }
 }
 typealias CommandHandler = CommandContext.() -> Unit
 
 class CommandInfo(val script: IContentScript?, val name:String, val description: String, private val handler:CommandHandler):DSLBuilder(), (CommandContext) -> Unit {
     var usage = ""
     val aliases = emptyList<String>()
+    var permission = ""
     override fun invoke(context: CommandContext) {
-        handler.invoke(context)
+        if(permission.isNotBlank()&&!context.hasPermission(permission))
+            return context.replyNoPermission()
+        try {
+            handler.invoke(context)
+        }catch (e: Exception){
+            context.reply("[red]执行命令出现异常: {msg}".with("msg" to (e.message?:"")))
+            e.printStackTrace()
+        }
     }
 }
 open class NewCommands : (CommandContext) -> Unit {
@@ -77,11 +97,16 @@ open class NewCommands : (CommandContext) -> Unit {
 
     init {
         this.addSub(CommandInfo(null,"help","显示帮助"){
+            val showDetail = arg.getOrNull(0)=="-v"
             val list = subCommands.values.toSet().map {
-                "[purple]{prefix} {name}[blue]{aliases} [purple]{usage} [light_purple]{desc} [purple]FROM [light_purple]{script}\n".with(
-                        "prefix" to prefix, "name" to it.name, "aliases" to it.aliases.joinToString(prefix="(",postfix = ")"),
-                        "usage" to it.usage, "desc" to it.description, "script" to (it.script?.clsName ?: "UNKNOWN")
-                )
+                val detail = buildString {
+                    if(!showDetail)return@buildString
+                    if (it.script != null) append("FROM ${it.script.id}")
+                    if (it.permission.isNotBlank()) append("REQUIRE ${it.permission}")
+                }
+                "[purple]{prefix} {name}[blue]{aliases} [purple]{usage} [light_purple]{desc} [purple]{detail}\n".with(
+                        "prefix" to prefix, "name" to it.name, "aliases" to it.aliases.joinToString(prefix = "(", postfix = ")"),
+                        "usage" to it.usage, "desc" to it.description, "detail" to detail)
             }
             reply("""
                 [yellow]==== [light_yellow]{name}[yellow] ====
