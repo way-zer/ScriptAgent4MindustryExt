@@ -4,8 +4,10 @@ package coreMindustry.lib
 
 import arc.util.CommandHandler
 import cf.wayzer.script_agent.Config
+import cf.wayzer.script_agent.getContextModule
 import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.*
+import coreLibrary.lib.event.PermissionRequestEvent
 import mindustry.entities.type.Player
 
 class RootCommands(private val mindustryHandler: CommandHandler) : Commands() {
@@ -25,6 +27,16 @@ class RootCommands(private val mindustryHandler: CommandHandler) : Commands() {
 
     override fun removeSub(name: String) {
         mindustryHandler.removeCommand(name)
+    }
+    companion object{
+        init {
+            RootCommands::class.java.getContextModule()!!.apply {
+                listen<PermissionRequestEvent> {
+                    if(it.context.player?.isAdmin!=false)
+                        it.result = true
+                }
+            }
+        }
     }
 }
 
