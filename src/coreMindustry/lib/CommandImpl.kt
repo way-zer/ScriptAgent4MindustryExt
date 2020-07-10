@@ -5,6 +5,7 @@ package coreMindustry.lib
 import arc.util.CommandHandler
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.getContextModule
+import cf.wayzer.script_agent.listenTo
 import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.*
 import coreLibrary.lib.event.PermissionRequestEvent
@@ -31,9 +32,9 @@ class RootCommands(private val mindustryHandler: CommandHandler) : Commands() {
     companion object{
         init {
             RootCommands::class.java.getContextModule()!!.apply {
-                listen<PermissionRequestEvent> {
-                    if(it.context.player?.isAdmin!=false)
-                        it.result = true
+                listenTo<PermissionRequestEvent> {
+                    if(context.player?.isAdmin!=false)
+                        result = true
                 }
             }
         }

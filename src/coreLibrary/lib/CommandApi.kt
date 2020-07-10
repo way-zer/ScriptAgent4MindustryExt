@@ -22,6 +22,11 @@ class CommandContext : DSLBuilder() {
     var arg = emptyList<String>()
     fun new(body: CommandContext.() -> Unit): CommandContext {
         return CommandContext().also {
+            it.reply = reply
+            it.hasPermission = hasPermission
+            it.thisCommand = thisCommand
+            it.prefix = prefix
+            it.arg = arg
             it.data.putAll(data)
             body(it)
         }
@@ -67,8 +72,8 @@ open class Commands : (CommandContext) -> Unit {
         val cmd = subCommands[context.arg[0].toLowerCase()]
         if (cmd == null) subCommands["help"]!!.invoke(context)
         else cmd.invoke(context.new {
-            context.prefix += " " + context.arg[0]
-            context.arg = arg.subList(1, arg.size)
+            prefix += " " + arg[0]
+            arg = arg.subList(1, arg.size)
         })
     }
 
@@ -108,13 +113,14 @@ open class Commands : (CommandContext) -> Unit {
         this.addSub(CommandInfo(null, "help", "显示帮助") {
             val showDetail = arg.getOrNull(0) == "-v"
             val list = subCommands.values.toSet().map {
+                val alias = if(it.aliases.isEmpty())"" else it.aliases.joinToString(prefix = "(", postfix = ")")
                 val detail = buildString {
                     if (!showDetail) return@buildString
                     if (it.script != null) append("FROM ${it.script.id}")
                     if (it.permission.isNotBlank()) append("REQUIRE ${it.permission}")
                 }
                 "[purple]{prefix} {name}[blue]{aliases} [purple]{usage} [light_purple]{desc} [purple]{detail}\n".with(
-                        "prefix" to prefix, "name" to it.name, "aliases" to it.aliases.joinToString(prefix = "(", postfix = ")"),
+                        "prefix" to prefix, "name" to it.name, "aliases" to alias,
                         "usage" to it.usage, "desc" to it.description, "detail" to detail)
             }
             reply("""
