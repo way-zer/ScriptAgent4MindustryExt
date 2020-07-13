@@ -9,7 +9,7 @@ onEnable {
             usage="[help/arg...]"
             permission = "scriptAgent.config"
         }) {
-            if (arg.isEmpty() || arg[0].equals("help", true)) return@CommandInfo reply(""""
+            if (arg.isEmpty() || arg[0].equals("help", true)) return@CommandInfo reply("""
                         [yellow]可用操作
                         [purple]config reload [light_purple]重载配置文件
                         [purple]config <配置项> set <value> [light_purple]设置配置值
