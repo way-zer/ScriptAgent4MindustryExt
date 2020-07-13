@@ -70,7 +70,7 @@ open class Commands : (CommandContext) -> Unit {
             return (subCommands[""] ?: subCommands["help"]!!).invoke(context)
         }
         val cmd = subCommands[context.arg[0].toLowerCase()]
-        if (cmd == null) subCommands["help"]!!.invoke(context)
+        if (cmd == null || cmd.name=="help") subCommands["help"]!!.invoke(context)
         else cmd.invoke(context.new {
             prefix += " " + arg[0]
             arg = arg.subList(1, arg.size)
@@ -94,7 +94,7 @@ open class Commands : (CommandContext) -> Unit {
         subCommands.remove(name)
     }
 
-    fun addSub(command: CommandInfo) {
+    open fun addSub(command: CommandInfo) {
         addSub(command.name, command, false)
         command.aliases.forEach {
             addSub(it, command, true)
@@ -109,11 +109,18 @@ open class Commands : (CommandContext) -> Unit {
         toRemove.forEach(::removeSub)
     }
 
+    operator fun plusAssign(command: CommandInfo) = addSub(command)
+    fun autoRemove(script: IContentScript) {
+        script.onDisable {
+            removeAll(script)
+        }
+    }
+
     init {
         this.addSub(CommandInfo(null, "help", "显示帮助") {
             val showDetail = arg.getOrNull(0) == "-v"
             val list = subCommands.values.toSet().map {
-                val alias = if(it.aliases.isEmpty())"" else it.aliases.joinToString(prefix = "(", postfix = ")")
+                val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
                 val detail = buildString {
                     if (!showDetail) return@buildString
                     if (it.script != null) append("FROM ${it.script.id}")
@@ -136,7 +143,6 @@ open class Commands : (CommandContext) -> Unit {
         val controlCommand = Commands()
 
         init {
-
             rootProvider.every {
                 it.addSub(CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令", {
                     aliases = listOf("sa")
