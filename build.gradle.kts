@@ -47,7 +47,6 @@ dependencies {
     //coreLibrary
     api("cf.wayzer:PlaceHoldLib:2.1.0")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1")
-    implementation("com.h2database:h2-mvstore:1.4.200")
     implementation("org.jetbrains.exposed:exposed-core:0.24.1")
     implementation("org.jetbrains.exposed:exposed-dao:0.24.1")
     implementation("org.jetbrains.exposed:exposed-java-time:0.24.1")
