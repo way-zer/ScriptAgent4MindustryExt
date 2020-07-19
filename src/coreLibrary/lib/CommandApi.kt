@@ -10,23 +10,35 @@ import java.util.logging.Logger
 
 
 class CommandContext : DSLBuilder() {
-    lateinit var reply: (msg: PlaceHoldString) -> Unit
+    // Should init in CommandInfo
+    lateinit var thisCommand: CommandInfo
+
+    // Should init if not empty
+    var prefix: String = ""
+
+    // Should init if not empty
+    var arg = emptyList<String>()
+
+    // Should init if need
+    var reply: (msg: PlaceHoldString) -> Unit = {}
+
+    // Should not null if do TabComplete
+    var replyTabComplete: ((list: List<String>) -> Nothing)? = null
     var hasPermission: (node: String) -> Boolean = {
         PermissionRequestEvent(it, this).run {
             emit()
             result == true
         }
     }
-    lateinit var thisCommand: CommandInfo
-    var prefix: String = ""
-    var arg = emptyList<String>()
+
     fun new(body: CommandContext.() -> Unit): CommandContext {
         return CommandContext().also {
-            it.reply = reply
-            it.hasPermission = hasPermission
             it.thisCommand = thisCommand
             it.prefix = prefix
             it.arg = arg
+            it.reply = reply
+            it.replyTabComplete = replyTabComplete
+            it.hasPermission = hasPermission
             it.data.putAll(data)
             body(it)
         }
@@ -39,6 +51,38 @@ class CommandContext : DSLBuilder() {
     fun replyUsage() {
         reply("[red]参数错误: {prefix} {usage}".with("prefix" to prefix, "usage" to thisCommand.usage))
     }
+
+    fun onComplete(index: Int,body:()->List<String>){
+        if(replyTabComplete!=null&&arg.size==index+1)
+            replyTabComplete?.invoke(body())
+    }
+
+    fun endComplete(){
+        if(replyTabComplete!=null)
+            CommandInfo.Return()
+    }
+
+    //return null if empty or no match
+    fun <T> checkArg(index: Int, list: List<T>, map: (T) -> String): T? {
+        onComplete(index){list.map(map)}
+        return arg.getOrNull(index)?.let { a->
+            list.find { map(it).equals(a,true) }
+        }
+    }
+    //return null if empty or no match
+    fun <T> checkArg(index: Int, map: Map<String,T>,keyHandler:(String)->String={it}): T? {
+        onComplete(index){map.keys.toList()}
+        return arg.getOrNull(index)?.let { map[keyHandler(it)]}
+    }
+
+    fun <T> checkArg(index: Int,map:(String?)->T):T?{
+        try {
+            return map(arg.getOrNull(index))
+        }catch (e : Exception){
+            reply("[red]{msg}".with("msg" to (e.message?:"参数错误")))
+            throw CommandInfo.Return
+        }
+    }
 }
 typealias CommandHandler = CommandContext.() -> Unit
 
@@ -46,32 +90,41 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
     var usage = ""
     var aliases = emptyList<String>()
     var permission = ""
+    var supportCompletion = false
 
     init {
         init()
     }
 
     override fun invoke(context: CommandContext) {
+        context.thisCommand = this
+        if(handler !is Commands && !supportCompletion)
+            context.endComplete()
         if (permission.isNotBlank() && !context.hasPermission(permission))
             return context.replyNoPermission()
         try {
             handler.invoke(context)
+        } catch (e: Return) {
         } catch (e: Exception) {
             context.reply("[red]执行命令出现异常: {msg}".with("msg" to (e.message ?: "")))
             e.printStackTrace()
+        }
+    }
+    object Return : Throwable("Direct return command"){
+        operator fun invoke():Nothing{
+            throw this
         }
     }
 }
 
 open class Commands : (CommandContext) -> Unit {
     protected val subCommands = mutableMapOf<String, CommandInfo>()
+    open fun getSub(context: CommandContext):CommandHandler{
+        return context.checkArg(0,subCommands) { it.toLowerCase() } ?:subCommands["help"]!!
+    }
     override operator fun invoke(context: CommandContext) {
-        if (context.arg.isEmpty()) {
-            return (subCommands[""] ?: subCommands["help"]!!).invoke(context)
-        }
-        val cmd = subCommands[context.arg[0].toLowerCase()]
-        if (cmd == null || cmd.name=="help") subCommands["help"]!!.invoke(context)
-        else cmd.invoke(context.new {
+        getSub(context).invoke(context.new {
+            if(arg.isEmpty())return@new
             prefix += " " + arg[0]
             arg = arg.subList(1, arg.size)
         })
@@ -118,6 +171,7 @@ open class Commands : (CommandContext) -> Unit {
 
     init {
         this.addSub(CommandInfo(null, "help", "显示帮助") {
+            prefix = prefix.removeSuffix(" help")
             val showDetail = arg.getOrNull(0) == "-v"
             val list = subCommands.values.toSet().map {
                 val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
@@ -133,7 +187,7 @@ open class Commands : (CommandContext) -> Unit {
             reply("""
                 [yellow]==== [light_yellow]{name}[yellow] ====
                 {list}
-            """.trimIndent().with("list" to list, "name" to thisCommand.name)
+            """.trimIndent().with("list" to list, "name" to prefix)
             )
         })
     }

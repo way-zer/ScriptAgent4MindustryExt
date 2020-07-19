@@ -1,5 +1,5 @@
 @file:MavenDepends("cf.wayzer:PlaceHoldLib:2.1.0", "https://dl.bintray.com/way-zer/maven/")
-@file:MavenDepends("io.github.config4k:config4k:0.4.1")
+@file:MavenDepends("io.github.config4k:config4k:0.4.2")
 @file:MavenDepends("com.typesafe:config:1.3.3")
 @file:MavenDepends("org.slf4j:slf4j-simple:1.7.28")
 @file:MavenDepends("org.jetbrains.exposed:exposed-core:0.24.1", single = false)

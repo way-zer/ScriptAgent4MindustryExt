@@ -28,18 +28,26 @@ open class ConfigBuilder(private val path: String) {
      * @param desc only display the first line using command
      */
     data class ConfigKey<T : Any>(val path: String, val cls: ClassContainer, val default: T, val desc: List<String>) {
-
+        private lateinit var cache: T
+        private var cacheTime = 0L
+        private fun cache(v:T):T{
+            cache = v
+            cacheTime = System.currentTimeMillis()
+            return v
+        }
         fun get(): T {
-            val v = fileConfig.extract(cls, path) ?: return default
+            if (cacheTime> lastLoad)return cache
+            val v = fileConfig.extract(cls, path) ?: return cache(default)
             @Suppress("UNCHECKED_CAST")
             if (cls.mapperClass.isInstance(v))
-                return v as T
+                return cache(v as T)
             error("Wrong config type: $path get $v")
         }
 
         fun set(v: T) {
-            fileConfig=fileConfig.withValue(path, v.toConfig(path).getValue(path)
+            fileConfig = fileConfig.withValue(path, v.toConfig(path).getValue(path)
                     .withOrigin(ConfigOriginFactory.newSimple().withComments(desc)))
+            cache(v)
             saveFile()
         }
 
@@ -110,12 +118,15 @@ open class ConfigBuilder(private val path: String) {
         val all = mutableMapOf<String, ConfigKey<*>>()
         var configFile: File = cf.wayzer.script_agent.Config.dataDirectory.resolve("config.conf")
         private lateinit var fileConfig: Config
+        private var lastLoad: Long = -1
+
         init {
             reloadFile()
         }
 
         fun reloadFile() {
             fileConfig = ConfigFactory.parseFile(configFile)
+            lastLoad = System.currentTimeMillis()
         }
 
         fun saveFile() {
