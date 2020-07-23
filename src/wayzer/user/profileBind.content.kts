@@ -65,13 +65,15 @@ command("genCode", "管理指令: 为用户生成随机绑定码", "<qq>", Comma
 command("bind", "绑定用户", "<六位code>", CommandType.Client) { arg, p ->
     val qq = arg.firstOrNull()?.toIntOrNull()?.let(::check)
             ?: return@command p!!.sendMessage("[red]请输入正确的6位绑定码,如没有，可找群内机器人获取")
-    transaction {
-        PlayerData[p!!].apply {
-            if(profile != null)
-                return@transaction p.sendMessage("[red]你已经绑定用户，如需解绑，请联系管理员")
+    PlayerData[p!!.uuid].apply {
+        if(profile!=null)
+            return@command p.sendMessage("[red]你已经绑定用户，如需解绑，请联系管理员")
+        @Suppress("EXPERIMENTAL_API_USAGE")
+        transaction {
             profile = PlayerProfile.getOrCreate(qq).apply {
                 lastTime = Instant.now()
             }
+            save()
         }
         @Suppress("UNCHECKED_CAST")
         val finishAchievement = depends("wayzer/user/achievement").let { it as? IContentScript }?.import<KCallable<*>>("finishAchievement") as? (Player,String,Int,Boolean)->Unit

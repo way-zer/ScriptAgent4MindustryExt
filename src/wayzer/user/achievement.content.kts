@@ -7,29 +7,30 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.reflect.KCallable
 
 fun finishAchievement(p: Player, name: String, exp: Int, broadcast: Boolean = false) {
-    transaction {
-        PlayerData[p].apply {
-            if (profile == null) return@transaction
-            @Suppress("UNCHECKED_CAST")
-            val updateExp = depends("wayzer/user/level").let { it as? IContentScript }?.import<KCallable<*>>("updateExp") as? Player.(Int) -> Boolean
-            if (updateExp?.invoke(p, exp) == true) {
-                Achievement.new {
+    PlayerData[p.uuid].apply {
+        if (profile == null) return
+        @Suppress("UNCHECKED_CAST")
+        val updateExp = depends("wayzer/user/level").let { it as? IContentScript }?.import<KCallable<*>>("updateExp") as? Player.(Int) -> Boolean
+        if (updateExp?.invoke(p, exp) == true) {
+            @Suppress("EXPERIMENTAL_API_USAGE")
+            transaction {
+                Achievement.newWithoutCache {
                     userId = profile!!.id
                     this.name = name
                     this.exp = exp
                 }
-                if (broadcast) {
-                    broadcast("[gold][成就]恭喜{player.name}[gold]完成成就[scarlet]{name},[gold]获得[violet]{exp}[gold]经验".with(
-                            "player" to p, "name" to name, "exp" to exp
-                    ))
-                } else {
-                    p.sendMessage("[gold][成就]恭喜你完成成就[scarlet]{name},[gold]获得[violet]{exp}[gold]经验".with(
-                            "name" to name, "exp" to exp
-                    ))
-                }
-            } else {
-                println("[Error]等级系统不可用")
             }
+            if (broadcast) {
+                broadcast("[gold][成就]恭喜{player.name}[gold]完成成就[scarlet]{name},[gold]获得[violet]{exp}[gold]经验".with(
+                        "player" to p, "name" to name, "exp" to exp
+                ))
+            } else {
+                p.sendMessage("[gold][成就]恭喜你完成成就[scarlet]{name},[gold]获得[violet]{exp}[gold]经验".with(
+                        "name" to name, "exp" to exp
+                ))
+            }
+        } else {
+            println("[Error]等级系统不可用")
         }
     }
 }
