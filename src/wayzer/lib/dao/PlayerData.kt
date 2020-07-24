@@ -62,7 +62,7 @@ class PlayerData : CacheEntity<String>(T) {
         }
 
         @NeedTransaction
-        fun find(p: Administration.PlayerInfo, noCache: Boolean) = getOrFind(p.id).also {
+        fun find(p: Administration.PlayerInfo, noCache: Boolean) = getOrFind(p.id)?.also {
             if (noCache) removeCache(p.id)
         }
     }

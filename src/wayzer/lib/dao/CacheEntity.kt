@@ -93,9 +93,9 @@ open class CacheEntity<ID : Comparable<ID>>(val table: IdTable<ID>) {
         }
         fun getOrNull(id:ID) = cache[id]
         @NeedTransaction
-        fun getOrFind(id:ID) = cache.getOrPut(id){
+        fun getOrFind(id:ID):T? = cache.getOrPut(id){
             factory().apply {
-                if(!loadById(id))error("Can't find")
+                if(!loadById(id))return null
             }
         }
         @NeedTransaction
