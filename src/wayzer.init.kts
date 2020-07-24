@@ -20,7 +20,7 @@ name = "WayZer Mindustry Plugin"
  * (ext/alert) alert per interval | 定时轮播公告
  * (ext/betterTeam) | 更好的PVP队伍管理，管理员强制换队以及观察者支持
  * (ext/mapInfo) | 在游戏内显示地图信息
- * TODO: (ext/pvpProtect)
+ * (ext/pvpProtect) pvp protect time | 开局pvp保护功能
  * (ext/serverStatus) /status | 获取服务器状态
  * (ext/mapSnap) /mapSnap | 保存地图快照到data/mapSnap下
  * TODO: (ext/lang)
