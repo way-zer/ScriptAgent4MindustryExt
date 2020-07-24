@@ -5,11 +5,25 @@ import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.net.Administration
 import org.jetbrains.exposed.sql.transactions.transaction
-import wayzer.lib.dao.PlayerData
+import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 name = "基础: 玩家数据"
+
+registerVarForType<Duration>().apply {
+    registerToString("参数设定单位(天,时,分,秒,d,h,m,s,默认m)", DynamicVar { obj, arg ->
+        val unit = when (arg?.get(0)?.toLowerCase()) {
+            'd','天' -> ChronoUnit.DAYS
+            'h','小','时' -> ChronoUnit.HOURS
+            'm','分' -> ChronoUnit.MINUTES
+            's','秒' -> ChronoUnit.SECONDS
+            else -> ChronoUnit.MINUTES
+        }
+        "%.2f%s".format((obj.seconds.toDouble() / unit.duration.seconds),arg?:"")
+    })
+}
 
 registerVarForType<Player>().apply {
     registerChild("info", "PlayerInfo", DynamicVar { obj, _ -> netServer.admins.getInfoOptional(obj.uuid) })
@@ -29,7 +43,16 @@ registerVarForType<Administration.PlayerInfo>().apply {
     registerChild("profile", "统一账号信息(可能不存在)", DynamicVar { obj, _ -> PlayerData.getOrNull(obj.id)?.profile })
 }
 
-registerVarForType<PlayerData>()
+registerVarForType<PlayerData>().apply {
+    registerChild("firstJoin", "第一次进服", DynamicVar { obj, _ -> Date.from(obj.firstTime) })
+}
+
+registerVarForType<PlayerProfile>().apply {
+    registerChild("id", "绑定的账号ID(qq)", DynamicVar { obj, _ -> obj.qq })
+    registerChild("onlineTime", "总在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.totalTime.toLong()) })
+    registerChild("registerTime", "注册时间", DynamicVar { obj, _ -> Date.from(obj.registerTime) })
+    registerChild("lastTime", "账号最后登录时间", DynamicVar { obj, _ -> Date.from(obj.lastTime) })
+}
 
 listen<EventType.PlayerConnect> {
     val p = it.player
@@ -44,7 +67,7 @@ listen<EventType.PlayerConnect> {
     }
 }
 
-listen<EventType.PlayerLeave>{
+listen<EventType.PlayerLeave> {
     @Suppress("EXPERIMENTAL_API_USAGE")
     transaction {
         PlayerData.getOrNull(it.player.uuid)?.apply {

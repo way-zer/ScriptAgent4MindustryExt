@@ -12,6 +12,7 @@ name = "WayZer Mindustry Plugin"
  * (user/profileBind) user token generate,check and user bind | 账号令牌生成,检测及用户绑定
  * (user/level) user exp/level system | 用户经验等级系统
  * (user/achievement) user achievement system | 用户成就系统
+ * (user/infoCommand) get profile info /info /mInfo(server) | /info指令(查看个人信息)
  * (ext/vote) Vote System includes: changeMap gameOver skipWave kick rollBack | 投票系统(换图,投降,跳波,踢人,回滚)
  * (ext/autoHost) autoHost after startup | 启动后自动开服
  * (ext/autoSave) autoSave every 10 minutes | 自动保存(10分钟)
@@ -20,7 +21,6 @@ name = "WayZer Mindustry Plugin"
  * (ext/betterTeam) | 更好的PVP队伍管理，管理员强制换队以及观察者支持
  * (ext/mapInfo) | 在游戏内显示地图信息
  * TODO: (ext/pvpProtect)
- * TODO: (ext/playerInfo) /info /mInfo(server)
  * (ext/serverStatus) /status | 获取服务器状态
  * (ext/mapSnap) /mapSnap | 保存地图快照到data/mapSnap下
  * TODO: (ext/lang)
