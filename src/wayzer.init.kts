@@ -25,7 +25,7 @@ name = "WayZer Mindustry Plugin"
  * (ext/mapSnap) /mapSnap | 保存地图快照到data/mapSnap下
  * TODO: (ext/lang)
  * (ext/reGrief/history) get tile action history | 获取某个的操作记录
- * TODO: (ext/reGrief/unitLimit)
+ * (ext/reGrief/unitLimit) limit units pre team | 限制每个队伍的单位总数
  * TODO: (ext/reGrief/reactor)
  * TODO: (ext/special/builderRobot)
  */
