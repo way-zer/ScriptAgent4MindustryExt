@@ -38,9 +38,9 @@ class PlayerData : CacheEntity<String>(T) {
         override val primaryKey: PrimaryKey = PrimaryKey(id)
         val lastName = varchar("lastName", 48)
         val lastIp = varchar("lastIp", 15)
-        val firstIp = varchar("firstIp", 15).defaultExpression(lastIp)
+        val firstIp = varchar("firstIp", 15)
         val lastTime = timestamp("lastTime").defaultExpression(CurrentTimestamp())
-        val firstTime = timestamp("firstTime").defaultExpression(lastTime)
+        val firstTime = timestamp("firstTime").defaultExpression(CurrentTimestamp())
         val profile = optReference("profile", PlayerProfile.T)
     }
 
@@ -57,6 +57,7 @@ class PlayerData : CacheEntity<String>(T) {
         @NeedTransaction
         fun findOrCreate(p: Player) = findOrCreate(p.uuid) {
             lastName = p.name
+            firstIP = p.con.address
             lastIp = p.con.address
             save(p.uuid)
         }
