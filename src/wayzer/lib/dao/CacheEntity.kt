@@ -57,11 +57,12 @@ open class CacheEntity<ID : Comparable<ID>>(val table: IdTable<ID>) {
         }
         if (new) {
             loadById(table.insertAndGetId {
+                if (id != null) it[this.id] = EntityID(id, table)
                 changed.forEach { (k, v) -> it.set(k, v) }
             }.value)
         } else if (changed.isNotEmpty()) {
-            if (id != null) this.id = EntityID(id, table)
             table.update({ table.id eq id }) {
+                if (id != null) it[this.id] = EntityID(id, table)
                 changed.forEach { (k, v) -> it.set(k, v) }
             }
             reload()
