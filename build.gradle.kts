@@ -16,7 +16,7 @@ gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPlugin
         versionFormat = "\${tagVersion}"
     })
     commit(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.CommitVersionDescription> {
-        versionFormat = "\${version}-\${commit.short}\${dirty}"
+        versionFormat = "\${commit.short}-SNAPSHOT"
     })
 })
 
@@ -84,6 +84,7 @@ tasks {
         group = "plugin"
         from(sourceSets.getByName("plugin").output)
         archiveClassifier.set("")
+        archiveVersion.set(rootProject.version.toString().substringBeforeLast('.'))
         configurations = listOf(project.configurations.getByName("compileClasspath"))
         dependencies {
             include(dependency("cf.wayzer:ScriptAgent:$libraryVersion"))
