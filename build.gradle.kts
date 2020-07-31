@@ -6,7 +6,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.2.10"
+val libraryVersion = "1.2.11"
 //val libraryVersion = "1.1.5"
 val mindustryVersion = "v104"
 
@@ -27,7 +27,7 @@ repositories {
     maven(url = "https://www.jitpack.io")
     maven("https://dl.bintray.com/way-zer/maven")
 }
-sourceSets {
+sourceSets(Action {
     main {
         java.srcDir("src")
     }
@@ -37,7 +37,7 @@ sourceSets {
         java.srcDir("plugin/src")
         resources.srcDir("plugin/res")
     }
-}
+})
 dependencies {
     api("cf.wayzer:ScriptAgent:$libraryVersion")
     implementation(kotlin("script-runtime"))
