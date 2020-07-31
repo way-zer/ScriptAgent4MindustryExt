@@ -10,7 +10,6 @@ import mindustry.io.SaveIO
 import mindustry.maps.Map
 import java.time.Duration
 import java.util.*
-import kotlin.concurrent.schedule
 
 name = "基础: 地图控制与管理"
 
@@ -152,7 +151,8 @@ listen<EventType.GameOverEvent> { event ->
             """.trimMargin().with("nextMap" to map, "winnerMsg" to winnerMsg, "waitTime" to waitingTime.seconds)
     broadcast(msg, gameOverMsgType, quite = true)
     ContentHelper.logToConsole("Next Map is ${map.name()}")
-    SharedTimer.schedule(waitingTime.toMillis()) {
+    launch {
+        delay(waitingTime.toMillis())
         MapManager.loadMap(map)
     }
 }
