@@ -14,6 +14,7 @@ import mindustry.entities.type.Player
 class RootCommands(private val mindustryHandler: CommandHandler) : Commands() {
     override fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
         if (name == "help") return //RootCommands don't need help
+        super.addSub(name, command, isAliases)
         removeSub(name)
         mindustryHandler.register(name, "[arg...]", command.description) { arg, player: Player? ->
             command(CommandContext().apply{
@@ -27,7 +28,17 @@ class RootCommands(private val mindustryHandler: CommandHandler) : Commands() {
     }
 
     override fun removeSub(name: String) {
+        super.removeSub(name)
         mindustryHandler.removeCommand(name)
+    }
+    fun tabComplete(player: Player?, args: List<String>): List<String> {
+        var result: List<String> = emptyList()
+        invoke(CommandContext().apply {
+            this.player = player
+            replyTabComplete = { result = it;CommandInfo.Return() }
+            arg = args
+        })
+        return result
     }
     companion object{
         init {

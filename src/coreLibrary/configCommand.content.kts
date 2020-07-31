@@ -8,10 +8,15 @@ onEnable {
         addSub(CommandInfo(thisRef, "config", "查看或修改配置", {
             usage="[help/arg...]"
             permission = "scriptAgent.config"
+            supportCompletion = true
         }) {
+            onComplete(0){ listOf("help","reload")+ConfigBuilder.all.keys }
+            onComplete(1){ listOf("set","write","reset") }
+            endComplete()
             if (arg.isEmpty() || arg[0].equals("help", true)) return@CommandInfo reply("""
                         [yellow]可用操作
                         [purple]config reload [light_purple]重载配置文件
+                        [purple]config <配置项> [light_purple]查看配置项介绍及当前值
                         [purple]config <配置项> set <value> [light_purple]设置配置值
                         [purple]config <配置项> write [light_purple]写入默认值到配置文件
                         [purple]config <配置项> reset [light_purple]恢复默认值（从配置文件移除默认值）
@@ -20,7 +25,7 @@ onEnable {
                 ConfigBuilder.reloadFile()
                 return@CommandInfo reply("[green]重载成功".with())
             }
-            val config = ConfigBuilder.all[arg[0]] ?: return@CommandInfo reply("[red]找不到配置项".with())
+            val config = checkArg(0,ConfigBuilder.all) ?: return@CommandInfo reply("[red]找不到配置项".with())
             when (arg.getOrNull(1)?.toLowerCase()) {
                 null -> {
                     reply("""

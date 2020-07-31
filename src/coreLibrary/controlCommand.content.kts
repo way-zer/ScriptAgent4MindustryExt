@@ -12,7 +12,12 @@ onEnable {
         addSub(CommandInfo(thisRef, "list", "列出所有模块或模块内所有脚本", {
             usage = "[module]"
             permission = "scriptAgent.control.list"
+            supportCompletion = true
         }) {
+            onComplete(0){
+                ScriptManager.loadedInitScripts.values.map { it.id }
+            }
+            endComplete()
             if (arg.isEmpty()) {
                 val list = ScriptManager.loadedInitScripts.values.map {
                     val enable = if (it.enabled) "purple" else "reset"
@@ -49,7 +54,14 @@ onEnable {
         addSub(CommandInfo(thisRef, "reload", "重载一个脚本或者模块", {
             usage = "<module[/script]>"
             permission = "scriptAgent.control.reload"
+            supportCompletion = true
         }) {
+            onComplete(0) {
+                (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IInitScript }?.children
+                        ?: ScriptManager.loadedInitScripts.values).map { it.id }
+            }
+            endComplete()
+            if (arg.isEmpty())return@CommandInfo replyUsage()
             GlobalScope.launch {
                 reply("[yellow]异步处理中".with())
                 val success: Boolean = when (val script = arg.getOrNull(0)?.let(ScriptManager::getScript)) {

@@ -6,7 +6,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.2.8"
+val libraryVersion = "1.2.11"
 //val libraryVersion = "1.1.5"
 val mindustryVersion = "v104"
 
@@ -16,7 +16,7 @@ gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPlugin
         versionFormat = "\${tagVersion}"
     })
     commit(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.CommitVersionDescription> {
-        versionFormat = "\${version}-\${commit.short}\${dirty}"
+        versionFormat = "\${commit.short}-SNAPSHOT"
     })
 })
 
@@ -27,7 +27,7 @@ repositories {
     maven(url = "https://www.jitpack.io")
     maven("https://dl.bintray.com/way-zer/maven")
 }
-sourceSets {
+sourceSets(Action {
     main {
         java.srcDir("src")
     }
@@ -37,7 +37,7 @@ sourceSets {
         java.srcDir("plugin/src")
         resources.srcDir("plugin/res")
     }
-}
+})
 dependencies {
     api("cf.wayzer:ScriptAgent:$libraryVersion")
     implementation(kotlin("script-runtime"))
@@ -84,6 +84,7 @@ tasks {
         group = "plugin"
         from(sourceSets.getByName("plugin").output)
         archiveClassifier.set("")
+        archiveVersion.set(rootProject.version.toString().substringBeforeLast('.'))
         configurations = listOf(project.configurations.getByName("compileClasspath"))
         dependencies {
             include(dependency("cf.wayzer:ScriptAgent:$libraryVersion"))
