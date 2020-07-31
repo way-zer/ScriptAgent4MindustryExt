@@ -10,13 +10,13 @@ name = "自动存档"
 val autoSaveRange = 100 until 106
 command("slots", "列出自动保存的存档", type = CommandType.Client) { _, p ->
     val list = autoSaveRange.map { it to SaveIO.fileFor(it) }.filter { it.second.exists() }.map { (id, file) ->
-        "[red]{id}[]: [yellow]Save on {date:hh:mm}\n".i18n("id" to id, "date" to file.lastModified().let(::Date))
+        "[red]{id}[]: [yellow]Save on {date:hh:mm}\n".with("id" to id, "date" to file.lastModified().let(::Date))
     }
     p.sendMessage("""
             |[green]===[white] 自动存档 [green]===
             |{list}
             |[green]===[white] {range} [green]===
-        """.trimMargin().i18n("range" to autoSaveRange, "list" to list))
+        """.trimMargin().with("range" to autoSaveRange, "list" to list))
 }
 
 val nextSaveTime: Date
@@ -35,7 +35,7 @@ fun saveMap(task: TimerTask) {
         Core.app.post {
             val id = autoSaveRange.first + minute / 10
             SaveIO.save(SaveIO.fileFor(id))
-            broadcast("[green]自动存档完成(整10分钟一次),存档号 [red]{id}".i18n("id" to id))
+            broadcast("[green]自动存档完成(整10分钟一次),存档号 [red]{id}".with("id" to id))
         }
     }
     SharedTimer.schedule(nextSaveTime, ::saveMap)

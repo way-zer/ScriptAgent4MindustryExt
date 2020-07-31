@@ -1,5 +1,10 @@
 @file:DependsModule("coreMindustry")
 
+import cf.wayzer.placehold.DynamicVar
+import cf.wayzer.placehold.TemplateHandler
+import cf.wayzer.placehold.TemplateHandlerKey
+import mindustry.entities.type.Player
+import wayzer.lib.LangApi
 import wayzer.lib.dao.*
 
 name = "WayZer Mindustry Plugin"
@@ -33,3 +38,15 @@ addDefaultImport("wayzer.lib.*")
 addDefaultImport("wayzer.lib.dao.*")
 generateHelper()
 registerTable(PlayerProfile.T, PlayerData.T,Achievement.T)
+
+registerVar(TemplateHandlerKey,"多语言处理", TemplateHandler{
+    getVar("player.lang")?.let {lang->
+        LangApi.getLang(lang.toString()).trans(it)
+    }?: it
+})
+
+registerVarForType<Player>().apply {
+    registerChild("lang","玩家选定语言(占位)", DynamicVar { _, _ ->
+        LangApi.DEFAULT
+    })
+}

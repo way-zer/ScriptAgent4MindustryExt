@@ -113,7 +113,7 @@ command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, 
             else -> Gamemode.survival.takeIf { mapsDistinguishMode }
         }
     }
-    if (mapsDistinguishMode) p.sendMessage("[yellow]默认只显示所有生存图,输入[green]/maps pvp[yellow]显示pvp图,[green]/maps attack[yellow]显示攻城图[green]/maps all[yellow]显示所有".i18n())
+    if (mapsDistinguishMode) p.sendMessage("[yellow]默认只显示所有生存图,输入[green]/maps pvp[yellow]显示pvp图,[green]/maps attack[yellow]显示攻城图[green]/maps all[yellow]显示所有".with())
     val page = arg.lastOrNull()?.toIntOrNull()
     var maps = MapManager.maps.mapIndexed { index, map -> (index + 1) to map }
     maps = if (arg.getOrNull(0) == "new")
@@ -122,7 +122,7 @@ command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, 
         maps.filter { mode == null || MapManager.bestMode(it.second) == mode }
     p.sendMenuPhone("服务器地图 By WayZer", maps, page, mapsPrePage) { (id, map) ->
         "[red]{id}[green]({map.width},{map.height})[]:[yellow]{map.fileName}[] | [blue]{map.name}\n"
-                .i18n("id" to "%2d".format(id), "map" to map)
+                .with("id" to "%2d".format(id), "map" to map)
     }
 }
 onEnable {
@@ -143,13 +143,13 @@ listen<EventType.GameOverEvent> { event ->
             else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${playerGroup.size()}&lc players online on map &ly${world.map.name()}&lc."
     )
     val map = MapManager.nextMap(world.map)
-    val winnerMsg: Any = if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".i18n("team" to event.winner) else ""
+    val winnerMsg: Any = if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
     val msg = """
                 | [SCARLET]游戏结束![]"
                 | {winnerMsg}
                 | 下一张地图为:[accent]{nextMap.name}[] By: [accent]{nextMap.author}[]
                 | 下一场游戏将在 {waitTime} 秒后开始
-            """.trimMargin().i18n("nextMap" to map, "winnerMsg" to winnerMsg, "waitTime" to waitingTime.seconds)
+            """.trimMargin().with("nextMap" to map, "winnerMsg" to winnerMsg, "waitTime" to waitingTime.seconds)
     broadcast(msg, gameOverMsgType, quite = true)
     ContentHelper.logToConsole("Next Map is ${map.name()}")
     SharedTimer.schedule(waitingTime.toMillis()) {
@@ -161,12 +161,12 @@ command("host", "管理指令: 换图", "[mapId] [mode]") { arg, p ->
         return@command p.sendMessage("[red]你没有权限执行该命令")
     val map = if (arg.isEmpty()) MapManager.nextMap(world.map) else
         arg[0].toIntOrNull()?.let { MapManager.maps.getOrNull(it - 1) }
-                ?: return@command p.sendMessage("[red]请输入正确的地图ID".i18n())
+                ?: return@command p.sendMessage("[red]请输入正确的地图ID".with())
     val mode = arg.getOrNull(1)?.let { name ->
-        Gamemode.values().find { it.name == name } ?: return@command p.sendMessage("[red]请输入正确的模式".i18n())
+        Gamemode.values().find { it.name == name } ?: return@command p.sendMessage("[red]请输入正确的模式".with())
     } ?: MapManager.bestMode(map)
     MapManager.loadMap(map, mode)
-    broadcast("[green]强制换图为{map.name},模式{map.mode}".i18n("map" to map, "map.mode" to mode.name))
+    broadcast("[green]强制换图为{map.name},模式{map.mode}".with("map" to map, "map.mode" to mode.name))
 }
 command("load", "管理指令: 加载存档", "<slot>") { arg, p ->
     if (p != null && !SharedData.admin.isAdmin(p))
@@ -175,5 +175,5 @@ command("load", "管理指令: 加载存档", "<slot>") { arg, p ->
     if (!file.exists() || !SaveIO.isSaveValid(file))
         return@command p.sendMessage("[red]存档不存在或者损坏")
     MapManager.loadSave(file)
-    broadcast("[green]强制加载存档{slot}".i18n("slot" to arg[0]))
+    broadcast("[green]强制加载存档{slot}".with("slot" to arg[0]))
 }

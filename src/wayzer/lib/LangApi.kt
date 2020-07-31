@@ -1,8 +1,7 @@
 package wayzer.lib
 
-import cf.wayzer.placehold.PlaceHoldApi.with
-import cf.wayzer.placehold.PlaceHoldContext
-import mindustry.Vars
+import cf.wayzer.script_agent.Config
+import coreLibrary.lib.dataDirectory
 import java.io.File
 import java.util.*
 
@@ -15,7 +14,7 @@ object LangApi{
         |
     """
     class Lang(val lang:String):Properties(){
-        val file: File get() = Vars.dataDirectory.child("lang").child("$lang.properties").file()
+        val file: File get() = Config.dataDirectory.resolve("lang").resolve("$lang.properties")
         init {
             if (file.exists())file.reader().use(this::load)
         }
@@ -35,8 +34,4 @@ object LangApi{
     private val cache = mutableMapOf<String,Lang>()
     fun getLang(lang:String) = cache.getOrPut(lang){Lang(lang)}
     fun clearCache() = cache.clear()
-}
-
-fun String.i18n(vararg vars:Pair<String,Any> = emptyArray(),lang: String? = null):PlaceHoldContext{
-    return LangApi.getLang(lang?:LangApi.DEFAULT).trans(this).with(vars.toMap())
 }

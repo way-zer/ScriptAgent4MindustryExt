@@ -28,20 +28,20 @@ val allSub = mutableMapOf<String, (Player, String?) -> Unit>()
 
 allSub["map"] = fun(p: Player, arg: String?) {
     if (arg == null)
-        return p.sendMessage("[red]请输入地图序号".i18n())
+        return p.sendMessage("[red]请输入地图序号".with())
     val maps = SharedData.mapManager.maps
     val id = arg.toIntOrNull()
     if (id == null || id < 1 || id > maps.size)
-        return p.sendMessage("[red]错误参数".i18n())
+        return p.sendMessage("[red]错误参数".with())
     val map = maps[id - 1]
     VoteHandler.apply {
         supportSingle = true
-        start("换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".i18n("nextMap" to map)) {
+        start("换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map)) {
             if (!SaveIO.isSaveValid(map.file))
-                return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".i18n("nextMap" to map))
+                return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
             SharedData.mapManager.loadMap(map)
             Core.app.post { // 推后,确保地图成功加载
-                broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".i18n())
+                broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
             }
         }
     }
@@ -51,11 +51,11 @@ allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
     if (state.rules.pvp) {
         val team = p.team
         if (!state.teams.isActive(team) || state.teams.get(team)!!.cores.isEmpty)
-            return p.sendMessage("[red]队伍已输,无需投降".i18n())
+            return p.sendMessage("[red]队伍已输,无需投降".with())
         VoteHandler.apply {
             requireNum = { playerGroup.count { it.team == p.team } }
             canVote = { it.team == team }
-            start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队)".i18n("player" to p, "team" to team)) {
+            start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队)".with("player" to p, "team" to team)) {
                 state.teams.get(p.team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
             }
         }
@@ -63,7 +63,7 @@ allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
     }
     VoteHandler.apply {
         supportSingle = true
-        start("投降".i18n()) {
+        start("投降".with()) {
             world.tiles.forEach { arr ->
                 arr.filter { it.entity != null }.forEach {
                     Time.run(Random.nextFloat() * 60 * 6, it.entity::kill)
@@ -78,7 +78,7 @@ allSub["skipWave".toLowerCase()] = fun(_: Player, arg: String?) {
     VoteHandler.apply {
         supportSingle = true
         val t = min(arg?.toIntOrNull() ?: 10,50)
-        start("跳波({t}波)".i18n("t" to t)) {
+        start("跳波({t}波)".with("t" to t)) {
             launch {
                 val startTime = Time.millis()
                 var waitTime = 3
@@ -99,27 +99,27 @@ allSub["skipWave".toLowerCase()] = fun(_: Player, arg: String?) {
 
 allSub["rollback"] = fun(player: Player, arg: String?) {
     if (arg?.toIntOrNull() == null)
-        return player.sendMessage("[red]请输入正确的存档编号".i18n())
+        return player.sendMessage("[red]请输入正确的存档编号".with())
     val map = SharedData.mapManager.getSlot(arg.toInt())
-            ?: return player.sendMessage("[red]存档不存在或存档损坏".i18n())
+            ?: return player.sendMessage("[red]存档不存在或存档损坏".with())
     VoteHandler.apply {
         supportSingle = true
-        start("回档".i18n()) {
+        start("回档".with()) {
             SharedData.mapManager.loadSave(map)
-            broadcast("[green]回档成功".i18n(), quite = true)
+            broadcast("[green]回档成功".with(), quite = true)
         }
     }
 }
 
 allSub["kick"] = fun(player: Player, arg: String?) {
     val target = playerGroup.find { it.name == arg }
-            ?: return player.sendMessage("[red]请输入正确的玩家名，或者到列表点击投票".i18n())
+            ?: return player.sendMessage("[red]请输入正确的玩家名，或者到列表点击投票".with())
     if (SharedData.admin.isAdmin(player))
         return SharedData.admin.ban(player, target.uuid)
     VoteHandler.apply {
-        start("踢人({player.name}[yellow]踢出[red]{target.name}[yellow])".i18n("player" to player, "target" to target)) {
+        start("踢人({player.name}[yellow]踢出[red]{target.name}[yellow])".with("player" to player, "target" to target)) {
             if (SharedData.admin.isAdmin(target)) {
-                return@start broadcast("[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".i18n("target" to target))
+                return@start broadcast("[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target))
             }
             if (target.info.timesKicked < 3) {
                 target.info.lastKicked = Time.millis() + (15 * 60 * 1000) //Kick for 15 Minutes
@@ -132,8 +132,8 @@ allSub["kick"] = fun(player: Player, arg: String?) {
 }
 
 fun onVote(player: Player, type: String, arg: String?) {
-    if (VoteHandler.voting.get()) return player.sendMessage("[red]投票进行中".i18n())
-    if (type.toLowerCase() !in allSub) return player.sendMessage("[red]请检查输入是否正确".i18n())
+    if (VoteHandler.voting.get()) return player.sendMessage("[red]投票进行中".with())
+    if (type.toLowerCase() !in allSub) return player.sendMessage("[red]请检查输入是否正确".with())
     allSub[type]!!.invoke(player, arg)
     if (VoteHandler.voting.get()) {//success
         Call.sendMessage("/vote $type ${arg ?: ""}", mindustry.core.NetClient.colorizeName(player.id, player.name), player)
@@ -165,24 +165,24 @@ inner class VoteHandler {
         supportSingle = supportSingle && playerGroup.size() <= 1
         GlobalScope.launch {
             try {
-                if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".i18n())
-                broadcast("[yellow]{type}[yellow]投票开始,输入y或1同意".i18n("type" to voteDesc))
+                if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".with())
+                broadcast("[yellow]{type}[yellow]投票开始,输入y或1同意".with("type" to voteDesc))
                 repeat(voteTime.seconds.toInt()) {
                     delay(1000L)
                     if (voted.size > requireNum()) {//提前结束
                         broadcast("[yellow]{type}[yellow]投票结束,投票成功.[green]{voted}/{state.playerSize}[yellow],超过[red]{require}[yellow]人"
-                                .i18n("type" to voteDesc, "voted" to voted.size, "require" to requireNum()))
+                                .with("type" to voteDesc, "voted" to voted.size, "require" to requireNum()))
                         Core.app.post(onSuccess)
                         return@launch
                     }
                 }
                 //TimeOut
                 if (supportSingle && voted.size == 1) {
-                    broadcast("[yellow]{type}[yellow]单人投票通过.".i18n("type" to voteDesc))
+                    broadcast("[yellow]{type}[yellow]单人投票通过.".with("type" to voteDesc))
                     Core.app.post(onSuccess)
                 } else {
                     broadcast("[yellow]{type}[yellow]投票结束,投票失败.[green]{voted}/{state.playerSize}[yellow],未超过[red]{require}[yellow]人"
-                            .i18n("type" to voteDesc, "voted" to voted.size, "require" to requireNum()))
+                            .with("type" to voteDesc, "voted" to voted.size, "require" to requireNum()))
                 }
             } finally {
                 reset()
@@ -200,10 +200,10 @@ inner class VoteHandler {
 
     fun onVote(p: Player) {
         if (!voting.get()) return
-        if (p.uuid in voted) return p.sendMessage("[red]你已经投票".i18n())
-        if (!canVote(p)) return p.sendMessage("[red]你不能对此投票".i18n())
+        if (p.uuid in voted) return p.sendMessage("[red]你已经投票".with())
+        if (!canVote(p)) return p.sendMessage("[red]你不能对此投票".with())
         voted.add(p.uuid)
-        broadcast("[green]投票成功,还需{left}人投票".i18n("left" to (requireNum() - voted.size + 1)), quite = true)
+        broadcast("[green]投票成功,还需{left}人投票".with("left" to (requireNum() - voted.size + 1)), quite = true)
     }
 }
 
@@ -214,5 +214,5 @@ listen<EventType.PlayerChatEvent> { e ->
 listen<EventType.PlayerJoin> {
     if (!VoteHandler.voting.get()) return@listen
     VoteHandler.supportSingle = false
-    it.player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y或1同意".i18n("type" to VoteHandler.voteDesc))
+    it.player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y或1同意".with("type" to VoteHandler.voteDesc))
 }

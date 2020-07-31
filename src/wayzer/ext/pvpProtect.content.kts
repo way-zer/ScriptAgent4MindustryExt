@@ -16,14 +16,14 @@ listen<EventType.WorldLoadEvent> {
         delay(3_000)
         if(state.rules.mode() != Gamemode.pvp||time<=0)return@launch
         var leftTime = time.toLong()
-        broadcast("[yellow]PVP保护时间,禁止在其他基地攻击(持续{time:分钟})".i18n("time" to Duration.ofSeconds(leftTime)),quite = true)
+        broadcast("[yellow]PVP保护时间,禁止在其他基地攻击(持续{time:分钟})".with("time" to Duration.ofSeconds(leftTime)),quite = true)
         while (leftTime>0){
             delay(60_000)
             leftTime-=60
-            broadcast("[yellow]PVP保护时间还剩 {time}分钟".i18n("time" to ceil(leftTime/60f)),quite = true)
+            broadcast("[yellow]PVP保护时间还剩 {time}分钟".with("time" to ceil(leftTime/60f)),quite = true)
             if(leftTime<60){
                 delay(leftTime*1000)
-                broadcast("[yellow]PVP保护时间已结束, 全力进攻吧".i18n())
+                broadcast("[yellow]PVP保护时间已结束, 全力进攻吧".with())
                 return@launch
             }
         }
@@ -43,7 +43,7 @@ Events.on(EventType.Trigger.update) {
     }
     playerGroup.forEach {
         if (it.isShooting && state.teams.closestEnemyCore(it.x, it.y, it.team)?.withinDst(it, state.rules.enemyCoreBuildRadius) == true) {
-            it.sendMessage("[red]PVP保护时间,禁止在其他基地攻击".i18n())
+            it.sendMessage("[red]PVP保护时间,禁止在其他基地攻击".with())
             it.kill()
         }
     }

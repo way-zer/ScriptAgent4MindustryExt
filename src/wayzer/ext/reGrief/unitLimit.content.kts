@@ -18,11 +18,11 @@ listen<EventType.UnitCreateEvent> { e ->
     val count = unitGroup.count { it.team == e.unit.team }
     when {
         count >= unitToKill -> {
-            alert("[red]警告: 建筑过多单位,可能造成服务器卡顿,已禁止生成".i18n("count" to count))
+            alert("[red]警告: 建筑过多单位,可能造成服务器卡顿,已禁止生成".with("count" to count))
             e.unit.kill()
         }
         count >= unitToWarn -> {
-            alert("[yellow]警告: 建筑过多单位,可能造成服务器卡顿,当前: {count}".i18n("count" to count))
+            alert("[yellow]警告: 建筑过多单位,可能造成服务器卡顿,当前: {count}".with("count" to count))
         }
     }
 }
