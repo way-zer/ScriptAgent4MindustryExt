@@ -6,6 +6,7 @@ import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.util.DSLBuilder.Companion.dataKeyWithDefault
 import coreMindustry.lib.ContentExt.allCommands
 import coreMindustry.lib.ContentExt.listener
+import mindustry.Vars
 import mindustry.entities.type.Player
 
 object ContentExt {
@@ -21,9 +22,9 @@ object ContentExt {
     )
 
     data class Listener<T : Any>(
-        val script: IContentScript?,
-        val cls: Class<T>,
-        val handler: (T) -> Unit
+            val script: IContentScript?,
+            val cls: Class<T>,
+            val handler: (T) -> Unit
     ) : Cons<T> {
         override fun get(p0: T) {
             try {
@@ -55,3 +56,8 @@ fun IContentScript.command(
 ) {
     allCommands.add(ContentExt.CommandInfo(name, description, param, type, runner))
 }
+
+@Suppress("unused")
+@Deprecated("请检查变量是否使用正确, Vars.player 为null", ReplaceWith("error(\"服务器中不允许使用该变量\")"), DeprecationLevel.ERROR)
+val Vars.player: Player?
+    get() = error("服务器中不允许使用该变量")
