@@ -47,7 +47,7 @@ fun log(x: Int, y: Int, log: Log) {
 listen<EventType.BlockBuildEndEvent> {
     if (it.breaking)
         log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Break(it.player.uuid, Instant.now()))
-    else
+    else if(it.player!=null)
         log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Place(it.player.uuid, Instant.now(), it.tile.block()))
 }
 listen<EventType.TapConfigEvent> {
