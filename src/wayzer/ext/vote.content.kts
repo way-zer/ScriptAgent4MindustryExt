@@ -1,14 +1,16 @@
 package wayzer.ext
 
+import arc.files.Fi
 import arc.util.Time
 import cf.wayzer.placehold.PlaceHoldContext
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.gen.Call
+import mindustry.io.MapIO
 import mindustry.io.SaveIO
+import java.io.InputStream
+import java.net.URL
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -20,20 +22,36 @@ import kotlin.random.Random
 name = "投票"
 
 val voteTime by config.key(Duration.ofSeconds(60)!!, "投票时间")
+val enableWebMap by config.key(false,"是否允许网络地图","来自mdt.wayzer.top")
 
 command("voteKick", "(弃用)投票踢人", "<player...>", CommandType.Client) { arg, p -> onVote(p!!, "kick", arg[0]) }
 command("vote", "投票指令", "<map/gameOver/kick/skipWave/rollback> [params...]", CommandType.Client) { arg, p -> onVote(p!!, arg[0], arg.getOrNull(1)) }
 
 val allSub = mutableMapOf<String, (Player, String?) -> Unit>()
 
+class NetFi(private val url: URL,file:String):Fi(file){
+    override fun read(): InputStream {
+        return url.openStream()
+    }
+}
+
 allSub["map"] = fun(p: Player, arg: String?) {
     if (arg == null)
         return p.sendMessage("[red]请输入地图序号".with())
     val maps = SharedData.mapManager.maps
-    val id = arg.toIntOrNull()
-    if (id == null || id < 1 || id > maps.size)
-        return p.sendMessage("[red]错误参数".with())
-    val map = maps[id - 1]
+    val map = when{
+        Regex("[0-9a-z]{32}.*").matches(arg)->{
+            if(!enableWebMap)return p.sendMessage("[red]本服未开启网络地图的支持".with())
+            val (mapId,mode) = arg.split(' ').let {
+                it[0] to it.getOrElse(1){"Q"}
+            }
+            MapIO.createMap(NetFi(URL("https://mdt.wayzer.top/api/maps/$mapId/download.msav"),mode+"download.msav"),true)
+        }
+        arg.toIntOrNull() in 1..maps.size->{
+            maps[arg.toInt()]
+        }
+        else -> return p.sendMessage("[red]错误参数".with())
+    }
     VoteHandler.apply {
         supportSingle = true
         start("换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map)) {
@@ -166,7 +184,7 @@ inner class VoteHandler {
         GlobalScope.launch {
             try {
                 if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".with())
-                broadcast("[yellow]{type}[yellow]投票开始,输入y或1同意".with("type" to voteDesc))
+                broadcast("[yellow]{type}[yellow]投票开始,共需要{require}人,输入y或1同意".with("require" to requireNum(),"type" to voteDesc))
                 repeat(voteTime.seconds.toInt()) {
                     delay(1000L)
                     if (voted.size > requireNum()) {//提前结束
