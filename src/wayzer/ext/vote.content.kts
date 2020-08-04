@@ -184,7 +184,7 @@ inner class VoteHandler {
         GlobalScope.launch {
             try {
                 if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".with())
-                broadcast("[yellow]{type}[yellow]投票开始,共需要{require}人,输入y或1同意".with("require" to requireNum(),"type" to voteDesc))
+                broadcast("[yellow]{type}[yellow]投票开始,共需要{require}人,输入y或1同意".with("require" to requireNum()+1,"type" to voteDesc))
                 repeat(voteTime.seconds.toInt()) {
                     delay(1000L)
                     if (voted.size > requireNum()) {//提前结束
