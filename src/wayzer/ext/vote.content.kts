@@ -152,7 +152,7 @@ allSub["kick"] = fun(player: Player, arg: String?) {
 fun onVote(player: Player, type: String, arg: String?) {
     if (VoteHandler.voting.get()) return player.sendMessage("[red]投票进行中".with())
     if (type.toLowerCase() !in allSub) return player.sendMessage("[red]请检查输入是否正确".with())
-    allSub[type]!!.invoke(player, arg)
+    allSub[type.toLowerCase()]!!.invoke(player, arg)
     if (VoteHandler.voting.get()) {//success
         Call.sendMessage("/vote $type ${arg ?: ""}", mindustry.core.NetClient.colorizeName(player.id, player.name), player)
     }
