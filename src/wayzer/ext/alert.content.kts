@@ -16,7 +16,9 @@ fun broadcast(){
 
 onEnable{
     launch {
-        delay(time.toMillis())
-        broadcast()
+        while (true) {
+            delay(time.toMillis())
+            broadcast()
+        }
     }
 }

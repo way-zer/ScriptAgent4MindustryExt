@@ -6,7 +6,7 @@ val template by config.key("""
     | [#DEA82A] {player.name} [#DEA82A]个人信息[]
     | [#2B60DE]=======================================[]
     | [green]用户名[]:{player.name}
-    | [green]代表3位ID[]:{player.shortID}
+    | [green]代表3位ID[white]:{player.shortID}
     | [green]最早进服时间[]:{player.ext.firstJoin:YYYY-MM-dd}
     | {profileInfo}
     | [#2B60DE]=======================================[]
