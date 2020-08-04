@@ -13,13 +13,10 @@ fun finishAchievement(p: Player, name: String, exp: Int, broadcast: Boolean = fa
         val updateExp = depends("wayzer/user/level").let { it as? IContentScript }?.import<KCallable<*>>("updateExp") as? Player.(Int) -> Boolean
         if (updateExp?.invoke(p, exp) == true) {
             @Suppress("EXPERIMENTAL_API_USAGE")
-            transaction {
-                Achievement.newWithoutCache {
-                    userId = profile!!.id
-                    this.name = name
-                    this.exp = exp
-                }
+            val result = transaction {
+                Achievement.newWithCheck(profile!!.id,name,exp)
             }
+            if(!result)return
             if (broadcast) {
                 broadcast("[gold][成就]恭喜{player.name}[gold]完成成就[scarlet]{name},[gold]获得[violet]{exp}[gold]经验".with(
                         "player" to p, "name" to name, "exp" to exp

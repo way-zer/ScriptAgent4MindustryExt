@@ -1,8 +1,5 @@
 package wayzer.lib.dao
 
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.IntEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.`java-time`.CurrentTimestamp
 import org.jetbrains.exposed.sql.`java-time`.timestamp
@@ -27,7 +24,10 @@ class PlayerProfile:CacheEntity<Int>(T){
             val result = T.select{T.qq eq qq}.firstOrNull()
             val o = PlayerProfile()
             if(result!=null)o.load(result)
-            else o.save()
+            else {
+                o.qq = qq
+                o.save()
+            }
             addCache(o)
         }
     }
