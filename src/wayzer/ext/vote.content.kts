@@ -48,7 +48,7 @@ allSub["map"] = fun(p: Player, arg: String?) {
             MapIO.createMap(NetFi(URL("https://mdt.wayzer.top/api/maps/$mapId/download.msav"),mode+"download.msav"),true)
         }
         arg.toIntOrNull() in 1..maps.size->{
-            maps[arg.toInt()]
+            maps[arg.toInt()-1]
         }
         else -> return p.sendMessage("[red]错误参数".with())
     }
