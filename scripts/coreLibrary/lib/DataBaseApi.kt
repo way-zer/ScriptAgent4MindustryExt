@@ -23,7 +23,7 @@ fun IInitScript.registerTable(vararg t: Table) {
     registeredTable.addAll(t)
     DataBaseApi.db.listenWithAutoCancel(this) {
         transaction(it) {
-            SchemaUtils.create(*t)
+            SchemaUtils.createMissingTablesAndColumns(*t)
         }
     }
 }

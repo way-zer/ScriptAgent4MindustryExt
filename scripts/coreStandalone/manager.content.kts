@@ -1,8 +1,10 @@
-import cf.wayzer.script_agent.Config
+package coreStandalone
+
+import cf.wayzer.script_agent.ScriptManager
 import kotlin.system.exitProcess
 
-RootCommands.addSub(Command(this, "stop", "结束程序") {
-    sendMessage("Bye!".with())
-    Config.inst.disableAll()
+command("stop", "结束程序") {
+    reply("Bye!".with())
+    ScriptManager.disableAll()
     exitProcess(0)
-})
+}

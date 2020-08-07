@@ -28,26 +28,46 @@ open class ConfigBuilder(private val path: String) {
      * @param desc only display the first line using command
      */
     data class ConfigKey<T : Any>(val path: String, val cls: ClassContainer, val default: T, val desc: List<String>) {
+        private lateinit var cache: T
+        private var cacheTime = 0L
+        private fun cache(v: T): T {
+            cache = v
+            cacheTime = System.currentTimeMillis()
+            return v
+        }
 
         fun get(): T {
-            val v = fileConfig.extract(cls, path) ?: return default
+            if (cacheTime > lastLoad) return cache
+            val v = fileConfig.extract(cls, path) ?: return cache(default)
             @Suppress("UNCHECKED_CAST")
             if (cls.mapperClass.isInstance(v))
-                return v as T
+                return cache(v as T)
             error("Wrong config type: $path get $v")
         }
 
         fun set(v: T) {
-            fileConfig = if (v == default) {
-                if (!fileConfig.hasPath(path)) return
-                fileConfig.withoutPath(path)
-            } else {
-                fileConfig.withValue(
-                    path, v.toConfig(path).getValue(path)
-                        .withOrigin(ConfigOriginFactory.newSimple().withComments(desc))
-                )
-            }
+            fileConfig = fileConfig.withValue(
+                path, v.toConfig(path).getValue(path)
+                    .withOrigin(ConfigOriginFactory.newSimple().withComments(desc))
+            )
+            cache(v)
             saveFile()
+        }
+
+        /**
+         * 清除设定值
+         */
+        fun reset() {
+            if (!fileConfig.hasPath(path)) return
+            fileConfig = fileConfig.withoutPath(path)
+            saveFile()
+        }
+
+        /**
+         * 写入默认值到文件中
+         */
+        fun writeDefault() {
+            set(default)
         }
 
         fun getString(): String {
@@ -103,15 +123,17 @@ open class ConfigBuilder(private val path: String) {
     companion object {
         val IBaseScript.configs by DSLBuilder.dataKeyWithDefault { mutableSetOf<ConfigKey<*>>() }
         val all = mutableMapOf<String, ConfigKey<*>>()
-        private lateinit var configFile: File
+        var configFile: File = cf.wayzer.script_agent.Config.dataDirectory.resolve("config.conf")
         private lateinit var fileConfig: Config
-        fun init(configFile: File) {
-            this.configFile = configFile
+        private var lastLoad: Long = -1
+
+        init {
             reloadFile()
         }
 
         fun reloadFile() {
             fileConfig = ConfigFactory.parseFile(configFile)
+            lastLoad = System.currentTimeMillis()
         }
 
         fun saveFile() {

@@ -1,15 +1,25 @@
 package coreLibrary
 
+import cf.wayzer.script_agent.IInitScript
+import cf.wayzer.script_agent.ScriptManager
 import coreLibrary.lib.ConfigBuilder.Companion.configs
 import coreLibrary.lib.PlaceHold.registeredVars
 
 val thisRef = this
 onEnable {
-    ICommands.controlCommand.run {
-        addSub(ICommand(thisRef, "info", "获取一个脚本的具体信息", "<module[/script]>") { arg ->
-            if (!hasPermission("scriptAgent.info")) return@ICommand sendMessage("[red]你没有权限使用该命令".with())
-            if (arg.isEmpty()) return@ICommand sendMessage("[red]请输入脚本".with())
-            val script = getScript(arg[0]) ?: return@ICommand sendMessage("[red]找不到脚本,请确定加载成功,并输入正确".with())
+    Commands.controlCommand.run {
+        addSub(CommandInfo(thisRef, "info", "获取一个脚本的具体信息", {
+            usage = "<module[/script]>"
+            permission = "scriptAgent.info"
+            supportCompletion = true
+        }) {
+            onComplete(0) {
+                (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IInitScript }?.children
+                    ?: ScriptManager.loadedInitScripts.values).map { it.id }
+            }
+            endComplete()
+            if (arg.isEmpty()) return@CommandInfo replyUsage()
+            val script = ScriptManager.getScript(arg[0]) ?: return@CommandInfo reply("[red]找不到脚本,请确定加载成功,并输入正确".with())
 
             val configs = script.configs.map {
                 "[purple]{key} [blue]{desc}\n".with("key" to it.path, "desc" to (it.desc.firstOrNull() ?: ""))
@@ -18,7 +28,7 @@ onEnable {
                 "[purple]{key} [blue]{desc}\n".with("key" to it.key, "desc" to it.value)
             }
 
-            sendMessage(
+            reply(
                 """
                 [yellow]==== [light_yellow]{name}信息[yellow] ====
                 [cyan]配置项:

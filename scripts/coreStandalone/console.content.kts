@@ -3,8 +3,6 @@
 @file:MavenDepends("org.jline:jline-reader:3.15.0")
 
 import org.jline.reader.*
-import org.jline.reader.impl.history.DefaultHistory
-import org.jline.terminal.TerminalBuilder
 import java.io.ByteArrayOutputStream
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -15,8 +13,19 @@ import java.util.logging.Formatter
 import kotlin.concurrent.thread
 
 object MyCompleter : Completer {
-    override fun complete(reader: LineReader?, line: ParsedLine?, candidates: MutableList<Candidate>?) {
-        //TODO Completer
+    override fun complete(reader: LineReader, line: ParsedLine, candidates: MutableList<Candidate>) {
+        println(line.line())
+//        RootCommands.invoke(CommandContext().apply {
+//            hasPermission = {true}
+//            thisCommand = CommandInfo(null,"",""){}
+//            arg =
+//            replyTabComplete = {
+//                it.forEach { s->
+//                    candidates.add(Candidate(s))
+//                }
+//                CommandInfo.Return()
+//            }
+//        })
     }
 }
 
@@ -28,12 +37,9 @@ class LogOutStream(val logger: Logger, val level: Level) : ByteArrayOutputStream
 }
 
 onEnable {
-    thread(true, isDaemon = true) {
-        val terminal = TerminalBuilder.terminal()
+    thread(true, isDaemon = true, contextClassLoader = javaClass.classLoader, name = "Console Reader") {
         val reader = LineReaderBuilder.builder()
-            .history(DefaultHistory())
-            .completer(MyCompleter).terminal(terminal).build() as LineReader
-        val consoleSender = Sender()
+            .completer(MyCompleter).build() as LineReader
         Logger.getGlobal().apply {
             handlers.forEach(this::removeHandler)
             addHandler(object : Handler() {
@@ -82,7 +88,18 @@ onEnable {
         while (enabled) {
             val line = reader.readLine("> ")
             launch {
-                RootCommands.handle(consoleSender, line)
+                try {
+                    RootCommands.invoke(CommandContext().apply {
+                        hasPermission = { true }
+                        thisCommand = CommandInfo(null, "", "") {}
+                        arg = line.split(' ')
+                        reply = {
+                            println(ColorApi.handle(it.toString(), ColorApi::consoleColorHandler))
+                        }
+                    })
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                }
             }
         }
     }

@@ -7,7 +7,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.2.7"
+val libraryVersion = "1.2-7db5e01-DIRTY"
 
 gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
     tag(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.VersionDescription> {
@@ -38,7 +38,6 @@ dependencies {
     api("cf.wayzer:ScriptAgent:$libraryVersion")
     api(kotlin("script-runtime"))
     api(kotlin("stdlib-jdk8"))
-    runtimeOnly(scriptsCompile)
 }
 
 apply {
@@ -68,12 +67,13 @@ tasks {
         configurations = listOf(project.configurations.getByName("compileClasspath"))
         dependencies {
             include(dependency("cf.wayzer:LibraryManager"))
+            include(dependency("cf.wayzer:ScriptAgent"))
         }
 //        into("lib"){
 //            from(configurations.first().files{ it.name=="ScriptAgent"}.also(::println))
 //        }
         manifest {
-            attributes("Main-Class" to "cf.wayzer.scriptAgent.MainKt")
+            attributes("Main-Class" to "cf.wayzer.scriptAgent.LoaderKt")
         }
     }
 }

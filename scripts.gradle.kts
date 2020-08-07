@@ -11,13 +11,13 @@ dependencies {
     scriptsCompile("io.github.config4k:config4k:0.4.1")
     scriptsCompile("org.jetbrains.exposed:exposed-core:0.24.1")
     scriptsCompile("org.jetbrains.exposed:exposed-dao:0.24.1")
+    scriptsCompile("org.jetbrains.exposed:exposed-java-time:0.24.1")
     //coreWeb
     scriptsCompile("org.slf4j:slf4j-simple:1.7.28")
     scriptsCompile("io.javalin:javalin:3.8.0")
     scriptsCompile("com.fasterxml.jackson.core:jackson-databind:2.10.1")
-
+    //coreStandalone
     scriptsCompile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.2.1")
-    scriptsCompile("org.jline:jline-terminal:3.15.0")
-    scriptsCompile("org.jline:jline-terminal-jansi:3.15.0")
-    scriptsCompile("org.jline:jline-reader:3.15.0")
+    scriptsCompile("org.jline:jline-terminal:3.3.1")//3.3.1 is the version in kotlin compiler
+    scriptsCompile("org.jline:jline-reader:3.3.1")
 }

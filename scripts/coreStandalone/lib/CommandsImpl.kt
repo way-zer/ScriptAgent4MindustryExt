@@ -1,26 +1,17 @@
 package coreStandalone.lib
 
-import cf.wayzer.script_agent.util.DSLBuilder
-import coreLibrary.lib.*
+import cf.wayzer.script_agent.IContentScript
+import coreLibrary.lib.CommandHandler
+import coreLibrary.lib.CommandInfo
+import coreLibrary.lib.Commands
 
-open class Sender(override val player: DSLBuilder? = null) : ISender<DSLBuilder?> {
-    override fun sendMessage(msg: PlaceHoldString) {
-        val text = ColorApi.handle("$msg[RESET]", ColorApi::consoleColorHandler)
-        println(text)
-    }
+object RootCommands : Commands()
 
-    override fun hasPermission(node: String): Boolean {
-        return true
-    }
-}
-typealias Command = ICommand<Sender>
-
-object RootCommands : ICommands<Sender>(null, "Root", "") {
-    fun handle(sender: Sender, text: String) {
-        try {
-            handle(sender, text.split(' ').toList(), "*")
-        } catch (e: Throwable) {
-            sender.sendMessage("exception happened:{e}".with("e" to e))
-        }
-    }
+fun IContentScript.command(
+    name: String,
+    description: String,
+    init: CommandInfo.() -> Unit = {},
+    handler: CommandHandler
+) {
+    RootCommands.addSub(CommandInfo(this, name, description, init, handler))
 }
