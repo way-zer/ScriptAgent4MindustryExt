@@ -56,8 +56,7 @@ onEnable {
             supportCompletion = true
         }) {
             onComplete(0) {
-                (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IInitScript }?.children
-                    ?: ScriptManager.loadedInitScripts.values).map { it.id }
+                ScriptManager.loadedInitScripts.values.flatMap { m -> m.children.map { it.id } + m.id }
             }
             endComplete()
             if (arg.isEmpty()) return@CommandInfo replyUsage()
