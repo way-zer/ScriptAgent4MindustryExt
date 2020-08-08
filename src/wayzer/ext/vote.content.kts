@@ -73,7 +73,7 @@ allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
         VoteHandler.apply {
             requireNum = { playerGroup.count { it.team == p.team } }
             canVote = { it.team == team }
-            start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队)".with("player" to p, "team" to team)) {
+            start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队|需要全队同意)".with("player" to p, "team" to team)) {
                 state.teams.get(p.team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
             }
         }
@@ -184,11 +184,11 @@ inner class VoteHandler {
         GlobalScope.launch {
             try {
                 if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".with())
-                broadcast("[yellow]{type}[yellow]投票开始,共需要{require}人,输入y或1同意".with("require" to requireNum()+1,"type" to voteDesc))
+                broadcast("[yellow]{type}[yellow]投票开始,共需要{require}人,输入y或1同意".with("require" to requireNum(),"type" to voteDesc))
                 repeat(voteTime.seconds.toInt()) {
                     delay(1000L)
-                    if (voted.size > requireNum()) {//提前结束
-                        broadcast("[yellow]{type}[yellow]投票结束,投票成功.[green]{voted}/{state.playerSize}[yellow],超过[red]{require}[yellow]人"
+                    if (voted.size >= requireNum()) {//提前结束
+                        broadcast("[yellow]{type}[yellow]投票结束,投票成功.[green]{voted}/{state.playerSize}[yellow],达到[red]{require}[yellow]人"
                                 .with("type" to voteDesc, "voted" to voted.size, "require" to requireNum()))
                         Core.app.post(onSuccess)
                         return@launch
@@ -199,7 +199,7 @@ inner class VoteHandler {
                     broadcast("[yellow]{type}[yellow]单人投票通过.".with("type" to voteDesc))
                     Core.app.post(onSuccess)
                 } else {
-                    broadcast("[yellow]{type}[yellow]投票结束,投票失败.[green]{voted}/{state.playerSize}[yellow],未超过[red]{require}[yellow]人"
+                    broadcast("[yellow]{type}[yellow]投票结束,投票失败.[green]{voted}/{state.playerSize}[yellow],未达到[red]{require}[yellow]人"
                             .with("type" to voteDesc, "voted" to voted.size, "require" to requireNum()))
                 }
             } finally {
@@ -210,7 +210,7 @@ inner class VoteHandler {
 
     private fun reset() {
         supportSingle = false
-        requireNum = { max(playerGroup.size() / 2, 1) }
+        requireNum = { max(playerGroup.size() / 2 +1, 2) }
         canVote = { true }
         voted.clear()
         voting.set(false)
@@ -221,7 +221,7 @@ inner class VoteHandler {
         if (p.uuid in voted) return p.sendMessage("[red]你已经投票".with())
         if (!canVote(p)) return p.sendMessage("[red]你不能对此投票".with())
         voted.add(p.uuid)
-        broadcast("[green]投票成功,还需{left}人投票".with("left" to (requireNum() - voted.size + 1)), quite = true)
+        broadcast("[green]投票成功,还需{left}人投票".with("left" to (requireNum() - voted.size)), quite = true)
     }
 }
 
