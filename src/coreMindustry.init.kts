@@ -6,9 +6,12 @@ import arc.struct.Array
 import arc.struct.ObjectMap
 import arc.util.Log
 import cf.wayzer.script_agent.Config
-import coreMindustry.lib.*
+import coreMindustry.lib.ContentExt
 import coreMindustry.lib.ContentExt.allCommands
 import coreMindustry.lib.ContentExt.listener
+import coreMindustry.lib.RootCommands
+import coreMindustry.lib.clientCommands
+import coreMindustry.lib.serverCommands
 import mindustry.Vars
 
 name = "Mindustry 核心脚本模块"
@@ -29,11 +32,7 @@ onEnable{
     Vars.dataDirectory.child("scriptAgent.db").file().takeIf { it.exists() }?.let {
         println("检测到旧数据储存文件,已弃用，请手动移除 $it")
     }
-    Commands.rootProvider.set(serverRootCommands)
-    clientRootCommands.addSub(CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令", {
-        aliases = listOf("sa")
-        permission = "scriptAgent.admin"
-    },Commands.controlCommand))
+    Commands.rootProvider.set(RootCommands)
 }
 
 onAfterContentEnable{child->

@@ -36,12 +36,7 @@ object ContentExt {
     }
 }
 
-enum class CommandType {
-    Client, Server, Both;
 
-    fun client() = this == Client || this == Both
-    fun server() = this == Server || this == Both
-}
 
 inline fun <reified T : Any> IContentScript.listen(noinline handler: (T) -> Unit) {
     listener.add(ContentExt.Listener(this, T::class.java, handler))
