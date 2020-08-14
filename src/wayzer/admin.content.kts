@@ -16,7 +16,7 @@ val Admin = Admin()
 
 inner class Admin : SharedData.IAdmin {
     override fun isAdmin(player: Player): Boolean {
-        return admins.contains(player.uuid)
+        return player.isAdmin||admins.contains(player.uuid)
     }
 
     override fun ban(player: Player, uuid: String) {
