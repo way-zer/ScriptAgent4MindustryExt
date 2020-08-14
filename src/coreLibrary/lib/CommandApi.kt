@@ -3,6 +3,9 @@
 package coreLibrary.lib
 
 import cf.wayzer.script_agent.IContentScript
+import cf.wayzer.script_agent.events.ScriptDisableEvent
+import cf.wayzer.script_agent.getContextModule
+import cf.wayzer.script_agent.listenTo
 import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.event.PermissionRequestEvent
 import coreLibrary.lib.util.Provider
@@ -125,7 +128,7 @@ open class Commands : (CommandContext) -> Unit {
     override operator fun invoke(context: CommandContext) {
         getSub(context).invoke(context.new {
             if(arg.isEmpty())return@new
-            prefix += " " + arg[0]
+            prefix += arg[0]+" "
             arg = arg.subList(1, arg.size)
         })
     }
@@ -171,7 +174,7 @@ open class Commands : (CommandContext) -> Unit {
 
     init {
         this.addSub(CommandInfo(null, "help", "显示帮助") {
-            prefix = prefix.removeSuffix(" help")
+            prefix = prefix.removeSuffix("help ")
             val showDetail = arg.getOrNull(0) == "-v"
             val list = subCommands.values.toSet().map {
                 val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
@@ -202,6 +205,9 @@ open class Commands : (CommandContext) -> Unit {
                     aliases = listOf("sa")
                     permission = "scriptAgent.admin"
                 }, controlCommand))
+            }
+            Commands::class.java.getContextModule()!!.listenTo<ScriptDisableEvent> {
+                rootProvider.get()?.removeAll(script)
             }
         }
     }
