@@ -4,8 +4,12 @@ import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.TemplateHandler
 import cf.wayzer.placehold.TemplateHandlerKey
 import mindustry.entities.type.Player
+import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.lib.LangApi
-import wayzer.lib.dao.*
+import wayzer.lib.dao.Achievement
+import wayzer.lib.dao.CacheEntity
+import wayzer.lib.dao.PlayerData
+import wayzer.lib.dao.PlayerProfile
 
 name = "WayZer Mindustry Plugin"
 /**
@@ -34,6 +38,7 @@ name = "WayZer Mindustry Plugin"
  * TODO: (ext/reGrief/reactor)
  * TODO: (ext/special/builderRobot)
  */
+
 addDefaultImport("wayzer.lib.*")
 addDefaultImport("wayzer.lib.dao.*")
 generateHelper()
@@ -49,4 +54,20 @@ registerVarForType<Player>().apply {
     registerChild("lang","玩家选定语言(占位)", DynamicVar { _, _ ->
         LangApi.DEFAULT
     })
+}
+
+onEnable{
+    @OptIn(CacheEntity.NeedTransaction::class)
+    transaction {
+        playerGroup.forEach {
+            PlayerData.findOrCreate(it)
+        }
+    }
+}
+
+onDisable{
+    @OptIn(CacheEntity.NeedTransaction::class)
+    transaction {
+        PlayerData.allCached.forEach{it.save()}
+    }
 }

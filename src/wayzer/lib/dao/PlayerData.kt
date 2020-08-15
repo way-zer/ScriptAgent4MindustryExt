@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.`java-time`.CurrentTimestamp
 import org.jetbrains.exposed.sql.`java-time`.timestamp
+import java.time.Instant
 
 class PlayerData : CacheEntity<String>(T) {
     var lastName by T.lastName
@@ -22,7 +23,7 @@ class PlayerData : CacheEntity<String>(T) {
     override fun load(resultRow: ResultRow): Boolean {
         if (!super.load(resultRow)) return false
         if (profileId == null) return true
-        profile = PlayerProfile.getOrFind(profileId!!.value)
+        profile = PlayerProfile.getOrFind(profileId!!.value,cache = true)
         return true
     }
 
@@ -44,7 +45,11 @@ class PlayerData : CacheEntity<String>(T) {
         val profile = optReference("profile", PlayerProfile.T)
     }
 
+    /**
+     *
+     */
     companion object : EntityClass<String, PlayerData>(::PlayerData) {
+        //给在线玩家使用，假设数据已经在缓存中
         operator fun get(uuid: String) = getOrNull(uuid) ?: error("initFirst")
         override fun removeCache(id: String): PlayerData? {
             return super.removeCache(id)?.apply {
@@ -55,16 +60,20 @@ class PlayerData : CacheEntity<String>(T) {
         }
 
         @NeedTransaction
-        fun findOrCreate(p: Player) = findOrCreate(p.uuid) {
-            lastName = p.name
+        //给新进入玩家使用，自动添加进入缓存
+        fun findOrCreate(p: Player) = findOrCreate(p.uuid,cache = true) {
             firstIP = p.con.address
-            lastIp = p.con.address
+            lastName = p.name
             save(p.uuid)
+        }.apply {
+            lastIp = p.con.address
+            lastName = p.name
+            lastTime = Instant.now()
+            profile?.lastTime = Instant.now()
         }
 
         @NeedTransaction
-        fun find(p: Administration.PlayerInfo, noCache: Boolean) = getOrFind(p.id)?.also {
-            if (noCache) removeCache(p.id)
-        }
+        //供一次性查询使用，不缓存
+        fun find(p: Administration.PlayerInfo) = getOrFind(p.id,cache = false)
     }
 }

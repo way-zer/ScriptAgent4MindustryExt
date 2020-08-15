@@ -20,7 +20,8 @@ class PlayerProfile:CacheEntity<Int>(T){
     }
     companion object:EntityClass<Int,PlayerProfile>(::PlayerProfile){
         @NeedTransaction
-        fun getOrCreate(qq:Long) = allCached.find { it.qq == qq }?:let {
+        //绑定账号或后台查询使用，可选是否缓存
+        fun getOrCreate(qq:Long,cache:Boolean) = allCached.find { it.qq == qq }?:let {
             val result = T.select{T.qq eq qq}.firstOrNull()
             val o = PlayerProfile()
             if(result!=null)o.load(result)
@@ -28,7 +29,8 @@ class PlayerProfile:CacheEntity<Int>(T){
                 o.qq = qq
                 o.save()
             }
-            addCache(o)
+            if(cache) addCache(o)
+            o
         }
     }
 }

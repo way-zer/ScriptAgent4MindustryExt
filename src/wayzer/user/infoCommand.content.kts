@@ -34,7 +34,7 @@ command("mInfo", "获取用户信息", "[uid]", type = CommandType.Server) { arg
     if (arg.isEmpty()) return@command p.sendMessage("[red]请输入玩家uuid")
     val player = netServer.admins.getInfo(arg[0]) ?: return@command p.sendMessage("[red]玩家未找到")
     @Suppress("EXPERIMENTAL_API_USAGE")
-    val data = transaction { PlayerData.find(player, true) }
+    val data = transaction { PlayerData.find(player) }
             ?: return@command p.sendMessage("[red]玩家未找到")
     val profileInfo = data.profile?.let {
         profileTemplate.with("profile" to it)

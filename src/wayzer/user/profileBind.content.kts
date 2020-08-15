@@ -70,7 +70,7 @@ command("bind", "绑定用户", "<六位code>", CommandType.Client) { arg, p ->
             return@command p.sendMessage("[red]你已经绑定用户，如需解绑，请联系管理员")
         @Suppress("EXPERIMENTAL_API_USAGE")
         transaction {
-            profile = PlayerProfile.getOrCreate(qq).apply {
+            profile = PlayerProfile.getOrCreate(qq,true).apply{
                 lastTime = Instant.now()
             }
             save()

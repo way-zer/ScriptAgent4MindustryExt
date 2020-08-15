@@ -6,7 +6,6 @@ import mindustry.game.EventType
 import mindustry.net.Administration
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Duration
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
 
@@ -58,12 +57,7 @@ listen<EventType.PlayerConnect> {
     val p = it.player
     @Suppress("EXPERIMENTAL_API_USAGE")
     transaction {
-        PlayerData.findOrCreate(p).apply {
-            lastIp = p.con.address
-            lastName = p.name
-            lastTime = Instant.now()
-            profile?.lastTime = Instant.now()
-        }
+        PlayerData.findOrCreate(p)
     }
 }
 
