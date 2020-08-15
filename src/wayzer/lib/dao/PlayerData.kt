@@ -63,6 +63,7 @@ class PlayerData : CacheEntity<String>(T) {
         //给新进入玩家使用，自动添加进入缓存
         fun findOrCreate(p: Player) = findOrCreate(p.uuid,cache = true) {
             firstIP = p.con.address
+            lastIp = p.con.address
             lastName = p.name
             save(p.uuid)
         }.apply {
