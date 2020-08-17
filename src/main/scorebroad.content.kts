@@ -1,8 +1,6 @@
 package main
 //WayZer 版权所有(请勿删除版权注解)
 import arc.util.Align
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import mindustry.gen.Call
 import java.time.Duration
 
@@ -17,19 +15,6 @@ val msg = """
 
 val disabled = mutableSetOf<String>()
 
-suspend fun loop() {
-    while (enabled) {
-        playerGroup.forEach {
-            if (disabled.contains(it.uuid)) return@forEach
-            if (it.isMobile) {
-                Call.onInfoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 210, 0, 0, 0)
-            } else
-                Call.onInfoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 155, 0, 0, 0)
-        }
-        delay(Duration.ofSeconds(2).toMillis())
-    }
-}
-
 command("broad", "开关积分板显示", type = CommandType.Client) { _, p ->
     if (!disabled.remove(p!!.uuid))
         disabled.add(p.uuid)
@@ -37,5 +22,16 @@ command("broad", "开关积分板显示", type = CommandType.Client) { _, p ->
 }
 
 onEnable {
-    launch { loop() }
+    launch {
+        while (true) {
+            playerGroup.forEach {
+                if (disabled.contains(it.uuid)) return@forEach
+                if (it.isMobile) {
+                    Call.onInfoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 210, 0, 0, 0)
+                } else
+                    Call.onInfoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 155, 0, 0, 0)
+            }
+            delay(Duration.ofSeconds(2).toMillis())
+        }
+    }
 }
