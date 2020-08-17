@@ -42,7 +42,7 @@ val Block.buildScore: Float
         //如果有更好的建筑积分规则，请修改此处
         return buildCost / 60f //建筑时间(单位秒)
     }
-val Player.isIdle get() = velocity().isZero && !isBuilding
+val Player.isIdle get() = velocity().isZero(1e-9F) && !isBuilding() &&!isShooting()
 
 val statisticsData = mutableMapOf<String, StatisticsData>()
 val Player.data get() = statisticsData.getOrPut(uuid) { StatisticsData() }
@@ -141,4 +141,7 @@ listen<EventType.GameOverEvent> { event ->
             }
         }
     }
+}
+command("test","",type = CommandType.Client){_,p->
+    p!!.sendMessage(p.data.toString())
 }
