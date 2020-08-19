@@ -1,9 +1,9 @@
 @file:DependsModule("coreLibrary")
-@file:MavenDepends("net.mamoe:mirai-core:0.39.5", single = false)
-@file:MavenDepends("net.mamoe:mirai-core-qqandroid:0.39.5", single = false)
+@file:MavenDepends("net.mamoe:mirai-core:1.1.3", single = false)
+@file:MavenDepends("net.mamoe:mirai-core-qqandroid:1.1.3", single = false)
 
 import arc.util.Log
-import kotlinx.coroutines.launch
+import cf.wayzer.script_agent.Config
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.utils.DefaultLogger
 import net.mamoe.mirai.utils.SimpleLogger
@@ -44,11 +44,11 @@ onEnable {
             }
         }
     }
-    val bot = Bot(qq, password)
+    val bot = Bot(qq, password) {
+        fileBasedDeviceInfo(Config.dataDirectory.resolve("miraiDeviceInfo.json").absolutePath)
+        parentCoroutineContext = coroutineContext
+    }
     launch {
         bot.login()
-    }
-    onDisable {
-        bot.close()
     }
 }

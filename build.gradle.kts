@@ -21,6 +21,7 @@ gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPlugin
 })
 
 repositories {
+    maven("http://maven.aliyun.com/nexus/content/groups/public/")
     mavenLocal()
     mavenCentral()
     jcenter()
@@ -52,7 +53,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:0.24.1")
     implementation("io.github.config4k:config4k:0.4.1")
     //mirai
-    implementation("net.mamoe:mirai-core:0.39.5")
+    implementation("net.mamoe:mirai-core:1.1.3")
 }
 
 tasks {

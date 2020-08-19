@@ -7,6 +7,6 @@ subscribeGroupMessages {
             +At(sender)
         })
     }
-    content { message.filterIsInstance<PlainText>().any { it.stringValue.contains("欢迎新人") } }
-            .reply { message.getOrNull(At.Key)?.let { "欢迎".toMessage() + it } ?: "欢迎新人!" }
+    content { message.filterIsInstance<PlainText>().any { it.content.contains("欢迎新人") } }
+            .reply { message[At.Key]?.let { PlainText("欢迎") + it } ?: "欢迎新人!" }
 }
