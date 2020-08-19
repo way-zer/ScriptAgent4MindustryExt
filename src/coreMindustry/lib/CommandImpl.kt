@@ -20,7 +20,7 @@ object RootCommands : Commands() {
         val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).let { originHandler ->
             originHandler.commandList.associate {
                 it.text.toLowerCase() to CommandInfo(null, it.text, it.description, { usage = it.paramText }) {
-                    (if(originHandler is MyCommandHandler)originHandler.origin else originHandler).handleMessage(prefix + arg.joinToString(" "),player)
+                    (if (originHandler is MyCommandHandler) originHandler.origin else originHandler).handleMessage(prefix + arg.joinToString(" "), player)
                 }
             }
         }
@@ -71,18 +71,19 @@ object RootCommands : Commands() {
         return result
     }
 
-    override fun onHelp(context: CommandContext, explicit:Boolean) {
-        if(!explicit)return context.reply("[red]无效指令,请使用/help查询".with())
+    override fun onHelp(context: CommandContext, explicit: Boolean) {
+        if (!explicit) return context.reply("[red]无效指令,请使用/help查询".with())
         assert(overwrite)
         val page = context.arg.getOrNull(0)?.toIntOrNull()
         val showDetail = context.arg.lastOrNull() == "-v"
-        val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).commandList.map{
-            CommandInfo(null, it.text, it.description, { usage = it.paramText }){}
+        val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).commandList.map {
+            CommandInfo(null, it.text, it.description, { usage = it.paramText }) {}
         }
-        context.sendMenuPhone("帮助",(subCommands.values.toSet()+origin).toList(),page,10){
+        context.sendMenuPhone("帮助", (subCommands.values.toSet() + origin).filter { it.permission.isBlank() || context.hasPermission(it.permission) }, page, 10) {
             val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
             val detail = buildString {
                 if (!showDetail) return@buildString
+                @Suppress("UNNECESSARY_SAFE_CALL")//Runtime compile fail
                 if (it.script != null) append("FROM ${it.script?.id}")
                 if (it.permission.isNotBlank()) append("REQUIRE ${it.permission}")
             }

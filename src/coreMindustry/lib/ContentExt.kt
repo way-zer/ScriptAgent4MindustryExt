@@ -4,6 +4,8 @@ import arc.func.Cons
 import arc.util.Log
 import cf.wayzer.script_agent.IContentScript
 import cf.wayzer.script_agent.util.DSLBuilder.Companion.dataKeyWithDefault
+import coreLibrary.lib.CommandHandler
+import coreLibrary.lib.CommandInfo
 import coreMindustry.lib.ContentExt.allCommands
 import coreMindustry.lib.ContentExt.listener
 import mindustry.Vars
@@ -42,14 +44,19 @@ inline fun <reified T : Any> IContentScript.listen(noinline handler: (T) -> Unit
     listener.add(ContentExt.Listener(this, T::class.java, handler))
 }
 
+@Deprecated("use new command api", ReplaceWith("command(name,description,{usage=param;this.type=type},runner)"))
 fun IContentScript.command(
         name: String,
         description: String,
-        param: String = "",
+        param: String,
         type: CommandType = CommandType.Both,
         runner: (arg: Array<String>, player: Player?) -> Unit
 ) {
     allCommands.add(ContentExt.CommandInfo(name, description, param, type, runner))
+}
+
+fun IContentScript.command(name: String,description: String,init:CommandInfo.()->Unit={},handler: CommandHandler){
+    RootCommands+= CommandInfo(this,name,description,init, handler)
 }
 
 @Suppress("unused")

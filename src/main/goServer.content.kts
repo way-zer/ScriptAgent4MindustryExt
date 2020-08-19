@@ -17,11 +17,14 @@ val infos: Map<String, Info>
         Info(k, sp1[0], sp2[0], port)
     }
 
-command("go", "传送到其他服务器", "[名字,为空列出]", CommandType.Client) { arg, p ->
-    val info = arg.firstOrNull()?.let { infos[it] ?: return@command p.sendMessage("[red]错误的服务器名字".with()) } ?: let {
-        val list = infos.values.map { "[gold]{name}:[tan]{desc}\n".with("name" to it.name, "desc" to it.desc) }
-        return@command p.sendMessage("[violet]可用服务器: \n{list}".with("list" to list))
-    }
-    Call.onConnect(p!!.con, info.address, info.port)
-    broadcast("[cyan][-][salmon]{player.name}[salmon]传送到了{name}服务器".with("player" to p, "name" to info.name))
+
+command("go", "传送到其他服务器", { usage = "[名字,为空列出]";type = CommandType.Client }) {
+    val info = arg.firstOrNull()
+            ?.let { infos[it] ?: return@command reply("[red]错误的服务器名字".with()) }
+            ?: let {
+                val list = infos.values.map { "[gold]{name}:[tan]{desc}\n".with("name" to it.name, "desc" to it.desc) }
+                return@command reply("[violet]可用服务器: \n{list}".with("list" to list))
+            }
+    Call.onConnect(player!!.con, info.address, info.port)
+    broadcast("[cyan][-][salmon]{player.name}[salmon]传送到了{name}服务器".with("player" to player!!, "name" to info.name))
 }

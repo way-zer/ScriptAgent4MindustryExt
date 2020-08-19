@@ -15,10 +15,10 @@ val msg = """
 
 val disabled = mutableSetOf<String>()
 
-command("broad", "开关积分板显示", type = CommandType.Client) { _, p ->
-    if (!disabled.remove(p!!.uuid))
-        disabled.add(p.uuid)
-    p.sendMessage("[green]切换成功")
+command("broad", "开关积分板显示", { this.type = CommandType.Client }) {
+    if (!disabled.remove(player!!.uuid))
+        disabled.add(player!!.uuid)
+    reply("[green]切换成功".with())
 }
 
 onEnable {

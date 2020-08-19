@@ -1,7 +1,6 @@
 package main
 
 import arc.graphics.Color
-import kotlinx.coroutines.launch
 import mindustry.content.Blocks
 import mindustry.content.Fx
 import mindustry.entities.Effects
@@ -81,21 +80,24 @@ fun draw(p: Player, file: File) {
     }
 }
 
-command("pixel", "绘制像素画", "[fileName]", CommandType.Client) { arg, p ->
-    if (!p!!.isAdmin) return@command p.sendMessage("[red]实验阶段,仅超级管理员可用")
+command("pixel", "绘制像素画", {
+    usage = "[fileName]"
+    type = CommandType.Client
+    permission = id
+}) {
     if (arg.isEmpty()) {
         val list = (pixelDir.listFiles() ?: emptyArray()).joinToString("\n") { it.name }
-        p.sendMessage("""
+        reply("""
             ==== 可用图片 ====
             {list}
         """.trimIndent().with("list" to list))
     } else {
         val file = pixelDir.resolve(arg[0])
-        if (!file.exists()) return@command p.sendMessage("[red]找不到对应文件")
-        p.sendMessage("[yellow]准备开始绘制")
+        if (!file.exists()) return@command reply("[red]找不到对应文件".with())
+        reply("[yellow]准备开始绘制".with())
         launch {
-            draw(p, file)
-            p.sendMessage("[green]绘制完成")
+            draw(player!!, file)
+            reply("[green]绘制完成".with())
         }
     }
 }
