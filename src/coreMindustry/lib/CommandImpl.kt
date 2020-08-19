@@ -29,6 +29,10 @@ object RootCommands : Commands() {
 
     override fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
         if (overwrite) {
+            if (command.type.server())
+                Config.serverCommands.removeCommand(name)
+            if (command.type.client())
+                Config.clientCommands.removeCommand(name)
             return super.addSub(name, command, isAliases)
         }
         super.addSub(name, command, isAliases)
@@ -79,7 +83,10 @@ object RootCommands : Commands() {
         val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).commandList.map {
             CommandInfo(null, it.text, it.description, { usage = it.paramText }) {}
         }
-        context.sendMenuPhone("帮助", (subCommands.values.toSet() + origin).filter { it.permission.isBlank() || context.hasPermission(it.permission) }, page, 10) {
+        context.sendMenuPhone("帮助", (subCommands.values.toSet() + origin).filter {
+            (if (context.player != null) it.type.client() else it.type.server())
+                    && (it.permission.isBlank() || context.hasPermission(it.permission))
+        }, page, 10) {
             val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
             val detail = buildString {
                 if (!showDetail) return@buildString
@@ -94,6 +101,9 @@ object RootCommands : Commands() {
     }
 
     init {
+        if (overwrite) arrayOf(Config.clientCommands, Config.serverCommands).forEach {
+            it.removeCommand("help")
+        }
         RootCommands::class.java.getContextModule()!!.apply {
             listenTo<PermissionRequestEvent> {
                 if (context.player?.isAdmin != false)

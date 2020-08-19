@@ -81,16 +81,16 @@ command("madmin", "列出或添加删除管理", {
         val list = admins.map {
             "{info.name}({info.uuid},{info.lastJoin:MM/dd hh:mm}),".with("info" to netServer.admins.getInfo(it))
         }
-        player!!.sendMessage("Admins: {list}".with("list" to list))
+        reply("Admins: {list}".with("list" to list))
     } else {
         if (admins.contains(uuid)) {
             admins = admins - uuid
-            return@command player!!.sendMessage("[red]$uuid [green] has been removed from Admins[]")
+            return@command reply("[red]$uuid [green] has been removed from Admins[]".with())
         }
         val info = netServer.admins.getInfoOptional(uuid)
-                ?: return@command player!!.sendMessage("[red]Can't found player")
+                ?: return@command reply("[red]Can't found player".with())
         admins = admins + uuid
-        player!!.sendMessage("[red] ${info.lastName}($uuid) [green] has been added to Admins")
+        reply("[red] ${info.lastName}($uuid) [green] has been added to Admins".with())
     }
 }
 

@@ -24,7 +24,7 @@ name = "投票"
 val voteTime by config.key(Duration.ofSeconds(60)!!, "投票时间")
 val enableWebMap by config.key(false, "是否允许网络地图", "来自mdt.wayzer.top")
 
-command("voteKick", "(弃用)投票踢人", { this.usage = "<player...>";this.type = CommandType.Client }) { onVote(player!!, "kick", arg[0]) }
+command("votekick", "(弃用)投票踢人", { this.usage = "<player...>";this.type = CommandType.Client }) { onVote(player!!, "kick", arg[0]) }
 command("vote", "投票指令", { this.usage = "<map/gameOver/kick/skipWave/rollback> [params...]";this.type = CommandType.Client }) { onVote(player!!, arg[0], arg.getOrNull(1)) }
 
 val allSub = mutableMapOf<String, (Player, String?) -> Unit>()
