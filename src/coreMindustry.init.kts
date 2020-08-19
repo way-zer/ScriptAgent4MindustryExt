@@ -1,17 +1,15 @@
 @file:DependsModule("coreLibrary")
 
+import arc.Core
 import arc.Events
 import arc.func.Cons
 import arc.struct.Array
 import arc.struct.ObjectMap
 import arc.util.Log
 import cf.wayzer.script_agent.Config
-import coreMindustry.lib.ContentExt
+import coreMindustry.lib.*
 import coreMindustry.lib.ContentExt.allCommands
 import coreMindustry.lib.ContentExt.listener
-import coreMindustry.lib.RootCommands
-import coreMindustry.lib.clientCommands
-import coreMindustry.lib.serverCommands
 import mindustry.Vars
 
 name = "Mindustry 核心脚本模块"
@@ -21,6 +19,21 @@ addDefaultImport("arc.Core")
 addDefaultImport("mindustry.Vars.*")
 addDefaultImport("coreMindustry.lib.*")
 generateHelper()
+
+fun updateOriginCommandHandler(client:arc.util.CommandHandler,server:arc.util.CommandHandler){
+    Vars.netServer?.apply {
+        javaClass.getDeclaredField("clientCommands").let {
+            it.isAccessible = true
+            it.set(this,client)
+        }
+    }
+    Core.app.listeners.find { it.javaClass.simpleName=="ServerControl" }?.let {
+        it.javaClass.getDeclaredField("handler").apply {
+            isAccessible=true
+            set(it,server)
+        }
+    }
+}
 
 onEnable{
     Vars.dataDirectory.child("scriptsConfig.conf").file().takeIf { it.exists() }?.apply {
@@ -33,6 +46,14 @@ onEnable{
         println("检测到旧数据储存文件,已弃用，请手动移除 $it")
     }
     Commands.rootProvider.set(RootCommands)
+    updateOriginCommandHandler(
+            MyCommandHandler("/",Config.clientCommands),
+            MyCommandHandler("",Config.serverCommands)
+    )
+}
+
+onDisable{
+    updateOriginCommandHandler(Config.clientCommands,Config.serverCommands)
 }
 
 onAfterContentEnable{child->

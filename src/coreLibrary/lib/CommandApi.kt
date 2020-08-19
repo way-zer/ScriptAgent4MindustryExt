@@ -122,15 +122,35 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
 
 open class Commands : (CommandContext) -> Unit {
     protected val subCommands = mutableMapOf<String, CommandInfo>()
-    open fun getSub(context: CommandContext):CommandHandler{
-        return context.checkArg(0,subCommands) { it.toLowerCase() } ?:subCommands["help"]!!
+    open fun getSub(context: CommandContext):CommandHandler?{
+        return context.checkArg(0,subCommands) { it.toLowerCase() }
     }
     override operator fun invoke(context: CommandContext) {
-        getSub(context).invoke(context.new {
+        getSub(context)?.invoke(context.new {
             if(arg.isEmpty())return@new
             prefix += arg[0]+" "
             arg = arg.subList(1, arg.size)
-        })
+        })?:onHelp(context,false)
+    }
+
+    open fun onHelp(context: CommandContext,explicit:Boolean){
+        val showDetail = context.arg.lastOrNull() == "-v"
+        val list = subCommands.values.toSet().map {
+            val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
+            val detail = buildString {
+                if (!showDetail) return@buildString
+                if (it.script != null) append("FROM ${it.script.id}")
+                if (it.permission.isNotBlank()) append("REQUIRE ${it.permission}")
+            }
+            "[yellow]{prefix}{name}[blue]{aliases} [yellow]{usage} [light_purple]{desc} [purple]{detail}\n".with(
+                    "prefix" to context.prefix, "name" to it.name, "aliases" to alias,
+                    "usage" to it.usage, "desc" to it.description, "detail" to detail)
+        }
+        context.reply("""
+                [green]==== [light_yellow]{name}[green] ====
+                {list}
+            """.trimIndent().with("list" to list, "name" to context.prefix)
+        )
     }
 
     protected open fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
@@ -171,28 +191,11 @@ open class Commands : (CommandContext) -> Unit {
             removeAll(script)
         }
     }
-
     init {
-        this.addSub(CommandInfo(null, "help", "显示帮助") {
+        subCommands["help"] = CommandInfo(null,"help","帮助指令",{usage="[page] [-v]"}){
             prefix = prefix.removeSuffix("help ")
-            val showDetail = arg.getOrNull(0) == "-v"
-            val list = subCommands.values.toSet().map {
-                val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
-                val detail = buildString {
-                    if (!showDetail) return@buildString
-                    if (it.script != null) append("FROM ${it.script.id}")
-                    if (it.permission.isNotBlank()) append("REQUIRE ${it.permission}")
-                }
-                "[purple]{prefix} {name}[blue]{aliases} [purple]{usage} [light_purple]{desc} [purple]{detail}\n".with(
-                        "prefix" to prefix, "name" to it.name, "aliases" to alias,
-                        "usage" to it.usage, "desc" to it.description, "detail" to detail)
-            }
-            reply("""
-                [yellow]==== [light_yellow]{name}[yellow] ====
-                {list}
-            """.trimIndent().with("list" to list, "name" to prefix)
-            )
-        })
+            onHelp(this,true)
+        }
     }
 
     companion object {

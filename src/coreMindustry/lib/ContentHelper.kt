@@ -1,11 +1,12 @@
 package coreMindustry.lib
 
-import arc.util.ColorCodes
 import arc.util.CommandHandler
 import arc.util.Log
 import cf.wayzer.placehold.PlaceHoldContext
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.util.DSLBuilder
+import coreLibrary.lib.ColorApi
+import coreLibrary.lib.ConsoleColor
 import coreLibrary.lib.with
 import mindustry.Vars
 import mindustry.entities.type.Player
@@ -13,13 +14,20 @@ import mindustry.gen.Call
 
 object ContentHelper{
     fun logToConsole(text:String){
-        val replaced = text.replace("[green]", ColorCodes.GREEN)
-            .replace("[red]", ColorCodes.LIGHT_RED)
-            .replace("[yellow]", ColorCodes.YELLOW)
-            .replace("[white]", ColorCodes.WHITE)
-            .replace("[blue]", ColorCodes.LIGHT_BLUE)
-            .replace("[]", ColorCodes.RESET)
-        Log.info(replaced)
+        Log.info(ColorApi.handle(text,ColorApi::consoleColorHandler))
+    }
+    fun mindustryColorHandler(color:ColorApi.Color):String{
+        if(color is ConsoleColor) {
+            return when(color){
+                ConsoleColor.LIGHT_YELLOW -> "[gold]"
+                ConsoleColor.LIGHT_PURPLE -> "[magenta]"
+                ConsoleColor.LIGHT_RED -> "[scarlet]"
+                ConsoleColor.LIGHT_CYAN -> "[cyan]"
+                ConsoleColor.LIGHT_GREEN -> "[acid]"
+                else -> "[${color.name}]"
+            }
+        }
+        return ""
     }
 }
 enum class MsgType{Message, InfoMessage, InfoToast}
@@ -35,7 +43,7 @@ fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message,
     if (this == null) ContentHelper.logToConsole(text.toString())
     else {
         if (con == null) return
-        val msg = "{text}".with("text" to text, "player" to this).toString()
+        val msg = ColorApi.handle("{text}".with("text" to text, "player" to this).toString(),ContentHelper::mindustryColorHandler)
         when(type){
             MsgType.Message -> Call.sendMessage(this.con,msg,null,null)
             MsgType.InfoMessage -> Call.onInfoMessage(this.con, msg)
