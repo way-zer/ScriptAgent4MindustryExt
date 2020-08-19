@@ -57,27 +57,32 @@ fun check(code: Int): Long? {
     return map[code]
 }
 
-command("genCode", "管理指令: 为用户生成随机绑定码", "<qq>", CommandType.Server) { arg, p ->
-    val qq = arg.firstOrNull()?.toLongOrNull() ?: return@command p.sendMessage("[red]请输入正确的qq号")
-    p.sendMessage("[green]绑定码{code},有效期:{expireTime}".with("code" to generate(qq), "expireTime" to expireTime))
+command("genCode", "管理指令: 为用户生成随机绑定码", {
+    this.usage = "<qq>"
+    permission = "wayzer.user.genCode"
+}) {
+    val qq = arg.firstOrNull()?.toLongOrNull() ?: return@command reply("[red]请输入正确的qq号".with())
+    reply("[green]绑定码{code},有效期:{expireTime}".with("code" to generate(qq), "expireTime" to expireTime))
 }
 
-command("bind", "绑定用户", "<六位code>", CommandType.Client) { arg, p ->
+command("bind", "绑定用户", {
+    this.usage = "<六位code>";this.type = CommandType.Client
+}) {
     val qq = arg.firstOrNull()?.toIntOrNull()?.let(::check)
-            ?: return@command p!!.sendMessage("[red]请输入正确的6位绑定码,如没有，可找群内机器人获取")
-    PlayerData[p!!.uuid].apply {
-        if(profile!=null)
-            return@command p.sendMessage("[red]你已经绑定用户，如需解绑，请联系管理员")
+            ?: return@command reply("[red]请输入正确的6位绑定码,如没有，可找群内机器人获取".with())
+    PlayerData[player!!.uuid].apply {
+        if (profile != null)
+            return@command reply("[red]你已经绑定用户，如需解绑，请联系管理员".with())
         @Suppress("EXPERIMENTAL_API_USAGE")
         transaction {
-            profile = PlayerProfile.getOrCreate(qq,true).apply{
+            profile = PlayerProfile.getOrCreate(qq, true).apply {
                 lastTime = Instant.now()
             }
             save()
         }
         @Suppress("UNCHECKED_CAST")
-        val finishAchievement = depends("wayzer/user/achievement").let { it as? IContentScript }?.import<KCallable<*>>("finishAchievement") as? (Player,String,Int,Boolean)->Unit
-        finishAchievement?.invoke(p,"绑定账号",100,false)
+        val finishAchievement = depends("wayzer/user/achievement").let { it as? IContentScript }?.import<KCallable<*>>("finishAchievement") as? (Player, String, Int, Boolean) -> Unit
+        finishAchievement?.invoke(player!!, "绑定账号", 100, false)
     }
-    p.sendMessage("[green]绑定账号[yellow]$qq[green]成功.")
+    reply("[green]绑定账号[yellow]$qq[green]成功.".with())
 }

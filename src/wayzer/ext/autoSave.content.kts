@@ -7,11 +7,11 @@ import java.util.concurrent.TimeUnit
 
 name = "自动存档"
 val autoSaveRange = 100 until 106
-command("slots", "列出自动保存的存档", type = CommandType.Client) { _, p ->
+command("slots", "列出自动保存的存档", { type = CommandType.Client }) {
     val list = autoSaveRange.map { it to SaveIO.fileFor(it) }.filter { it.second.exists() }.map { (id, file) ->
         "[red]{id}[]: [yellow]Save on {date:hh:mm}\n".with("id" to id, "date" to file.lastModified().let(::Date))
     }
-    p.sendMessage("""
+    reply("""
             |[green]===[white] 自动存档 [green]===
             |{list}
             |[green]===[white] {range} [green]===

@@ -2,6 +2,7 @@ package wayzer
 
 import arc.files.Fi
 import cf.wayzer.placehold.DynamicVar
+import coreMindustry.lib.util.sendMenuPhone
 import mindustry.Vars
 import mindustry.game.EventType
 import mindustry.game.Gamemode
@@ -103,7 +104,9 @@ PlaceHold.registerForType<Map>(this).apply {
     })
 }
 
-command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, p ->
+command("maps", "列出服务器地图", {
+    usage = "[page/pvp/attack/all] [page]"
+}) {
     val mode: Gamemode? = arg.getOrNull(0).let {
         when {
             "pvp".equals(it, true) -> Gamemode.pvp
@@ -112,14 +115,14 @@ command("maps", "列出服务器地图", "[page/pvp/attack/all] [page]") { arg, 
             else -> Gamemode.survival.takeIf { mapsDistinguishMode }
         }
     }
-    if (mapsDistinguishMode) p.sendMessage("[yellow]默认只显示所有生存图,输入[green]/maps pvp[yellow]显示pvp图,[green]/maps attack[yellow]显示攻城图[green]/maps all[yellow]显示所有".with())
+    if (mapsDistinguishMode) reply("[yellow]默认只显示所有生存图,输入[green]/maps pvp[yellow]显示pvp图,[green]/maps attack[yellow]显示攻城图[green]/maps all[yellow]显示所有".with())
     val page = arg.lastOrNull()?.toIntOrNull()
     var maps = MapManager.maps.mapIndexed { index, map -> (index + 1) to map }
     maps = if (arg.getOrNull(0) == "new")
         maps.sortedByDescending { it.second.file.lastModified() }
     else
         maps.filter { mode == null || MapManager.bestMode(it.second) == mode }
-    p.sendMenuPhone("服务器地图 By WayZer", maps, page, mapsPrePage) { (id, map) ->
+    sendMenuPhone("服务器地图 By WayZer", maps, page, mapsPrePage) { (id, map) ->
         "[red]{id}[green]({map.width},{map.height})[]:[yellow]{map.fileName}[] | [blue]{map.name}\n"
                 .with("id" to "%2d".format(id), "map" to map)
     }
@@ -156,24 +159,26 @@ listen<EventType.GameOverEvent> { event ->
         MapManager.loadMap(map)
     }
 }
-command("host", "管理指令: 换图", "[mapId] [mode]") { arg, p ->
-    if (p != null && !SharedData.admin.isAdmin(p))
-        return@command p.sendMessage("[red]你没有权限执行该命令")
+command("host", "管理指令: 换图", {
+    this.usage = "[mapId] [mode]"
+    this.permission = "wayzer.maps.host"
+}) {
     val map = if (arg.isEmpty()) MapManager.nextMap(world.map) else
         arg[0].toIntOrNull()?.let { MapManager.maps.getOrNull(it - 1) }
-                ?: return@command p.sendMessage("[red]请输入正确的地图ID".with())
+                ?: return@command reply("[red]请输入正确的地图ID".with())
     val mode = arg.getOrNull(1)?.let { name ->
-        Gamemode.values().find { it.name == name } ?: return@command p.sendMessage("[red]请输入正确的模式".with())
+        Gamemode.values().find { it.name == name } ?: return@command reply("[red]请输入正确的模式".with())
     } ?: MapManager.bestMode(map)
     MapManager.loadMap(map, mode)
     broadcast("[green]强制换图为{map.name},模式{map.mode}".with("map" to map, "map.mode" to mode.name))
 }
-command("load", "管理指令: 加载存档", "<slot>") { arg, p ->
-    if (p != null && !SharedData.admin.isAdmin(p))
-        return@command p.sendMessage("[red]你没有权限执行该命令")
+command("load", "管理指令: 加载存档", {
+    this.usage = "<slot>"
+    permission = "wayzer.maps.load"
+}) {
     val file = arg[0].let { saveDirectory.child("$it.$saveExtension") }
     if (!file.exists() || !SaveIO.isSaveValid(file))
-        return@command p.sendMessage("[red]存档不存在或者损坏")
+        return@command reply("[red]存档不存在或者损坏".with())
     MapManager.loadSave(file)
     broadcast("[green]强制加载存档{slot}".with("slot" to arg[0]))
 }

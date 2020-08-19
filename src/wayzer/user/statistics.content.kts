@@ -142,6 +142,3 @@ listen<EventType.GameOverEvent> { event ->
         }
     }
 }
-command("test","",type = CommandType.Client){_,p->
-    p!!.sendMessage(p.data.toString())
-}

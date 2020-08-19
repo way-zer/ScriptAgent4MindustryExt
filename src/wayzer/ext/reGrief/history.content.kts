@@ -60,13 +60,16 @@ listen<EventType.DepositEvent> {
 
 //查询
 val enabledPlayer = mutableSetOf<String>()
-command("history", "开关查询模式", type = CommandType.Client) { _, p ->
-    if (p!!.uuid in enabledPlayer) {
-        enabledPlayer.remove(p.uuid)
-        p.sendMessage("[green]关闭查询模式")
+command("history", "开关查询模式", {
+    type = CommandType.Client
+    permission = "wayzer.ext.history"
+}) {
+    if (player!!.uuid in enabledPlayer) {
+        enabledPlayer.remove(player!!.uuid)
+        reply("[green]关闭查询模式".with())
     } else {
-        enabledPlayer.add(p.uuid)
-        p.sendMessage("[green]开启查询模式,点击方块查询历史")
+        enabledPlayer.add(player!!.uuid)
+        reply("[green]开启查询模式,点击方块查询历史".with())
     }
 }
 listen<EventType.TapEvent> {

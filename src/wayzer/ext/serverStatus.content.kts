@@ -9,6 +9,6 @@ val format by config.key("""
 """.trimMargin())
 
 
-command("status", "获取服务器信息") { _, p ->
-    p.sendMessage(format.with())
+command("status", "获取服务器信息") {
+    reply(format.with())
 }

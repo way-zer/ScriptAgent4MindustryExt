@@ -33,12 +33,16 @@ fun finishAchievement(p: Player, name: String, exp: Int, broadcast: Boolean = fa
 }
 export(::finishAchievement)
 
-command("achieve", "管理指令: 添加成就", "<id> <name> <exp>", CommandType.Server) { arg, p ->
-    if (arg.size < 3) return@command p.sendMessage("[red]参数不足 <id> <name> <exp>")
+command("achieve", "管理指令: 添加成就", {
+    this.usage = "<id> <name> <exp>"
+    this.type = CommandType.Server
+    permission = "wayzer.user.achieve"
+}) {
+    if (arg.size < 3) return@command reply("[red]参数不足 <id> <name> <exp>".with())
     val player = arg[0].let { id -> playerGroup.singleOrNull { it.uuid.startsWith(id) } }
-            ?: return@command p.sendMessage("[red]找不到玩家")
+            ?: return@command reply("[red]找不到玩家".with())
     val name = arg[1]
-    val exp = arg[2].toIntOrNull() ?: return@command p.sendMessage("[red]请输入正确的数字")
+    val exp = arg[2].toIntOrNull() ?: return@command reply("[red]请输入正确的数字".with())
     finishAchievement(player, name, exp, false)
-    p.sendMessage("[green]添加成功")
+    reply("[green]添加成功".with())
 }
