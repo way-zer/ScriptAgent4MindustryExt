@@ -4,8 +4,11 @@
 
 import arc.util.Log
 import cf.wayzer.script_agent.Config
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.sendBlocking
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.utils.DefaultLogger
+import net.mamoe.mirai.utils.DefaultLoginSolver
 import net.mamoe.mirai.utils.SimpleLogger
 
 addDefaultImport("mirai.lib.*")
@@ -19,6 +22,8 @@ generateHelper()
 val enable by config.key(false, "是否启动机器人(开启前先设置账号密码)")
 val qq by config.key(1849301538L, "机器人qq号")
 val password by config.key("123456", "机器人qq密码")
+
+val channel = Channel<String>()
 
 onEnable {
     if (!enable) {
@@ -47,8 +52,18 @@ onEnable {
     val bot = Bot(qq, password) {
         fileBasedDeviceInfo(Config.dataDirectory.resolve("miraiDeviceInfo.json").absolutePath)
         parentCoroutineContext = coroutineContext
+        loginSolver = DefaultLoginSolver(channel::receive)
     }
     launch {
         bot.login()
+    }
+}
+
+Commands.controlCommand.let {
+    it += CommandInfo(this, "mirai", "重定向输入到mirai", {
+        usage = "[args...]"
+        permission = "mirai.input"
+    }) {
+        channel.sendBlocking(this.arg.joinToString(" "))
     }
 }
