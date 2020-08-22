@@ -1,7 +1,7 @@
-@file:ImportByClass("org.jline.reader.Completer")//Embedded in kotlin compiler
-//@file:MavenDepends("org.jline:jline-terminal-jansi:3.15.0")
-//@file:MavenDepends("org.jline:jline-terminal:3.15.0")
-//@file:MavenDepends("org.jline:jline-reader:3.15.0")
+//@file:ImportByClass("org.jline.reader.Completer")//Embedded in kotlin compiler
+@file:MavenDepends("org.jline:jline-terminal-jansi:3.15.0")
+@file:MavenDepends("org.jline:jline-terminal:3.15.0")
+@file:MavenDepends("org.jline:jline-reader:3.15.0")
 
 import org.jline.reader.*
 import kotlin.concurrent.thread
