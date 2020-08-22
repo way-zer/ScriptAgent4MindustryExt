@@ -18,7 +18,11 @@ val infos: Map<String, Info>
     }
 
 
-command("go", "传送到其他服务器", { usage = "[名字,为空列出]";type = CommandType.Client }) {
+command("go", "传送到其他服务器", {
+    usage = "[名字,为空列出]";
+    type = CommandType.Client
+    aliases = listOf("前往")
+}) {
     val info = arg.firstOrNull()
             ?.let { infos[it] ?: return@command reply("[red]错误的服务器名字".with()) }
             ?: let {
@@ -26,5 +30,5 @@ command("go", "传送到其他服务器", { usage = "[名字,为空列出]";type
                 return@command reply("[violet]可用服务器: \n{list}".with("list" to list))
             }
     Call.onConnect(player!!.con, info.address, info.port)
-    broadcast("[cyan][-][salmon]{player.name}[salmon]传送到了{name}服务器".with("player" to player!!, "name" to info.name))
+    broadcast("[cyan][-][salmon]{player.name}[salmon]传送到了{name}服务器(/go {name})".with("player" to player!!, "name" to info.name))
 }
