@@ -4,6 +4,7 @@ import cf.wayzer.placehold.DynamicVar
 import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.net.Administration
+import mindustry.net.Packets
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Duration
 import java.time.temporal.ChronoUnit
@@ -55,18 +56,20 @@ registerVarForType<PlayerProfile>().apply {
 
 listen<EventType.PlayerConnect> {
     val p = it.player
+    if (playerGroup.any { it.uuid == p.uuid }) return@listen p.con.kick(Packets.KickReason.idInUse)
     @Suppress("EXPERIMENTAL_API_USAGE")
     transaction {
         PlayerData.findOrCreate(p)
     }
 }
 
-listen<EventType.PlayerLeave> {
+listen<EventType.PlayerLeave> { event ->
     @Suppress("EXPERIMENTAL_API_USAGE")
     transaction {
-        PlayerData.getOrNull(it.player.uuid)?.apply {
+        PlayerData.getOrNull(event.player.uuid)?.apply {
             save()
-            PlayerData.removeCache(it.player.uuid)
+            if (playerGroup.none { it != event.player && it.uuid == event.player.uuid })
+                PlayerData.removeCache(event.player.uuid)
         }
     }
 }
