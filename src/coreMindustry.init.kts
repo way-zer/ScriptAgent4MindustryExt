@@ -18,6 +18,7 @@ addLibraryByClass("mindustry.Vars")
 addDefaultImport("arc.Core")
 addDefaultImport("mindustry.Vars.*")
 addDefaultImport("coreMindustry.lib.*")
+addDefaultImport("coreMindustry.lib.compatibilities")
 generateHelper()
 
 fun updateOriginCommandHandler(client:arc.util.CommandHandler,server:arc.util.CommandHandler){

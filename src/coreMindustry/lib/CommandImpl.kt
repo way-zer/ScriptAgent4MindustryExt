@@ -10,6 +10,7 @@ import cf.wayzer.script_agent.listenTo
 import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.*
 import coreLibrary.lib.event.PermissionRequestEvent
+import coreMindustry.lib.compatibilities.isAdmin
 import coreMindustry.lib.util.sendMenuPhone
 import mindustry.entities.type.Player
 

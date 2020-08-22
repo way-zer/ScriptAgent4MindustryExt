@@ -4,9 +4,10 @@ import coreLibrary.lib.CommandContext
 import coreLibrary.lib.PlaceHoldString
 import coreLibrary.lib.with
 import coreMindustry.lib.MsgType
+import coreMindustry.lib.compatibilities.isMobile
 import coreMindustry.lib.player
 import coreMindustry.lib.sendMessage
-import mindustry.entities.type.Player
+import mindustry.gen.Player
 import kotlin.math.ceil
 import kotlin.math.min
 
@@ -33,7 +34,7 @@ fun <E> menu(title: String, list: List<E>, page: Int, prePage: Int, handle: (E) 
 
 fun <E> Player?.sendMenuPhone(title: String, list: List<E>, page: Int?, prePage: Int, handle: (E) -> PlaceHoldString) {
     fun getPage(i: Int) = menu(title, list, i, prePage, handle)
-    if (this?.isMobile != true)
+    if (this?.con?.mobile != true)
         return sendMessage(getPage(page ?: 1))
     if (page == null) {
         val total = calPage(1, prePage, list.size).second
