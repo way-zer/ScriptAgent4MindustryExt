@@ -9,7 +9,7 @@ import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.ScriptAgent
 import cf.wayzer.script_agent.ScriptManager
 import mindustry.Vars
-import mindustry.plugin.Plugin
+import mindustry.mod.Plugin
 
 class ScriptAgent4Mindustry: Plugin() {
     init {
