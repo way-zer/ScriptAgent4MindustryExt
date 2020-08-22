@@ -139,10 +139,10 @@ open class Commands : (CommandContext) -> Unit {
             val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
             val detail = buildString {
                 if (!showDetail) return@buildString
-                if (it.script != null) append("FROM ${it.script.id}")
-                if (it.permission.isNotBlank()) append("REQUIRE ${it.permission}")
+                if (it.script != null) append(" | ${it.script.id}")
+                if (it.permission.isNotBlank()) append(" | ${it.permission}")
             }
-            "[yellow]{prefix}{name}[blue]{aliases} [yellow]{usage} [light_purple]{desc} [purple]{detail}\n".with(
+            "[light_yellow]{prefix}{name}[light_red]{aliases} [white]{usage}  [light_cyan]{desc}[cyan]{detail}\n".with(
                     "prefix" to context.prefix, "name" to it.name, "aliases" to alias,
                     "usage" to it.usage, "desc" to it.description, "detail" to detail)
         }
