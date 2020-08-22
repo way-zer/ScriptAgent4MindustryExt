@@ -19,7 +19,10 @@ val profileTemplate by config.key("""
     | [green]注册时间[]:{profile.registerTime:YYYY-MM-dd}
 """.trimMargin(), "统一账号信息介绍")
 
-command("info", "获取当前个人信息", { type = CommandType.Client }) {
+command("info", "获取当前个人信息", {
+    type = CommandType.Client
+    aliases = listOf("个人信息")
+}) {
     val profile = PlayerData[player!!.uuid].profile
     val profileInfo = profile?.let {
         profileTemplate.with("profile" to it)

@@ -106,6 +106,7 @@ PlaceHold.registerForType<Map>(this).apply {
 
 command("maps", "列出服务器地图", {
     usage = "[page/pvp/attack/all] [page]"
+    aliases = listOf("地图")
 }) {
     val mode: Gamemode? = arg.getOrNull(0).let {
         when {

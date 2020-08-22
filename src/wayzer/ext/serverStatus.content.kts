@@ -9,6 +9,8 @@ val format by config.key("""
 """.trimMargin())
 
 
-command("status", "获取服务器信息") {
+command("status", "获取服务器信息", {
+    aliases = listOf("服务器状态")
+}) {
     reply(format.with())
 }
