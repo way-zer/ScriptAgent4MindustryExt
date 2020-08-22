@@ -3,11 +3,7 @@
 //@file:MavenDepends("org.jline:jline-terminal:3.15.0")
 //@file:MavenDepends("org.jline:jline-reader:3.15.0")
 
-import org.jline.reader.Candidate
-import org.jline.reader.LineReader
-import org.jline.reader.LineReaderBuilder
-import org.jline.reader.ParsedLine
-import org.jline.reader.UserInterruptException
+import org.jline.reader.*
 import kotlin.concurrent.thread
 
 object MyCompleter : Completer {
