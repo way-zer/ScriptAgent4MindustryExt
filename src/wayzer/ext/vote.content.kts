@@ -30,7 +30,7 @@ inner class VoteCommands : Commands() {
         if (VoteHandler.voting.get()) return context.reply("[red]投票进行中".with())
         super.invoke(context)
         if (VoteHandler.voting.get()) {//success
-            Call.sendMessage(context.prefix + context.arg.joinToString(" "), mindustry.core.NetClient.colorizeName(player.id, player.name), player)
+            Call.sendMessage(context.prefix + context.arg.joinToString(" "), mindustry.core.NetClient.colorizeName(context.player!!.id, context.player!!.name), context.player!!)
         }
     }
 
@@ -50,10 +50,10 @@ command("vote", "发起投票", {
     aliases = listOf("投票")
 }, voteCommands)
 command("votekick", "(弃用)投票踢人", { this.usage = "<player...>";this.type = CommandType.Client }) {
-    voteCommands.invoke(CommandContext().apply {
-        arg = listOf("kick", *arg.toTypedArray())
-    })
+    //Redirect
+    voteCommands.invoke(new { arg = listOf("kick", *arg.toTypedArray()) })
 }
+
 export(::voteCommands)
 
 fun subVote(desc: String, usage: String, vararg aliases: String, body: CommandContext.() -> Unit) {
