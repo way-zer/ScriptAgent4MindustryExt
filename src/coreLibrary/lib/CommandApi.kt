@@ -15,7 +15,7 @@ import java.util.logging.Logger
 
 class CommandContext : DSLBuilder() {
     // Should init in CommandInfo
-    lateinit var thisCommand: CommandInfo
+    var thisCommand: CommandInfo = CommandInfo.Empty
 
     // Should init if not empty
     var prefix: String = ""
@@ -53,7 +53,7 @@ class CommandContext : DSLBuilder() {
     }
 
     fun replyUsage() {
-        reply("[red]参数错误: {prefix} {usage}".with("prefix" to prefix, "usage" to thisCommand.usage))
+        reply("[red]参数错误: {prefix} {usage}".with("prefix" to prefix, "usage" to (thisCommand.usage)))
     }
 
     fun onComplete(index: Int,body:()->List<String>){
@@ -97,7 +97,7 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
     var supportCompletion = false
 
     init {
-        init()
+        this.init()
     }
 
     override fun invoke(context: CommandContext) {
@@ -114,10 +114,16 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
             e.printStackTrace()
         }
     }
-    object Return : Throwable("Direct return command"){
-        operator fun invoke():Nothing{
+
+    object Return : Throwable("Direct return command") {
+        operator fun invoke(): Nothing {
             throw this
         }
+    }
+
+    companion object {
+        //using as thisCommand default value
+        val Empty = CommandInfo(null, "", "") {}
     }
 }
 

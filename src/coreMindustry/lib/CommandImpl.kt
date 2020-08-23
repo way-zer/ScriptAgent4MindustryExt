@@ -127,7 +127,6 @@ class MyCommandHandler(private var prefix: String, val origin: CommandHandler) :
         if (message?.startsWith(prefix) != true) return CommandResponse(ResponseType.noCommand, null, null)
         RootCommands.invoke(CommandContext().apply {
             player = params as? Player
-            thisCommand = CommandInfo(null, "", "", {}, RootCommands)
             reply = { reply(it, MsgType.Message) }
             prefix = this@MyCommandHandler.prefix.let { if (it.isEmpty()) "* " else it }
             this.arg = message.removePrefix(prefix).split(' ')
