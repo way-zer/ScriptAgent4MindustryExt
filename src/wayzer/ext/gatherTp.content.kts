@@ -1,3 +1,5 @@
+package wayzer.ext
+
 import arc.math.geom.Vec2
 import mindustry.game.EventType
 import mindustry.gen.Call
@@ -16,7 +18,7 @@ command("gather", "发出集合请求", {
         return@command reply("[red]刚刚有人发起请求,请稍等30s再试".with())
     }
     val message = "[white]\"${arg.firstOrNull() ?: ""}[white]\""
-    lastPos = player!!.lastPosition().cpy()
+    lastPos = player!!.unit().run { Vec2(lastX, lastY) }
     lastTime = Instant.now()
     broadcast("[yellow][集合][cyan]{player.name}[white]发起集合([red]{x},{y}[white]){message},输入\"[gold]go[white]\"前往".with(
             "player" to player!!, "x" to lastPos.x.toInt() / 8, "y" to lastPos.y.toInt() / 8, "message" to message
@@ -26,7 +28,7 @@ command("gather", "发出集合请求", {
 listen<EventType.PlayerChatEvent> {
     if (it.message.equals("go", true) && lastPos != Vec2.ZERO) {
         it.player.set(lastPos.x, lastPos.y)
-        Call.onPositionSet(it.player.con, lastPos.x, lastPos.y)
+        Call.setPosition(it.player.con, lastPos.x, lastPos.y)
     }
 }
 

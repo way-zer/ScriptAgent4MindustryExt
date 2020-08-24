@@ -3,6 +3,7 @@ package wayzer.ext
 import arc.Events
 import mindustry.game.EventType
 import mindustry.game.Gamemode
+import mindustry.gen.Groups
 import java.time.Duration
 import kotlin.math.ceil
 
@@ -32,19 +33,19 @@ listen<EventType.WorldLoadEvent> {
 
 //PVP Protect
 var t = 0
-Events.on(EventType.Trigger.update) {
-    if (job?.isActive!=true) return@on
+Events.run(EventType.Trigger.update) {
+    if (job?.isActive != true) return@run
     t = (t + 1) % 60
-    if (t != 0) return@on //per 60ticks | 1 seconds
-    unitGroup.forEach {
-        if (state.teams.closestEnemyCore(it.x, it.y, it.team)?.withinDst(it, state.rules.enemyCoreBuildRadius) == true) {
+    if (t != 0) return@run //per 60ticks | 1 seconds
+    Groups.unit.forEach {
+        if (state.teams.closestEnemyCore(it.x, it.y, it.team)?.within(it, state.rules.enemyCoreBuildRadius) == true) {
             it.kill()
         }
     }
     playerGroup.forEach {
-        if (it.isShooting && state.teams.closestEnemyCore(it.x, it.y, it.team)?.withinDst(it, state.rules.enemyCoreBuildRadius) == true) {
+        if (it.shooting() && state.teams.closestEnemyCore(it.x, it.y, it.team())?.within(it, state.rules.enemyCoreBuildRadius) == true) {
             it.sendMessage("[red]PVP保护时间,禁止在其他基地攻击".with())
-            it.kill()
+            it.clearUnit()
         }
     }
 }

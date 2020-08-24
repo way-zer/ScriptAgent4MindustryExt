@@ -1,5 +1,6 @@
 package wayzer.lib.dao
 
+import coreMindustry.lib.compatibilities.uuid
 import mindustry.entities.type.Player
 import mindustry.net.Administration
 import org.jetbrains.exposed.dao.id.EntityID

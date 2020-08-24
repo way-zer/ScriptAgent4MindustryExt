@@ -50,7 +50,7 @@ object MapRenderer {
             repeat(width) { i ->
                 val c = ARGBtoRGBA(getRGB(i, 0))
                 if (c != 0) {
-                    content.block(i).color.set(c)
+                    content.block(i).mapColor.set(c)
                 }
             }
             Log.info("[wayzer/ext/mapSnap]加载方块颜色集成功")
@@ -66,15 +66,15 @@ object MapRenderer {
 
     private fun getRGBA(tile: Tile?): Int {
         if (tile == null) return 0
-        val blockColor = tile.link().let { it.block().minimapColor(it) }
+        val blockColor = tile.block().minimapColor(tile)
         if (blockColor != 0) return blockColor
-        return MapIO.colorFor(tile.floor(), tile.block(), tile.overlay(), tile.team)
+        return MapIO.colorFor(tile.floor(), tile.block(), tile.overlay(), tile.team())
     }
 }
 listen<EventType.WorldLoadEvent> {
     MapRenderer.drawAll(world)
 }
-listen<EventType.TileChangeEvent> {
+listen<EventType.BuildinghangeEvent> {
     launch {
         MapRenderer.update(it.tile)
     }

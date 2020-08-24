@@ -63,22 +63,22 @@ inner class MapManager : SharedData.IMapManager {
             'S' -> Gamemode.survival
             'C' -> Gamemode.sandbox
             'E' -> Gamemode.editor
-            else -> Gamemode.bestFit(map.rules())
+            else -> Gamemode.survival
         }
     }
 
     private fun resetAndLoad(callBack: () -> Unit) {
         Core.app.post {
             if (!net.server()) netServer.openServer()
-            val players = playerGroup.all().toList()
-            players.forEach { it.dead = true }
+            val players = playerGroup.toList()
+            players.forEach { it.clearUnit() }
             callBack()
-            Call.onWorldDataBegin()
+            Call.worldDataBegin()
             players.forEach {
                 if (it.con == null) return@forEach
                 it.reset()
                 if (state.rules.pvp)
-                    it.team = netServer.assignTeam(it, players)
+                    it.team(netServer.assignTeam(it, players))
                 netServer.sendWorldData(it)
             }
             registerVar("state.startTime", "本局游戏开始时间", Date())

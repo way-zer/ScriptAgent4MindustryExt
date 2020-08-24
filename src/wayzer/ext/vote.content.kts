@@ -97,12 +97,12 @@ subVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图"
 }
 subVote("投降或结束该局游戏，进行结算", "", "gameOver", "投降", "结算") {
     if (state.rules.pvp) {
-        val team = player!!.team
+        val team = player!!.team()
         if (!state.teams.isActive(team) || state.teams.get(team)!!.cores.isEmpty)
             return@subVote reply("[red]队伍已输,无需投降".with())
         VoteHandler.apply {
-            requireNum = { playerGroup.count { it.team == team } }
-            canVote = { it.team == team }
+            requireNum = { playerGroup.count { it.team() == team } }
+            canVote = { it.team() == team }
             start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队|需要全队同意)".with("player" to player!!, "team" to team)) {
                 state.teams.get(team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
             }
@@ -112,10 +112,8 @@ subVote("投降或结束该局游戏，进行结算", "", "gameOver", "投降", 
     VoteHandler.apply {
         supportSingle = true
         start("投降".with()) {
-            world.tiles.forEach { arr ->
-                arr.filter { it.entity != null }.forEach {
-                    Time.run(Random.nextFloat() * 60 * 6, it.entity::kill)
-                }
+            world.tiles.filter { it.build != null }.forEach {
+                Time.run(Random.nextFloat() * 60 * 6, it.build::kill)
             }
         }
     }
