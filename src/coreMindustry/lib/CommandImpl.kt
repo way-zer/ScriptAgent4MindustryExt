@@ -10,7 +10,6 @@ import cf.wayzer.script_agent.listenTo
 import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.*
 import coreLibrary.lib.event.PermissionRequestEvent
-import coreMindustry.lib.compatibilities.isAdmin
 import coreMindustry.lib.util.sendMenuPhone
 import mindustry.entities.type.Player
 
@@ -21,6 +20,7 @@ object RootCommands : Commands() {
         val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).let { originHandler ->
             originHandler.commandList.associate {
                 it.text.toLowerCase() to CommandInfo(null, it.text, it.description, { usage = it.paramText }) {
+                    prefix = prefix.removePrefix("* ")
                     (if (originHandler is MyCommandHandler) originHandler.origin else originHandler).handleMessage(prefix + arg.joinToString(" "), player)
                 }
             }
