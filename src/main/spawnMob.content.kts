@@ -23,9 +23,9 @@ command("spawn", "召唤单位", {
     val num = arg.getOrNull(2)?.toIntOrNull()?:1
     (1..num).forEach { _ ->
         type.create(team).apply {
-            if(player!=null)set(player!!.x,player!!.y)
+            if (this@command.player != null) set(this@command.player!!.x, this@command.player!!.y)
             else team.data().core()?.let {
-                set(it.x,it.y)
+                set(it.x, it.y)
             }
             add()
         }
