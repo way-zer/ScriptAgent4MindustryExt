@@ -63,6 +63,7 @@ val enabledPlayer = mutableSetOf<String>()
 command("history", "开关查询模式", {
     type = CommandType.Client
     permission = "wayzer.ext.history"
+    aliases = listOf("历史")
 }) {
     if (player!!.uuid in enabledPlayer) {
         enabledPlayer.remove(player!!.uuid)

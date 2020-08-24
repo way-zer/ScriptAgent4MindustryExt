@@ -84,6 +84,7 @@ command("pixel", "绘制像素画", {
     usage = "[fileName]"
     type = CommandType.Client
     permission = id
+    aliases = listOf("像素画")
 }) {
     if (arg.isEmpty()) {
         val list = (pixelDir.listFiles() ?: emptyArray()).joinToString("\n") { it.name }

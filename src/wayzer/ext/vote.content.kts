@@ -3,6 +3,7 @@ package wayzer.ext
 import arc.files.Fi
 import arc.util.Time
 import cf.wayzer.placehold.PlaceHoldContext
+import coreMindustry.lib.util.sendMenuPhone
 import kotlinx.coroutines.launch
 import mindustry.entities.type.Player
 import mindustry.game.EventType
@@ -24,33 +25,63 @@ name = "投票"
 val voteTime by config.key(Duration.ofSeconds(60)!!, "投票时间")
 val enableWebMap by config.key(false, "是否允许网络地图", "来自mdt.wayzer.top")
 
-command("votekick", "(弃用)投票踢人", { this.usage = "<player...>";this.type = CommandType.Client }) { onVote(player!!, "kick", arg[0]) }
-command("vote", "投票指令", { this.usage = "<map/gameOver/kick/skipWave/rollback> [params...]";this.type = CommandType.Client }) { onVote(player!!, arg[0], arg.getOrNull(1)) }
+inner class VoteCommands : Commands() {
+    override fun invoke(context: CommandContext) {
+        if (VoteHandler.voting.get()) return context.reply("[red]投票进行中".with())
+        super.invoke(context)
+        if (VoteHandler.voting.get()) {//success
+            Call.sendMessage(context.prefix + context.arg.joinToString(" "), mindustry.core.NetClient.colorizeName(context.player!!.id, context.player!!.name), context.player!!)
+        }
+    }
 
-val allSub = mutableMapOf<String, (Player, String?) -> Unit>()
+    override fun onHelp(context: CommandContext, explicit: Boolean) {
+        if (!explicit) context.reply("[red]错误投票类型,请检查输入是否正确".with())
+        context.sendMenuPhone("可用投票类型", subCommands.values.toSet().filter {
+            it.permission.isBlank() || context.hasPermission(it.permission)
+        }, 1, 100) {
+            context.helpInfo(it, false)
+        }
+    }
+}
+
+val voteCommands = VoteCommands()
+command("vote", "发起投票", {
+    type = CommandType.Client
+    aliases = listOf("投票")
+}, voteCommands)
+command("votekick", "(弃用)投票踢人", { this.usage = "<player...>";this.type = CommandType.Client }) {
+    //Redirect
+    voteCommands.invoke(new { arg = listOf("kick", *arg.toTypedArray()) })
+}
+
+export(::voteCommands)
+
+fun subVote(desc: String, usage: String, vararg aliases: String, body: CommandContext.() -> Unit) {
+    voteCommands += CommandInfo(null, aliases.first(), desc, {
+        this.usage = usage
+        this.aliases = aliases.toList()
+    }, body)
+}
 
 class NetFi(private val url: URL, file: String) : Fi(file) {
     override fun read(): InputStream {
         return url.openStream()
     }
 }
-
-allSub["map"] = fun(p: Player, arg: String?) {
-    if (arg == null)
-        return p.sendMessage("[red]请输入地图序号".with())
+subVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图") {
+    if (arg.isEmpty())
+        return@subVote reply("[red]请输入地图序号".with())
     val maps = SharedData.mapManager.maps
-    val map = when{
-        Regex("[0-9a-z]{32}.*").matches(arg)->{
-            if(!enableWebMap)return p.sendMessage("[red]本服未开启网络地图的支持".with())
-            val (mapId,mode) = arg.split(' ').let {
-                it[0] to it.getOrElse(1){"Q"}
-            }
-            MapIO.createMap(NetFi(URL("https://mdt.wayzer.top/api/maps/$mapId/download.msav"),mode+"download.msav"),true)
+    val map = when {
+        Regex("[0-9a-z]{32}.*").matches(arg[0]) -> {
+            if (!enableWebMap) return@subVote reply("[red]本服未开启网络地图的支持".with())
+            val mode = arg.getOrElse(1) { "Q" }
+            MapIO.createMap(NetFi(URL("https://mdt.wayzer.top/api/maps/${arg[0]}/download.msav"), mode + "download.msav"), true)
         }
-        arg.toIntOrNull() in 1..maps.size->{
-            maps[arg.toInt()-1]
+        arg[0].toIntOrNull() in 1..maps.size -> {
+            maps[arg[0].toInt() - 1]
         }
-        else -> return p.sendMessage("[red]错误参数".with())
+        else -> return@subVote reply("[red]错误参数".with())
     }
     VoteHandler.apply {
         supportSingle = true
@@ -64,20 +95,19 @@ allSub["map"] = fun(p: Player, arg: String?) {
         }
     }
 }
-
-allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
+subVote("投降或结束该局游戏，进行结算", "", "gameOver", "投降", "结算") {
     if (state.rules.pvp) {
-        val team = p.team
+        val team = player!!.team
         if (!state.teams.isActive(team) || state.teams.get(team)!!.cores.isEmpty)
-            return p.sendMessage("[red]队伍已输,无需投降".with())
+            return@subVote reply("[red]队伍已输,无需投降".with())
         VoteHandler.apply {
-            requireNum = { playerGroup.count { it.team == p.team } }
+            requireNum = { playerGroup.count { it.team == team } }
             canVote = { it.team == team }
-            start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队|需要全队同意)".with("player" to p, "team" to team)) {
-                state.teams.get(p.team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
+            start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队|需要全队同意)".with("player" to player!!, "team" to team)) {
+                state.teams.get(team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
             }
         }
-        return
+        return@subVote
     }
     VoteHandler.apply {
         supportSingle = true
@@ -90,12 +120,11 @@ allSub["gameOver".toLowerCase()] = fun(p: Player, _: String?) {
         }
     }
 }
-
 val lastResetTime by PlaceHold.reference<Date>("state.startTime")
-allSub["skipWave".toLowerCase()] = fun(_: Player, arg: String?) {
+subVote("快速出波(默认10波,最高50)", "[波数]", "skipWave", "跳波") {
     VoteHandler.apply {
         supportSingle = true
-        val t = min(arg?.toIntOrNull() ?: 10,50)
+        val t = min(arg.firstOrNull()?.toIntOrNull() ?: 10, 50)
         start("跳波({t}波)".with("t" to t)) {
             launch {
                 val startTime = Time.millis()
@@ -114,12 +143,11 @@ allSub["skipWave".toLowerCase()] = fun(_: Player, arg: String?) {
         }
     }
 }
-
-allSub["rollback"] = fun(player: Player, arg: String?) {
-    if (arg?.toIntOrNull() == null)
-        return player.sendMessage("[red]请输入正确的存档编号".with())
-    val map = SharedData.mapManager.getSlot(arg.toInt())
-            ?: return player.sendMessage("[red]存档不存在或存档损坏".with())
+subVote("回滚到某个存档(使用/slots查看)", "<存档ID>", "rollback", "load", "回档") {
+    if (arg.firstOrNull()?.toIntOrNull() == null)
+        return@subVote reply("[red]请输入正确的存档编号".with())
+    val map = SharedData.mapManager.getSlot(arg[0].toInt())
+            ?: return@subVote reply("[red]存档不存在或存档损坏".with())
     VoteHandler.apply {
         supportSingle = true
         start("回档".with()) {
@@ -128,33 +156,20 @@ allSub["rollback"] = fun(player: Player, arg: String?) {
         }
     }
 }
-
-allSub["kick"] = fun(player: Player, arg: String?) {
-    val target = playerGroup.find { it.name == arg }
-            ?: return player.sendMessage("[red]请输入正确的玩家名，或者到列表点击投票".with())
-    if (SharedData.admin.isAdmin(player))
-        return SharedData.admin.ban(player, target.uuid)
+subVote("踢出某人15分钟", "<玩家名>", "kick", "踢出") {
+    val target = playerGroup.find { it.name == arg.firstOrNull() }
+            ?: return@subVote reply("[red]请输入正确的玩家名，或者到列表点击投票".with())
+    if (SharedData.admin.isAdmin(player!!))
+        return@subVote SharedData.admin.ban(player!!, target.uuid)
     VoteHandler.apply {
-        start("踢人({player.name}[yellow]踢出[red]{target.name}[yellow])".with("player" to player, "target" to target)) {
+        start("踢人({player.name}[yellow]踢出[red]{target.name}[yellow])".with("player" to player!!, "target" to target)) {
             if (SharedData.admin.isAdmin(target)) {
                 return@start broadcast("[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target))
             }
-            if (target.info.timesKicked < 3) {
-                target.info.lastKicked = Time.millis() + (15 * 60 * 1000) //Kick for 15 Minutes
-                target.con?.kick("[yellow]你被投票踢出15分钟")
-            } else
-                netServer.admins.banPlayer(target.uuid)
-            SharedData.admin.secureLog("Kick", "${target.name}(${target.uuid},${target.con.address}) is kicked By ${player.name}(${player.uuid})")
+            target.info.lastKicked = Time.millis() + (15 * 60 * 1000) //Kick for 15 Minutes
+            target.con?.kick("[yellow]你被投票踢出15分钟")
+            SharedData.admin.secureLog("Kick", "${target.name}(${target.uuid},${target.con.address}) is kicked By ${player!!.name}(${player!!.uuid})")
         }
-    }
-}
-
-fun onVote(player: Player, type: String, arg: String?) {
-    if (VoteHandler.voting.get()) return player.sendMessage("[red]投票进行中".with())
-    if (type.toLowerCase() !in allSub) return player.sendMessage("[red]请检查输入是否正确".with())
-    allSub[type.toLowerCase()]!!.invoke(player, arg)
-    if (VoteHandler.voting.get()) {//success
-        Call.sendMessage("/vote $type ${arg ?: ""}", mindustry.core.NetClient.colorizeName(player.id, player.name), player)
     }
 }
 

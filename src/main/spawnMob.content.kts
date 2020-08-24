@@ -9,6 +9,7 @@ name="扩展功能: 召唤单位"
 command("spawn", "召唤单位", {
     usage = "[类型ID=列出] [队伍ID,默认为sharded] [数量=1]"
     permission = id
+    aliases = listOf("召唤")
 }) {
     val list = content.getBy<UnitType>(ContentType.unit)
     val type = arg.getOrNull(0)?.toIntOrNull()?.let { list.items.getOrNull(it) } ?: return@command reply(

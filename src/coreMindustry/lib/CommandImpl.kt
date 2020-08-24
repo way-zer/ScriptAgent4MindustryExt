@@ -25,7 +25,9 @@ object RootCommands : Commands() {
                 }
             }
         }
-        return context.checkArg(0, origin + subCommands) { it.toLowerCase() }
+        return context.checkArg(0,
+                origin.filterValues { if (context.player != null) it.type.client() else it.type.server() } + subCommands
+        ) { it.toLowerCase() }
     }
 
     override fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
@@ -79,25 +81,16 @@ object RootCommands : Commands() {
     override fun onHelp(context: CommandContext, explicit: Boolean) {
         if (!explicit) return context.reply("[red]无效指令,请使用/help查询".with())
         assert(overwrite)
-        val page = context.arg.getOrNull(0)?.toIntOrNull()
-        val showDetail = context.arg.lastOrNull() == "-v"
-        val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).commandList.map {
-            CommandInfo(null, it.text, it.description, { usage = it.paramText }) {}
-        }
+        val showDetail = context.arg.firstOrNull() == "-v"
+        val page = context.arg.lastOrNull()?.toIntOrNull()
+
+        val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).commandList
+                .map { CommandInfo(null, it.text, it.description, { usage = it.paramText }) {} }
         context.sendMenuPhone("帮助", (subCommands.values.toSet() + origin).filter {
             (if (context.player != null) it.type.client() else it.type.server())
                     && (it.permission.isBlank() || context.hasPermission(it.permission))
         }, page, 10) {
-            val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
-            val detail = buildString {
-                if (!showDetail) return@buildString
-                @Suppress("UNNECESSARY_SAFE_CALL")//Runtime compile fail
-                if (it.script != null) append("FROM ${it.script?.id}")
-                if (it.permission.isNotBlank()) append("REQUIRE ${it.permission}")
-            }
-            "[light_yellow]{prefix}{name}[light_red]{aliases} [white]{usage}  [light_cyan]{desc} [cyan]{detail}\n".with(
-                    "prefix" to "* ", "name" to it.name, "aliases" to alias,
-                    "usage" to it.usage, "desc" to it.description, "detail" to detail)
+            context.helpInfo(it, showDetail)
         }
     }
 
@@ -137,9 +130,8 @@ class MyCommandHandler(private var prefix: String, val origin: CommandHandler) :
         if (message?.startsWith(prefix) != true) return CommandResponse(ResponseType.noCommand, null, null)
         RootCommands.invoke(CommandContext().apply {
             player = params as? Player
-            thisCommand = CommandInfo(null, "", "", {}, RootCommands)
             reply = { reply(it, MsgType.Message) }
-            prefix = this@MyCommandHandler.prefix
+            prefix = this@MyCommandHandler.prefix.let { if (it.isEmpty()) "* " else it }
             this.arg = message.removePrefix(prefix).split(' ')
         })
         return CommandResponse(ResponseType.valid, null, message)

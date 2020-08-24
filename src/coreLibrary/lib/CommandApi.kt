@@ -9,12 +9,13 @@ import cf.wayzer.script_agent.listenTo
 import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.event.PermissionRequestEvent
 import coreLibrary.lib.util.Provider
+import coreLibrary.lib.util.menu
 import java.util.logging.Logger
 
 
 class CommandContext : DSLBuilder() {
     // Should init in CommandInfo
-    lateinit var thisCommand: CommandInfo
+    var thisCommand: CommandInfo = CommandInfo.Empty
 
     // Should init if not empty
     var prefix: String = ""
@@ -52,7 +53,7 @@ class CommandContext : DSLBuilder() {
     }
 
     fun replyUsage() {
-        reply("[red]参数错误: {prefix} {usage}".with("prefix" to prefix, "usage" to thisCommand.usage))
+        reply("[red]参数错误: {prefix} {usage}".with("prefix" to prefix, "usage" to (thisCommand.usage)))
     }
 
     fun onComplete(index: Int,body:()->List<String>){
@@ -96,7 +97,7 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
     var supportCompletion = false
 
     init {
-        init()
+        this.init()
     }
 
     override fun invoke(context: CommandContext) {
@@ -113,10 +114,16 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
             e.printStackTrace()
         }
     }
-    object Return : Throwable("Direct return command"){
-        operator fun invoke():Nothing{
+
+    object Return : Throwable("Direct return command") {
+        operator fun invoke(): Nothing {
             throw this
         }
+    }
+
+    companion object {
+        //using as thisCommand default value
+        val Empty = CommandInfo(null, "", "") {}
     }
 }
 
@@ -133,24 +140,14 @@ open class Commands : (CommandContext) -> Unit {
         })?:onHelp(context,false)
     }
 
-    open fun onHelp(context: CommandContext,explicit:Boolean){
-        val showDetail = context.arg.lastOrNull() == "-v"
-        val list = subCommands.values.toSet().map {
-            val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
-            val detail = buildString {
-                if (!showDetail) return@buildString
-                if (it.script != null) append("FROM ${it.script.id}")
-                if (it.permission.isNotBlank()) append("REQUIRE ${it.permission}")
-            }
-            "[yellow]{prefix}{name}[blue]{aliases} [yellow]{usage} [light_purple]{desc} [purple]{detail}\n".with(
-                    "prefix" to context.prefix, "name" to it.name, "aliases" to alias,
-                    "usage" to it.usage, "desc" to it.description, "detail" to detail)
-        }
-        context.reply("""
-                [green]==== [light_yellow]{name}[green] ====
-                {list}
-            """.trimIndent().with("list" to list, "name" to context.prefix)
-        )
+    open fun onHelp(context: CommandContext,explicit:Boolean) {
+        val showDetail = context.arg.firstOrNull() == "-v"
+        val page = context.arg.lastOrNull()?.toIntOrNull() ?: 1
+        context.reply(menu(context.prefix, subCommands.values.toSet().filter {
+            it.permission.isBlank() || context.hasPermission(it.permission)
+        }, page, 10) {
+            context.helpInfo(it, showDetail)
+        })
     }
 
     protected open fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
@@ -158,6 +155,7 @@ open class Commands : (CommandContext) -> Unit {
             subCommands[name.toLowerCase()] = command
             return
         }
+        if (existed == command) return
         if (isAliases) {
             Logger.getLogger("[CommandApi]").warning("duplicate aliases $name($command) with $existed")
         } else {
@@ -170,7 +168,7 @@ open class Commands : (CommandContext) -> Unit {
         subCommands.remove(name)
     }
 
-    open fun addSub(command: CommandInfo) {
+    fun addSub(command: CommandInfo) {
         addSub(command.name, command, false)
         command.aliases.forEach {
             addSub(it, command, true)
@@ -192,10 +190,13 @@ open class Commands : (CommandContext) -> Unit {
         }
     }
     init {
-        subCommands["help"] = CommandInfo(null,"help","帮助指令",{usage="[page] [-v]"}){
+        addSub(CommandInfo(null, "help", "帮助指令", {
+            usage = "[-v] [page]"
+            aliases = listOf("帮助")
+        }) {
             prefix = prefix.removeSuffix("help ")
-            onHelp(this,true)
-        }
+            onHelp(this, true)
+        })
     }
 
     companion object {
@@ -212,6 +213,19 @@ open class Commands : (CommandContext) -> Unit {
             Commands::class.java.getContextModule()!!.listenTo<ScriptDisableEvent> {
                 rootProvider.get()?.removeAll(script)
             }
+        }
+
+        fun CommandContext.helpInfo(it: CommandInfo, showDetail: Boolean): PlaceHoldString {
+            val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
+            val detail = buildString {
+                if (!showDetail) return@buildString
+                @Suppress("UNNECESSARY_SAFE_CALL")//Runtime compile fail
+                if (it.script != null) append(" | ${it.script?.id}")
+                if (it.permission.isNotBlank()) append(" | ${it.permission}")
+            }
+            return "[light_yellow]{prefix}{name}[light_red]{aliases} [white]{usage}  [light_cyan]{desc}[cyan]{detail}\n".with(
+                    "prefix" to prefix, "name" to it.name, "aliases" to alias,
+                    "usage" to it.usage, "desc" to it.description, "detail" to detail)
         }
     }
 }
