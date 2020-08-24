@@ -24,7 +24,9 @@ object RootCommands : Commands() {
                 }
             }
         }
-        return context.checkArg(0, origin + subCommands) { it.toLowerCase() }
+        return context.checkArg(0,
+                origin.filterValues { if (context.player != null) it.type.client() else it.type.server() } + subCommands
+        ) { it.toLowerCase() }
     }
 
     override fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
