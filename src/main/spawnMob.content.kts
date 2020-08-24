@@ -15,9 +15,9 @@ command("spawn", "召唤单位", {
     val type = arg.getOrNull(0)?.toIntOrNull()?.let { list.items.getOrNull(it) } ?: return@command reply(
             "[red]请输入类型ID: ${list.mapIndexed { i, type -> "[yellow]$i[green]($type)" }.joinToString()}".with()
     )
-    val team = arg.getOrNull(1)?.let { s->
-        s.toIntOrNull()?.let { Team.all().getOrNull(it) }?:return@command reply(
-                "[red]请输入队伍ID: ${Team.base().mapIndexed { i, type -> "[yellow]$i[green]($type)" }.joinToString()}".with()
+    val team = arg.getOrNull(1)?.let { s ->
+        s.toIntOrNull()?.let { Team.all.getOrNull(it) } ?: return@command reply(
+                "[red]请输入队伍ID: ${Team.baseTeams.mapIndexed { i, type -> "[yellow]$i[green]($type)" }.joinToString()}".with()
         )
     }?: Team.sharded
     val num = arg.getOrNull(2)?.toIntOrNull()?:1

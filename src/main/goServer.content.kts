@@ -29,6 +29,6 @@ command("go", "传送到其他服务器", {
                 val list = infos.values.map { "[gold]{name}:[tan]{desc}\n".with("name" to it.name, "desc" to it.desc) }
                 return@command reply("[violet]可用服务器: \n{list}".with("list" to list))
             }
-    Call.onConnect(player!!.con, info.address, info.port)
+    Call.connect(player!!.con, info.address, info.port)
     broadcast("[cyan][-][salmon]{player.name}[salmon]传送到了{name}服务器(/go {name})".with("player" to player!!, "name" to info.name))
 }

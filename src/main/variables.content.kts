@@ -5,13 +5,14 @@ import arc.util.Time
 import cf.wayzer.placehold.DynamicVar
 import mindustry.entities.type.Player
 import mindustry.game.Team
+import mindustry.gen.Groups
 import mindustry.maps.Map
 
 name = "基础: 全局变量"
 
 //SystemVars
 registerVar("fps", "服务器fps", DynamicVar<Int> {
-    (60f / Time.delta()).toInt()
+    (60f / Time.delta).toInt()
 })
 registerVar("heapUse", "内存占用(MB)", DynamicVar<Long> {
     Core.app.javaHeap / 1024 / 1024  //MB
@@ -29,7 +30,7 @@ registerVarForType<Map>("地图的基础属性").apply {
     registerChild("height", DynamicVar { it, _ -> it.height })
     registerChild("fileName", DynamicVar { it, _ -> it.file?.nameWithoutExtension() })
 }
-registerVar("state.allUnit", "总单位数量", DynamicVar<Int> { unitGroup.size() })
+registerVar("state.allUnit", "总单位数量", DynamicVar<Int> { Groups.unit.size() })
 registerVar("state.allBan", "总禁封人数", DynamicVar<Int> { netServer.admins.banned.size })
 registerVar("state.playerSize", "当前玩家数量", DynamicVar<Int> { playerGroup.size() })
 registerVar("state.wave", "当前波数", DynamicVar<Int> { state.wave })
@@ -40,7 +41,7 @@ registerVarForType<Player>("玩家基础信息").apply {
     registerChild("name", DynamicVar { it, _ -> it.name })
     registerChild("uuid", DynamicVar { it, _ -> it.uuid })
     registerChild("ip", DynamicVar { it, _ -> it.con?.address })
-    registerChild("team", DynamicVar { it, _ -> it.team })
+    registerChild("team", DynamicVar { it, _ -> it.team() })
 }
 registerVar("team", "当前玩家的队伍", DynamicVar<Any> { getVar("player.team") })
 registerVarForType<Team>("队伍的基础信息").apply {

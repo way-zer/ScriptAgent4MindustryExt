@@ -2,8 +2,6 @@ package main
 
 import arc.graphics.Color
 import mindustry.content.Blocks
-import mindustry.content.Fx
-import mindustry.entities.Effects
 import mindustry.entities.type.Player
 import mindustry.gen.Call
 import mindustry.type.Item
@@ -52,9 +50,8 @@ fun draw(p: Player, file: File) {
     fun place(x: Int, y: Int, item: Item) {
         val tile = world.tile(x, y) ?: return
         if (tile.block() != Blocks.air) return
-        Call.onConstructFinish(tile, Blocks.sorter, p.id, 0, p.team, true)
-        Call.onTileConfig(p, tile, item.id.toInt())
-        Effects.effect(Fx.placeBlock, p)
+        Call.constructFinish(tile, Blocks.sorter, p.id, 0, p.team(), true)
+        Call.tileConfig(p, tile.build, item.id.toInt())
     }
     //debug
 //    content.items().forEachIndexed { index, item ->

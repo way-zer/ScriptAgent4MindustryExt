@@ -27,9 +27,9 @@ onEnable {
             playerGroup.forEach {
                 if (disabled.contains(it.uuid)) return@forEach
                 if (it.isMobile) {
-                    Call.onInfoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 210, 0, 0, 0)
+                    Call.infoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 210, 0, 0, 0)
                 } else
-                    Call.onInfoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 155, 0, 0, 0)
+                    Call.infoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 155, 0, 0, 0)
             }
             delay(Duration.ofSeconds(2).toMillis())
         }
