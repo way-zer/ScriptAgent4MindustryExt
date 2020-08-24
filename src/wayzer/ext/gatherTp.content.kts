@@ -27,6 +27,7 @@ command("gather", "发出集合请求", {
 
 listen<EventType.PlayerChatEvent> {
     if (it.message.equals("go", true) && lastPos != Vec2.ZERO) {
+        it.player.unit().set(lastPos.x, lastPos.y)
         it.player.set(lastPos.x, lastPos.y)
         Call.setPosition(it.player.con, lastPos.x, lastPos.y)
     }
