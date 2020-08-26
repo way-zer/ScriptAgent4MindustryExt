@@ -45,7 +45,7 @@ command("list", "列出当前玩家") {
     val list = playerGroup.all().map {
         "{player.name}[white]([red]{player.shortID}[white]) ".with("player" to it)
     }
-    player!!.sendMessage("{list}".with("list" to list))
+    reply("{list}".with("list" to list))
 }
 command("ban", "管理指令: 列出已ban用户，ban或解ban", {
     this.usage = "[3位id]"
@@ -58,18 +58,18 @@ command("ban", "管理指令: 列出已ban用户，ban或解ban", {
             "[white]{info.name}[white]([red]{info.shortID}[] [white]{info.lastBan:MM/dd}[]),"
                     .with("info" to it)
         }
-        player!!.sendMessage("Bans: {list}".with("list" to list))
+        reply("Bans: {list}".with("list" to list))
     } else {
         netServer.admins.banned.find { it.id.startsWith(uuid) }?.let {
             netServer.admins.unbanPlayerID(it.id)
             Admin.secureLog("UnBan", "${player!!.name} unBan ${it.lastName}(${it.id})")
-            return@command player!!.sendMessage("[green]解Ban成功 {info.name}".with("info" to it))
+            return@command reply("[green]解Ban成功 {info.name}".with("info" to it))
         }
         netServer.admins.getInfoOptional(uuid) ?: playerGroup.find { it.uuid.startsWith(uuid) }?.let {
             Admin.ban(player!!, it.uuid)
-            return@command player!!.sendMessage("[green]Ban成功 {player.name}".with("player" to it))
+            return@command reply("[green]Ban成功 {player.name}".with("player" to it))
         }
-        player!!.sendMessage("[red]找不到改用户,请确定三位字母id输入正确! /list 或 /ban 查看".with())
+        reply("[red]找不到改用户,请确定三位字母id输入正确! /list 或 /ban 查看".with())
     }
 }
 command("madmin", "列出或添加删除管理", {
