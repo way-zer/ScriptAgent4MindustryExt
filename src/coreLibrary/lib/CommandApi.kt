@@ -194,7 +194,7 @@ open class Commands : (CommandContext) -> Unit {
             usage = "[-v] [page]"
             aliases = listOf("帮助")
         }) {
-            prefix = prefix.removeSuffix("help ")
+            prefix = prefix.removeSuffix("help ").removeSuffix("帮助 ")
             onHelp(this, true)
         })
     }
