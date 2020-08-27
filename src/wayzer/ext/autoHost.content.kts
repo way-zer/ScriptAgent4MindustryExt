@@ -11,6 +11,10 @@ listen<EventType.ServerLoadEvent> {
     ContentHelper.logToConsole("Auto Host after ${autoHostTime.seconds} seconds")
     launch {
         delay(autoHostTime.toMillis())
+        if (net.server()) {//Already host
+            ContentHelper.logToConsole("[AutoHost]Already host, pass!")
+            return@launch
+        }
         SharedData.mapManager.loadMap()
     }
 }
