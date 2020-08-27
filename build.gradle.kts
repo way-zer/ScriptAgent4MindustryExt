@@ -21,7 +21,7 @@ gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPlugin
 })
 
 repositories {
-    maven("http://maven.aliyun.com/nexus/content/groups/public/")
+//    maven("http://maven.aliyun.com/nexus/content/groups/public/")
     mavenLocal()
     mavenCentral()
     jcenter()
