@@ -1,8 +1,13 @@
-[ ![Download](https://api.bintray.com/packages/way-zer/maven/cf.wayzer%3AScriptAgent4Mindustry/images/download.svg) ](https://bintray.com/way-zer/maven/cf.wayzer%3AScriptAgent4Mindustry/_latestVersion)
+![For Mindustry](https://img.shields.io/badge/For-Mindustry-orange)
+![Lang CN](https://img.shields.io/badge/Lang-ZH--CN-blue)
+![Support 5.0](https://img.shields.io/badge/Support_Version-104-success)
+![GitHub Releases](https://img.shields.io/github/downloads/way-zer/ScriptAgent4MindustryExt/latest/total)
+[![Build Status](https://travis-ci.com/way-zer/ScriptAgent4MindustryExt.svg?branch=1.1)](https://travis-ci.com/way-zer/ScriptAgent4MindustryExt)
 # ScriptAgent for Mindustry
 一个强大的Mindustry脚本插件,基于kts定义的DSL  
 A strong script plugin for Mindustry by kts(for english README see [me](./README_en.md))
-
+本仓库包含加载器及大量功能性脚本(可使用或做例子)
+This repository contains the loader and lots of strong scripts(use or for example)
 ## 特性
 - 强大,基于kotlin,可以访问所有Java接口(所有插件能干的，脚本都能干)
 - 快速,脚本加载完成后，转换为jvm字节码，和java插件没有性能差距
