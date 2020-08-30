@@ -83,7 +83,7 @@ fun draw(p: Player, file: File) {
 command("pixel", "绘制像素画", {
     usage = "[fileName]"
     type = CommandType.Client
-    permission = id
+    permission = id.replace("/", ".")
     aliases = listOf("像素画")
 }) {
     if (arg.isEmpty()) {
