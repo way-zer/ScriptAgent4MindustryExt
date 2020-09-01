@@ -40,12 +40,12 @@ class CommandContext : DSLBuilder(), Cloneable {
         }
     }
 
-//    //===util===
-@CommandInfo.CommandBuilder
-fun returnReply(msg: PlaceHoldString): Nothing {
-    reply(msg)
-    CommandInfo.Return()
-}
+    //===util===
+    @CommandInfo.CommandBuilder
+    fun returnReply(msg: PlaceHoldString): Nothing {
+        reply(msg)
+        CommandInfo.Return()
+    }
 }
 typealias CommandHandler = CommandContext.() -> Unit
 
@@ -61,13 +61,14 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
     var usage = ""
     var aliases = emptyList<String>()
     var permission = ""
-    var onComplete: CommandHandler = {}
+    private var onComplete: CommandHandler = {}
 
     @CommandBuilder
     fun onComplete(body: CommandHandler) {
         this.onComplete = body
     }
-    var body: CommandHandler = {}
+
+    private var body: CommandHandler = {}
 
     @CommandBuilder
     fun body(body: CommandHandler) {
