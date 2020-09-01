@@ -62,10 +62,11 @@ onEnable {
 }
 
 Commands.controlCommand.let {
-    it += CommandInfo(this, "mirai", "重定向输入到mirai", {
+    it += CommandInfo(this, "mirai", "重定向输入到mirai") {
         usage = "[args...]"
         permission = "mirai.input"
-    }) {
-        channel.sendBlocking(this.arg.joinToString(" "))
+        body {
+            channel.sendBlocking(arg.joinToString(" "))
+        }
     }
 }

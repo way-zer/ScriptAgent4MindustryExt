@@ -54,14 +54,14 @@ onEnable {
         addSub(CommandInfo(thisRef, "reload", "重载一个脚本或者模块") {
             usage = "<module[/script]>"
             permission = "scriptAgent.control.reload"
-            onComplete = {
+            onComplete {
                 onComplete(0) {
                     (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IInitScript }?.children
                             ?: ScriptManager.loadedInitScripts.values).map { it.id }
                 }
             }
-            body = body@{
-                if (arg.isEmpty()) return@body replyUsage()
+            body {
+                if (arg.isEmpty()) replyUsage()
                 GlobalScope.launch {
                     reply("[yellow]异步处理中".with())
                     val success: Boolean = when (val script = arg.getOrNull(0)?.let(ScriptManager::getScript)) {
@@ -80,7 +80,7 @@ onEnable {
             usage = "<filePath>"
             aliases = listOf("load")
             permission = "scriptAgent.control.load"
-            body = body@{
+            body {
                 val file = arg.getOrNull(0)?.let(Config.rootDir::resolve)
                         ?: return@body reply("[red]未找到对应文件".with())
                 GlobalScope.launch {

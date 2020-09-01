@@ -18,7 +18,7 @@ val Admin = Admin()
 
 inner class Admin : SharedData.IAdmin {
     override fun isAdmin(player: Player): Boolean {
-        return player.isAdmin||admins.contains(player.uuid)
+        return player.isAdmin || admins.contains(player.uuid)
     }
 
     override fun ban(player: Player, uuid: String) {
@@ -41,7 +41,7 @@ listen<EventType.PlayerBanEvent> {
     it.player?.con?.kick(Packets.KickReason.banned)
 }
 
-command("list", "列出当前玩家") {
+command("list", "列出当前玩家", {}) {
     val list = playerGroup.all().map {
         "{player.name}[white]([red]{player.shortID}[white]) ".with("player" to it)
     }

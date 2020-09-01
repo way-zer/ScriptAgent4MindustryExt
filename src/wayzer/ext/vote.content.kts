@@ -51,16 +51,18 @@ command("vote", "发起投票", {
 }, voteCommands)
 command("votekick", "(弃用)投票踢人", { this.usage = "<player...>";this.type = CommandType.Client }) {
     //Redirect
-    voteCommands.invoke(new { arg = listOf("kick", *arg.toTypedArray()) })
+    arg = listOf("kick", *arg.toTypedArray())
+    voteCommands.invoke(this)
 }
 
 export(::voteCommands)
 
 fun subVote(desc: String, usage: String, vararg aliases: String, body: CommandContext.() -> Unit) {
-    voteCommands += CommandInfo(null, aliases.first(), desc, {
+    voteCommands += CommandInfo(null, aliases.first(), desc) {
         this.usage = usage
         this.aliases = aliases.toList()
-    }, body)
+        body(body)
+    }
 }
 
 class NetFi(private val url: URL, file: String) : Fi(file) {
