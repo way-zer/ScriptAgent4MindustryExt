@@ -40,11 +40,11 @@ class CommandContext : DSLBuilder(), Cloneable {
         }
     }
 
-    //===util===
-    fun replyOnce(msg: PlaceHoldString): Nothing {
-        reply(msg)
-        CommandInfo.Return()
-    }
+//    //===util===
+//    fun replyOnce(msg: PlaceHoldString): Nothing { //May not good
+//        reply(msg)
+//        CommandInfo.Return()
+//    }
 }
 typealias CommandHandler = CommandContext.() -> Unit
 
@@ -60,9 +60,15 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
     var usage = ""
     var aliases = emptyList<String>()
     var permission = ""
-    var supportCompletion = false
-    var onComplete: CommandContext.() -> Unit = {}
-    lateinit var body: CommandContext.() -> Unit
+    var onComplete: CommandHandler = {}
+    fun onComplete(body: CommandHandler) {
+        this.onComplete = body
+    }
+
+    var body: CommandHandler = {}
+    fun body(body: CommandHandler) {
+        this.body = body
+    }
 
     init {
         this.init()
@@ -170,7 +176,7 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
         addSub(CommandInfo(null, "help", "帮助指令") {
             usage = "[-v] [page]"
             aliases = listOf("帮助")
-            body = {
+            body {
                 prefix = prefix.removeSuffix("help ").removeSuffix("帮助 ")
                 onHelp(this, true)
             }
@@ -186,7 +192,7 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
                 it += CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令") {
                     aliases = listOf("sa")
                     permission = "scriptAgent.admin"
-                    body = controlCommand
+                    body(controlCommand)
                 }
             }
             Commands::class.java.getContextModule()!!.listenTo<ScriptDisableEvent> {
