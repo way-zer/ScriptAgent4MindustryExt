@@ -18,8 +18,8 @@ onEnable {
                 }
             }
             body {
-                if (arg.isEmpty()) return@body replyUsage()
-                val script = ScriptManager.getScript(arg[0]) ?: return@body reply("[red]找不到脚本,请确定加载成功,并输入正确".with())
+                if (arg.isEmpty()) replyUsage()
+                val script = ScriptManager.getScript(arg[0]) ?: returnReply("[red]找不到脚本,请确定加载成功,并输入正确".with())
 
                 val configs = script.configs.map {
                     "[purple]{key} [blue]{desc}\n".with("key" to it.path, "desc" to (it.desc.firstOrNull() ?: ""))
@@ -28,7 +28,7 @@ onEnable {
                     "[purple]{key} [blue]{desc}\n".with("key" to it.key, "desc" to it.value)
                 }
 
-                reply("""
+                returnReply("""
                 [yellow]==== [light_yellow]{name}信息[yellow] ====
                 [cyan]配置项:
                 {configs}

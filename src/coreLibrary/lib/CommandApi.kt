@@ -41,10 +41,11 @@ class CommandContext : DSLBuilder(), Cloneable {
     }
 
 //    //===util===
-//    fun replyOnce(msg: PlaceHoldString): Nothing { //May not good
-//        reply(msg)
-//        CommandInfo.Return()
-//    }
+@CommandInfo.CommandBuilder
+fun returnReply(msg: PlaceHoldString): Nothing {
+    reply(msg)
+    CommandInfo.Return()
+}
 }
 typealias CommandHandler = CommandContext.() -> Unit
 
@@ -61,11 +62,14 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
     var aliases = emptyList<String>()
     var permission = ""
     var onComplete: CommandHandler = {}
+
+    @CommandBuilder
     fun onComplete(body: CommandHandler) {
         this.onComplete = body
     }
-
     var body: CommandHandler = {}
+
+    @CommandBuilder
     fun body(body: CommandHandler) {
         this.body = body
     }
@@ -80,9 +84,9 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
     }
 
     override fun invoke(context: CommandContext) {
-        if (permission.isNotBlank() && !context.hasPermission(permission))
-            return context.replyNoPermission()
         try {
+            if (permission.isNotBlank() && !context.hasPermission(permission))
+                context.replyNoPermission()
             body.invoke(context)
         } catch (e: Return) {
         } catch (e: Exception) {
@@ -91,19 +95,27 @@ class CommandInfo(val script: IContentScript?, val name: String, val description
         }
     }
 
-    fun CommandContext.replyNoPermission() {
+    @CommandBuilder
+    fun CommandContext.replyNoPermission(): Nothing {
         reply("[red]你没有执行该命令的权限".with())
+        Return()
     }
 
-    fun CommandContext.replyUsage() {
+    @CommandBuilder
+    fun CommandContext.replyUsage(): Nothing {
         reply("[red]参数错误: {prefix} {usage}".with("prefix" to prefix, "usage" to (usage)))
+        Return()
     }
 
     object Return : Throwable("Direct return command") {
+        @CommandBuilder
         operator fun invoke(): Nothing {
             throw this
         }
     }
+
+    @DslMarker
+    annotation class CommandBuilder
 }
 
 open class Commands : (CommandContext) -> Unit, TabCompleter {
