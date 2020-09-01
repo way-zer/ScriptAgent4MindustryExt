@@ -15,19 +15,20 @@ import mindustry.entities.type.Player
 
 object RootCommands : Commands() {
     var overwrite = true
-    override fun getSub(context: CommandContext): coreLibrary.lib.CommandHandler? {
-        if (!overwrite) return super.getSub(context)
+    override fun getSubCommands(context: CommandContext): Map<String, CommandInfo> {
+        if (!overwrite) return super.getSubCommands(context)
         val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).let { originHandler ->
             originHandler.commandList.associate {
-                it.text.toLowerCase() to CommandInfo(null, it.text, it.description, { usage = it.paramText }) {
-                    prefix = prefix.removePrefix("* ")
-                    (if (originHandler is MyCommandHandler) originHandler.origin else originHandler).handleMessage(prefix + arg.joinToString(" "), player)
+                it.text.toLowerCase() to CommandInfo(null, it.text, it.description) {
+                    usage = it.paramText
+                    body {
+                        prefix = prefix.removePrefix("* ")
+                        (if (originHandler is MyCommandHandler) originHandler.origin else originHandler).handleMessage(prefix + arg.joinToString(" "), player)
+                    }
                 }
             }
         }
-        return context.checkArg(0,
-                origin.filterValues { if (context.player != null) it.type.client() else it.type.server() } + subCommands
-        ) { it.toLowerCase() }
+        return origin.filterValues { if (context.player != null) it.type.client() else it.type.server() } + subCommands.filterValues { if (context.player != null) it.type.client() else it.type.server() }
     }
 
     override fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
@@ -45,7 +46,6 @@ object RootCommands : Commands() {
                 command(CommandContext().apply {
                     reply = { reply(it, MsgType.Message) }
                     this.player = player
-                    thisCommand = command
                     prefix = "/$name"
                     this.arg = arg.getOrNull(0)?.split(' ') ?: emptyList()
                 })
@@ -70,7 +70,7 @@ object RootCommands : Commands() {
 
     fun tabComplete(player: Player?, args: List<String>): List<String> {
         var result: List<String> = emptyList()
-        invoke(CommandContext().apply {
+        onComplete(CommandContext().apply {
             this.player = player
             replyTabComplete = { result = it;CommandInfo.Return() }
             arg = args
@@ -84,11 +84,8 @@ object RootCommands : Commands() {
         val showDetail = context.arg.firstOrNull() == "-v"
         val page = context.arg.lastOrNull()?.toIntOrNull()
 
-        val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).commandList
-                .map { CommandInfo(null, it.text, it.description, { usage = it.paramText }) {} }
-        context.sendMenuPhone("帮助", (subCommands.values.toSet() + origin).filter {
-            (if (context.player != null) it.type.client() else it.type.server())
-                    && (it.permission.isBlank() || context.hasPermission(it.permission))
+        context.sendMenuPhone("帮助", getSubCommands(context).values.filter {
+            (it.permission.isBlank() || context.hasPermission(it.permission))
         }, page, 10) {
             context.helpInfo(it, showDetail)
         }

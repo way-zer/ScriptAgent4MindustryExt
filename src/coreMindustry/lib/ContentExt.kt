@@ -55,8 +55,16 @@ fun IContentScript.command(
     allCommands.add(ContentExt.CommandInfo(name, description, param, type, runner))
 }
 
-fun IContentScript.command(name: String,description: String,init:CommandInfo.()->Unit={},handler: CommandHandler){
-    RootCommands+= CommandInfo(this,name,description,init, handler)
+@Deprecated("use new command api", ReplaceWith("command(name,description){init();body(handler)}"))
+fun IContentScript.command(name: String, description: String, init: CommandInfo.() -> Unit = {}, handler: CommandHandler) {
+    RootCommands += CommandInfo(this, name, description) {
+        init()
+        body(handler)
+    }
+}
+
+fun IContentScript.command(name: String, description: String, init: CommandInfo.() -> Unit) {
+    RootCommands += CommandInfo(this, name, description, init)
 }
 
 @Suppress("unused")
