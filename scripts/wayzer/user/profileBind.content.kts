@@ -7,7 +7,6 @@ import java.time.Duration
 import java.time.Instant
 import java.util.*
 import kotlin.random.Random
-import kotlin.reflect.KCallable
 
 export(::generate)// 生成绑定码
 export(::check)// 检测绑定码
@@ -78,8 +77,7 @@ command("bind", "绑定用户", {
             }
             save()
         }
-        @Suppress("UNCHECKED_CAST")
-        val finishAchievement = depends("wayzer/user/achievement").let { it as? IContentScript }?.import<KCallable<*>>("finishAchievement") as? (Player, String, Int, Boolean) -> Unit
+        val finishAchievement = depends("wayzer/user/achievement")?.import<(Player, String, Int, Boolean) -> Unit>("finishAchievement")
         finishAchievement?.invoke(player!!, "绑定账号", 100, false)
     }
     reply("[green]绑定账号[yellow]$qq[green]成功.".with())

@@ -1,14 +1,9 @@
 package mirai
 
-import kotlin.reflect.KCallable
-
 subscribeFriendMessages {
     case("绑定账号"){
         val qq = sender.id
-        val generate = depends("wayzer/user/profileBind")?.let {
-            @Suppress("UNCHECKED_CAST")
-            (it as IContentScript).import<KCallable<*>>("generate") as? (Long)->Int
-        }
+        val generate = depends("wayzer/user/profileBind")?.import<(Long) -> Int>("generate")
         if(generate==null){
             reply("绑定服务暂不可用，请联系管理")
             return@case
@@ -20,10 +15,7 @@ subscribeFriendMessages {
 subscribeTempMessages{
     case("绑定账号"){
         val qq = sender.id
-        val generate = depends("wayzer/user/profileBind")?.let {
-            @Suppress("UNCHECKED_CAST")
-            (it as IContentScript).import<KCallable<*>>("generate") as? (Long)->Int
-        }
+        val generate = depends("wayzer/user/profileBind")?.import<(Long) -> Int>("generate")
         if(generate==null){
             reply("绑定服务暂不可用，请联系管理")
             return@case

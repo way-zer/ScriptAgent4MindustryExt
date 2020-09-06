@@ -1,8 +1,6 @@
 package wayzer.user
 
 import cf.wayzer.placehold.DynamicVar
-import cf.wayzer.script_agent.IContentScript
-import cf.wayzer.script_agent.depends
 import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.game.Gamemode
@@ -15,7 +13,6 @@ import java.time.Instant
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.min
-import kotlin.reflect.KCallable
 
 data class StatisticsData(
         var playedTime: Int = 0,
@@ -117,8 +114,7 @@ listen<EventType.GameOverEvent> { event ->
 
     if (sortedData.isNotEmpty() && depends("wayzer/user/expReward") != null && gameTime > Duration.ofMinutes(15)) {
         @Suppress("UNCHECKED_CAST")
-        val updateExp = depends("wayzer/user/level").let { it as? IContentScript }
-                ?.import<KCallable<*>>("updateExp") as? Player.(Int) -> Boolean
+        val updateExp = depends("wayzer/user/level")?.import<Player.(Int) -> Boolean>("updateExp")
         if (updateExp != null) {
             @OptIn(CacheEntity.NeedTransaction::class)
             transaction {

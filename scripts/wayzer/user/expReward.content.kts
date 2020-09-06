@@ -5,7 +5,6 @@ import mindustry.game.EventType
 import java.time.Duration
 import java.time.Instant
 import java.util.*
-import kotlin.reflect.KCallable
 
 onEnable {
     launch {
@@ -32,8 +31,7 @@ listen<EventType.ResetEvent> {
 }
 listen<EventType.PlayerChatEvent> {
     if (!endTime || !it.message.equals("gg", true)) return@listen
-    @Suppress("UNCHECKED_CAST")
-    val updateExp = depends("wayzer/user/level").let { it as? IContentScript }?.import<KCallable<*>>("updateExp") as? Player.(Int) -> Boolean
+    val updateExp = depends("wayzer/user/level")?.import<Player.(Int) -> Boolean>("updateExp")
     if (updateExp != null) {
         val id = PlayerData[it.player.uuid].profile?.id?.value
         if (id == null || finishProfile.contains(id)) return@listen

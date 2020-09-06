@@ -2,13 +2,12 @@ package wayzer.user
 
 import mindustry.entities.type.Player
 import org.jetbrains.exposed.sql.transactions.transaction
-import kotlin.reflect.KCallable
 
 fun finishAchievement(p: Player, name: String, exp: Int, broadcast: Boolean = false) {
     PlayerData[p.uuid].apply {
         if (profile == null) return
         @Suppress("UNCHECKED_CAST")
-        val updateExp = depends("wayzer/user/level").let { it as? IContentScript }?.import<KCallable<*>>("updateExp") as? Player.(Int) -> Boolean
+        val updateExp = depends("wayzer/user/level")?.import<Player.(Int) -> Boolean>("updateExp")
         if (updateExp?.invoke(p, exp) == true) {
             @Suppress("EXPERIMENTAL_API_USAGE")
             val result = transaction {
