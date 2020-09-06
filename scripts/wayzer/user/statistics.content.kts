@@ -42,7 +42,7 @@ val Block.buildScore: Float
 val Player.isIdle get() = velocity().isZero(1e-9F) && !isBuilding() &&!isShooting()
 
 val statisticsData = mutableMapOf<String, StatisticsData>()
-val Player.data get() = statisticsData.getOrPut(uuid) { StatisticsData() }
+val Player.data get() = statisticsData.getOrPut(uuid ?: "UNKNOW") { StatisticsData() }
 registerVarForType<StatisticsData>().apply {
     registerChild("playedTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.playedTime.toLong()) })
     registerChild("idleTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.idleTime.toLong()) })

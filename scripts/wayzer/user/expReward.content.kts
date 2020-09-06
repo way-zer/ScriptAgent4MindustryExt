@@ -10,7 +10,7 @@ onEnable {
     launch {
         while (true) {
             delay(5000)
-            playerGroup.mapNotNull { PlayerData[it.uuid].profile }.toSet().forEach {
+            playerGroup.mapNotNull { PlayerData.getOrNull(it.uuid)?.profile }.toSet().forEach {
                 it.totalTime += 5
             }
         }
