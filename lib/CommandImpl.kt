@@ -70,11 +70,15 @@ object RootCommands : Commands() {
 
     fun tabComplete(player: Player?, args: List<String>): List<String> {
         var result: List<String> = emptyList()
-        onComplete(CommandContext().apply {
-            this.player = player
-            replyTabComplete = { result = it;CommandInfo.Return() }
-            arg = args
-        })
+        try {
+            onComplete(CommandContext().apply {
+                this.player = player
+                reply = {}
+                replyTabComplete = { result = it;CommandInfo.Return() }
+                arg = args
+            })
+        } catch (e: CommandInfo.Return) {
+        }
         return result
     }
 
@@ -123,8 +127,23 @@ class MyCommandHandler(private var prefix: String, val origin: CommandHandler) :
         return origin.commandList
     }
 
-    override fun handleMessage(message: String?, params: Any?): CommandResponse {
-        if (message?.startsWith(prefix) != true) return CommandResponse(ResponseType.noCommand, null, null)
+    override fun handleMessage(raw: String?, params: Any?): CommandResponse {
+        fun myTrim(text: String) = buildString {
+            var start = 0
+            var end = text.length - 1
+            while (start < text.length && text[start] == ' ') start++
+            while (end >= 0 && text[end] == ' ') end--
+            var lastBlank = false
+            for (i in start..end) {
+                val nowBlank = text[i] == ' '
+                if (!lastBlank || !nowBlank)
+                    append(text[i])
+                lastBlank = nowBlank
+            }
+        }
+
+        val message = raw?.let(::myTrim)
+        if (message?.startsWith(prefix) != true || message.isBlank()) return CommandResponse(ResponseType.noCommand, null, null)
         RootCommands.invoke(CommandContext().apply {
             player = params as? Player
             reply = { reply(it, MsgType.Message) }

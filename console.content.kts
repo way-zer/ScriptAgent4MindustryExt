@@ -9,11 +9,8 @@ import kotlin.concurrent.thread
 
 object MyCompleter : Completer {
     override fun complete(reader: LineReader, line: ParsedLine, candidates: MutableList<Candidate>) {
-        try {
-            candidates += RootCommands.tabComplete(null, reader.buffer.toString().split(' ')).map {
-                Candidate(it)
-            }
-        } catch (e: CommandInfo.Return) {
+        candidates += RootCommands.tabComplete(null, reader.buffer.toString().split(' ')).map {
+            Candidate(it)
         }
     }
 }
@@ -36,6 +33,7 @@ onEnable {
                 println(e)
                 continue
             }
+            if (line.isBlank()) continue
             try {
                 RootCommands.invoke(CommandContext().apply {
                     hasPermission = { true }
