@@ -8,6 +8,7 @@ import mindustry.game.Team
 import mindustry.net.Administration
 import mindustry.world.Block
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.Serializable
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -20,7 +21,7 @@ data class StatisticsData(
         var buildScore: Float = 0f,
         var breakBlock: Int = 0,
         var pvpTeam: Team = Team.sharded
-) {
+) : Serializable {
     val win get() = state.rules.pvp && pvpTeam == teamWin
 
     //加权比分
@@ -41,7 +42,9 @@ val Block.buildScore: Float
     }
 val Player.isIdle get() = velocity().isZero(1e-9F) && !isBuilding() &&!isShooting()
 
+@Savable
 val statisticsData = mutableMapOf<String, StatisticsData>()
+customLoad(::statisticsData) { statisticsData += it }
 val Player.data get() = statisticsData.getOrPut(uuid ?: "UNKNOW") { StatisticsData() }
 registerVarForType<StatisticsData>().apply {
     registerChild("playedTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.playedTime.toLong()) })
