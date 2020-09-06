@@ -1,9 +1,8 @@
 @file:DependsModule("coreLibrary")
-@file:MavenDepends("net.mamoe:mirai-core:1.1.3", single = false)
-@file:MavenDepends("net.mamoe:mirai-core-qqandroid:1.1.3", single = false)
+@file:MavenDepends("net.mamoe:mirai-core:1.2.2", single = false)
+@file:MavenDepends("net.mamoe:mirai-core-qqandroid:1.2.2", single = false)
 
 import arc.util.Log
-import cf.wayzer.script_agent.Config
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
 import net.mamoe.mirai.Bot
