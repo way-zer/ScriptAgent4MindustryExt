@@ -1,9 +1,5 @@
 package coreLibrary
 
-import cf.wayzer.script_agent.Config
-import cf.wayzer.script_agent.IContentScript
-import cf.wayzer.script_agent.IInitScript
-import cf.wayzer.script_agent.ScriptManager
 import kotlinx.coroutines.launch
 
 val thisRef = this

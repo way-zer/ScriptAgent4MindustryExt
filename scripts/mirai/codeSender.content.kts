@@ -1,7 +1,5 @@
 package mirai
 
-import cf.wayzer.script_agent.IContentScript
-import cf.wayzer.script_agent.depends
 import kotlin.reflect.KCallable
 
 subscribeFriendMessages {

@@ -1,8 +1,6 @@
 package wayzer.user
 
 import cf.wayzer.placehold.PlaceHoldApi.with
-import cf.wayzer.script_agent.IContentScript
-import cf.wayzer.script_agent.depends
 import mindustry.entities.type.Player
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Duration

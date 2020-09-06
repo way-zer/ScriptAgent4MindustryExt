@@ -1,6 +1,7 @@
 package wayzer.user
 
 import mindustry.content.Blocks
+import mindustry.content.Mechs
 import mindustry.content.UnitTypes
 import mindustry.entities.type.Player
 import mindustry.game.EventType

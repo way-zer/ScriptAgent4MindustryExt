@@ -5,7 +5,6 @@
 
 package coreLibrary
 
-import cf.wayzer.script_agent.Config
 import org.jetbrains.exposed.sql.Database
 import java.sql.Connection
 import java.sql.DriverManager

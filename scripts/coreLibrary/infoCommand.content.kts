@@ -1,7 +1,5 @@
 package coreLibrary
 
-import cf.wayzer.script_agent.IInitScript
-import cf.wayzer.script_agent.ScriptManager
 import coreLibrary.lib.ConfigBuilder.Companion.configs
 import coreLibrary.lib.PlaceHold.registeredVars
 

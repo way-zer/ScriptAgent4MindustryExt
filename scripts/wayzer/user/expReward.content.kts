@@ -1,7 +1,5 @@
 package wayzer.user
 
-import cf.wayzer.script_agent.IContentScript
-import cf.wayzer.script_agent.depends
 import mindustry.entities.type.Player
 import mindustry.game.EventType
 import java.time.Duration
