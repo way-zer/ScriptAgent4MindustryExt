@@ -5,7 +5,6 @@ import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.game.Team
-import mindustry.net.Administration
 import mindustry.world.Block
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.Serializable
@@ -116,26 +115,20 @@ listen<EventType.GameOverEvent> { event ->
     """.trimIndent().with("gameTime" to gameTime, "totalTime" to Duration.ofSeconds(totalTime.toLong()), "list" to list))
 
     if (sortedData.isNotEmpty() && depends("wayzer/user/expReward") != null && gameTime > Duration.ofMinutes(15)) {
-        @Suppress("UNCHECKED_CAST")
-        val updateExp = depends("wayzer/user/level")?.import<Player.(Int) -> Boolean>("updateExp")
+        val updateExp = depends("wayzer/user/level")?.import<PlayerProfile.(Int) -> List<Player>>("updateExp")
         if (updateExp != null) {
             @OptIn(CacheEntity.NeedTransaction::class)
             transaction {
-                val map = mutableMapOf<PlayerProfile, Pair<Administration.PlayerInfo, StatisticsData>>()
+                val map = mutableMapOf<PlayerProfile, StatisticsData>()
                 sortedData.groupBy { PlayerData.find(it.first)?.profile }.forEach { (key, value) ->
                     if (key == null || value.isEmpty()) return@forEach
-                    map[key] = value.maxBy { it.second.score }!!
+                    map[key] = value.maxBy { it.second.score }!!.second
                 }
-                map.forEach { (profile, pair) ->
-                    val (player, data) = pair
-                    val onlinePlayer = playerGroup.find { it.uuid == player.id }
-                    if (onlinePlayer != null) {
-                        if (onlinePlayer.updateExp(data.exp))
-                            onlinePlayer.sendMessage("[green]经验 +${data.exp}")
-                    } else {
-                        profile.totalExp += data.exp
-                        profile.save()
+                map.forEach { (profile, data) ->
+                    profile.updateExp(data.exp).forEach {
+                        it.sendMessage("[green]经验 +${data.exp}")
                     }
+                    profile.save()
                 }
             }
         }

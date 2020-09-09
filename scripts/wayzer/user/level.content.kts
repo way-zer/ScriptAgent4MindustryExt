@@ -27,25 +27,30 @@ registerVarForType<PlayerProfile>().apply {
     registerChild("nextLevel", "下一级的要求经验值", DynamicVar { obj, _ -> expByLevel(level(obj.totalExp) + 1) })
 }
 
-fun updateExp(p: Player, dot: Int): Boolean {
-    val profile = PlayerData[p.uuid].profile?.apply {
-        if (dot != 0) {
-            totalExp += dot
-            if (level(totalExp) != level(totalExp - dot)) {
-                p.sendMessage("[gold]恭喜你成功升级到{level}级".with("level" to level(totalExp)))
+/**
+ * @return 所有在线用户
+ */
+fun updateExp(p: PlayerProfile, dot: Int): List<Player> {
+    val players = playerGroup.filter { PlayerData.getOrNull(it.uuid ?: "")?.profile == p }
+    p.apply {
+        totalExp += dot
+        if (level(totalExp) != level(totalExp - dot)) {
+            players.forEach {
+                it.sendMessage("[gold]恭喜你成功升级到{level}级".with("level" to level(totalExp)))
+                it.name = it.name.replace(Regex("<.>"), "<${getIcon(level(totalExp))}>")
             }
         }
     }
-    p.name = p.name.replace(Regex("<.>"), "<${getIcon(level(profile?.totalExp ?: 0))}>")
-    return profile != null && dot != 0
+    return players
 }
 export(::updateExp)
 
 listen<EventType.PlayerConnect> {
     Core.app.post {
         it.player.apply {
-            name = "[white]<.>[#$color]$name"
-            updateExp(this, 0)
+            PlayerData.getOrNull(uuid)?.profile?.let { profile ->
+                name = "[white]<${getIcon(level(profile.totalExp))}>[#$color]$name"
+            }
         }
     }
 }

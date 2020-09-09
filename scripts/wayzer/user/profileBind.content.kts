@@ -1,7 +1,6 @@
 package wayzer.user
 
 import cf.wayzer.placehold.PlaceHoldApi.with
-import mindustry.entities.type.Player
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Duration
 import java.time.Instant
@@ -77,8 +76,8 @@ command("bind", "绑定用户", {
             }
             save()
         }
-        val finishAchievement = depends("wayzer/user/achievement")?.import<(Player, String, Int, Boolean) -> Unit>("finishAchievement")
-        finishAchievement?.invoke(player!!, "绑定账号", 100, false)
+        val finishAchievement = depends("wayzer/user/achievement")?.import<(PlayerProfile, String, Int, Boolean) -> Unit>("finishAchievement")
+        finishAchievement?.invoke(profile!!, "绑定账号", 100, false)
     }
     reply("[green]绑定账号[yellow]$qq[green]成功.".with())
 }

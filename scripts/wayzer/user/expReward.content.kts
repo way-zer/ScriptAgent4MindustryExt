@@ -31,13 +31,13 @@ listen<EventType.ResetEvent> {
 }
 listen<EventType.PlayerChatEvent> {
     if (!endTime || !it.message.equals("gg", true)) return@listen
-    val updateExp = depends("wayzer/user/level")?.import<Player.(Int) -> Boolean>("updateExp")
+    val updateExp = depends("wayzer/user/level")?.import<PlayerProfile.(Int) -> List<Player>>("updateExp")
     if (updateExp != null) {
-        val id = PlayerData[it.player.uuid].profile?.id?.value
-        if (id == null || finishProfile.contains(id)) return@listen
-        if (it.player.updateExp(3)) {
-            it.player.sendMessage("[green]经验 +3")
-            finishProfile.add(id)
+        val profile = PlayerData[it.player.uuid].profile
+        if (profile == null || finishProfile.contains(profile.id.value)) return@listen
+        finishProfile.add(profile.id.value)
+        profile.updateExp(3).forEach { p ->
+            p.sendMessage("[green]经验 +3")
         }
     }
 }
