@@ -37,7 +37,7 @@ fun updateExp(p: PlayerProfile, dot: Int): List<Player> {
         if (level(totalExp) != level(totalExp - dot)) {
             players.forEach {
                 it.sendMessage("[gold]恭喜你成功升级到{level}级".with("level" to level(totalExp)))
-                it.name = it.name.replace(Regex("<.>"), "<${getIcon(level(totalExp))}>")
+                it.name = it.name.replaceFirst(Regex("<.>"), "<${getIcon(level(totalExp))}>")
             }
         }
     }
