@@ -88,7 +88,7 @@ object RootCommands : Commands() {
         val showDetail = context.arg.firstOrNull() == "-v"
         val page = context.arg.lastOrNull()?.toIntOrNull()
 
-        context.sendMenuPhone("帮助", getSubCommands(context).values.filter {
+        context.sendMenuPhone("帮助", getSubCommands(context).values.toSet().filter {
             (it.permission.isBlank() || context.hasPermission(it.permission))
         }, page, 10) {
             context.helpInfo(it, showDetail)
