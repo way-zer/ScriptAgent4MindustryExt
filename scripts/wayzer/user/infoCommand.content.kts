@@ -27,7 +27,7 @@ command("info", "获取当前个人信息", {
     val profileInfo = profile?.let {
         profileTemplate.with("profile" to it)
     } ?: """
-        [yellow]当前未绑定账号,请私聊群机器人"绑定账号"进行绑定
+        [yellow]当前未绑定账号,请私聊群机器人"绑定"进行绑定
         [yellow]绑定成功后,才能获取经验和使用更多功能
     """.trimIndent()
     reply(template.with("player" to player!!, "profileInfo" to profileInfo), MsgType.InfoMessage)
