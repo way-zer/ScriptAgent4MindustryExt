@@ -158,7 +158,7 @@ subVote("回滚到某个存档(使用/slots查看)", "<存档ID>", "rollback", "
     }
 }
 subVote("踢出某人15分钟", "<玩家名>", "kick", "踢出") {
-    val target = playerGroup.find { it.name == arg.firstOrNull() }
+    val target = playerGroup.find { it.name == arg.joinToString(" ") }
             ?: return@subVote reply("[red]请输入正确的玩家名，或者到列表点击投票".with())
     if (SharedData.admin.isAdmin(player!!))
         return@subVote SharedData.admin.ban(player!!, target.uuid)
