@@ -48,9 +48,7 @@ export(::updateExp)
 listen<EventType.PlayerConnect> {
     Core.app.post {
         it.player.apply {
-            PlayerData.getOrNull(uuid)?.profile?.let { profile ->
-                name = "[white]<${getIcon(level(profile.totalExp))}>[#$color]$name"
-            }
+            name = "[white]<${getIcon(level(PlayerData.getOrNull(uuid)?.profile?.totalExp ?: 0))}>[#$color]$name"
         }
     }
 }
