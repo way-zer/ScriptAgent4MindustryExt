@@ -1,15 +1,14 @@
 package wayzer.user
 
 import mindustry.content.Blocks
-import mindustry.content.Mechs
 import mindustry.content.UnitTypes
 import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.game.Gamemode
 import java.time.Duration
 
-val used by PlaceHold.reference<MutableMap<String, Long>>("_skills_used_set")
-registerVar("_skills_used_set", "内部使用:技能系统已使用集合", runCatching { used }.getOrElse { mutableMapOf() })
+@Savable
+var used = mutableMapOf<String, Long>()
 
 listen<EventType.ResetEvent> {
     used.clear()
@@ -39,7 +38,7 @@ fun skill(name: String, desc: String, allowPvp: Boolean, coolDown: Int?, vararg 
                 }
                 used[key] = System.currentTimeMillis() + coolDown
             }
-            body(body)
+            body()
         }
     }
 }
