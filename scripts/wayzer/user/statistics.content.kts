@@ -19,7 +19,7 @@ data class StatisticsData(
         var idleTime: Int = 0,
         var buildScore: Float = 0f,
         var breakBlock: Int = 0,
-        var pvpTeam: Team = Team.sharded
+        @Transient var pvpTeam: Team = Team.sharded
 ) : Serializable {
     val win get() = state.rules.pvp && pvpTeam == teamWin
 
