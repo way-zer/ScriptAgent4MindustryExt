@@ -47,7 +47,7 @@ tasks {
         this.delete += fileTree("scripts/cache")
     }
     create<Zip>("scriptsZip") {
-        group = "plugin"
+        group = "application"
         from(sourceSets.main.get().allSource) {
             exclude("*.ktc")
             exclude("cache.jar")
@@ -58,16 +58,14 @@ tasks {
     create<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildApplication") {
         dependsOn("scriptsZip")
         group = "application"
-        from(sourceSets.getByName("main").output)
-        archiveClassifier.set("all")
-        configurations = listOf(project.configurations.getByName("compileClasspath"))
+        from(sourceSets.getByName("plugin").output)
+        archiveClassifier.set("")
+        archiveVersion.set(rootProject.version.toString().substringBeforeLast('.'))
+        configurations = listOf(project.configurations.getByName("pluginCompileClasspath"))
         dependencies {
-            include(dependency("cf.wayzer:LibraryManager"))
             include(dependency("cf.wayzer:ScriptAgent"))
+            include(dependency("cf.wayzer:LibraryManager"))
         }
-//        into("lib"){
-//            from(configurations.first().files{ it.name=="ScriptAgent"}.also(::println))
-//        }
         manifest {
             attributes("Main-Class" to "cf.wayzer.scriptAgent.LoaderKt")
         }
