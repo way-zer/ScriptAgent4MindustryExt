@@ -6,7 +6,3 @@ name = "core module for standalone"
 addDefaultImport("coreStandalone.lib.*")
 generateHelper()
 Commands.rootProvider.set(RootCommands)
-
-onBeforeContentDisable {
-    RootCommands.removeAll(it)
-}

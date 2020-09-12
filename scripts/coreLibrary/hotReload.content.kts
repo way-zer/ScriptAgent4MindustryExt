@@ -1,9 +1,6 @@
 package coreLibrary
 
 import cf.wayzer.placehold.PlaceHoldApi.with
-import cf.wayzer.script_agent.Config
-import cf.wayzer.script_agent.IInitScript
-import cf.wayzer.script_agent.ScriptManager
 import java.nio.file.*
 
 var watcher: WatchService? = null
@@ -54,18 +51,19 @@ fun enableWatch() {
 }
 
 onEnable {
-    Commands.controlCommand.addSub(CommandInfo(this, "hotReload", "开关脚本自动热重载", {
+    Commands.controlCommand += CommandInfo(this, "hotReload", "开关脚本自动热重载") {
         permission = "scriptAgent.control.hotReload"
-    }) {
-        if (watcher == null) {
-            enableWatch()
-            reply("[green]脚本自动热重载监测启动".with())
-        } else {
-            watcher?.close()
-            watcher = null
-            reply("[yellow]脚本自动热重载监测关闭".with())
+        body {
+            if (watcher == null) {
+                enableWatch()
+                reply("[green]脚本自动热重载监测启动".with())
+            } else {
+                watcher?.close()
+                watcher = null
+                reply("[yellow]脚本自动热重载监测关闭".with())
+            }
         }
-    })
+    }
     onDisable { Commands.controlCommand.removeAll(this) }
 }
 
