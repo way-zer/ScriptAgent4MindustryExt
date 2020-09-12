@@ -1,5 +1,5 @@
-import cf.wayzer.scriptAgent.Config
-import cf.wayzer.scriptAgent.ScriptManager
+import cf.wayzer.script_agent.Config
+import cf.wayzer.script_agent.ScriptManager
 import java.io.File
 
 fun main() {

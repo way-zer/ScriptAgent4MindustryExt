@@ -2,12 +2,10 @@ plugins {
     kotlin("jvm") version "1.4.0"
     id("me.qoomon.git-versioning") version "2.1.1"
     id("com.github.johnrengelman.shadow") version "5.2.0"
-    application
 }
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.3.1"
 
 gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
     tag(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.VersionDescription> {
@@ -15,34 +13,22 @@ gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPlugin
         versionFormat = "\${tagVersion}"
     })
     commit(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.CommitVersionDescription> {
-        versionFormat = "\${version}-\${commit.short}\${dirty}"
+        versionFormat = "\${commit.short}-SNAPSHOT"
     })
 })
 
-repositories {
-    //maven("http://maven.aliyun.com/nexus/content/groups/public/")
-    mavenLocal()
-    mavenCentral()
-    jcenter()
-    maven(url = "https://www.jitpack.io")
-    maven("https://dl.bintray.com/way-zer/maven")
-}
-val scriptsCompile = configurations.create("scriptsCompile")
 sourceSets {
-    create("scripts") {
-//        compileClasspath+=configurations.getByName("compileOnly")
+    main {
         java.srcDir("scripts")
+    }
+    create("plugin") {
+        java.srcDir("plugin/src")
+        resources.srcDir("plugin/res")
     }
 }
 
-dependencies {
-    api("cf.wayzer:ScriptAgent:$libraryVersion")
-    api(kotlin("script-runtime"))
-    api(kotlin("stdlib-jdk8"))
-}
-
 apply {
-    from("scripts.gradle.kts")
+    from("dependencies.gradle.kts")
 }
 
 tasks {
@@ -58,7 +44,16 @@ tasks {
     }
     named<Delete>("clean") {
         this.delete += fileTree("scripts").filter { it.name.endsWith(".cache.jar") }
-        this.delete += fileTree("scripts").filter { it.name.endsWith(".ktc") }
+        this.delete += fileTree("scripts/cache")
+    }
+    create<Zip>("scriptsZip") {
+        group = "plugin"
+        from(sourceSets.main.get().allSource) {
+            exclude("*.ktc")
+            exclude("cache.jar")
+            exclude(".metadata")
+        }
+        archiveClassifier.set("scripts")
     }
     create<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildApplication") {
         dependsOn("scriptsZip")
@@ -77,18 +72,4 @@ tasks {
             attributes("Main-Class" to "cf.wayzer.scriptAgent.LoaderKt")
         }
     }
-}
-val scriptsZip by tasks.registering(Zip::class) {
-    group = "application"
-    from(sourceSets.getByName("scripts").allSource) {
-        exclude("*.ktc")
-        exclude("cache.jar")
-        exclude(".metadata")
-    }
-    archiveClassifier.set("scripts")
-}
-tasks.create("showDependency") {
-    group = "application"
-    val set = scriptsCompile.resolvedConfiguration.resolvedArtifacts.toSet()
-    println(set.joinToString("\n") { it.id.componentIdentifier.displayName })
 }
