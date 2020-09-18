@@ -113,11 +113,7 @@ subVote("投降或结束该局游戏，进行结算", "", "gameOver", "投降", 
     VoteHandler.apply {
         supportSingle = true
         start("投降".with()) {
-            world.tiles.forEach { arr ->
-                arr.filter { it.entity != null }.forEach {
-                    Time.run(Random.nextFloat() * 60 * 6, it.entity::kill)
-                }
-            }
+            state.teams.get(player!!.team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
         }
     }
 }
