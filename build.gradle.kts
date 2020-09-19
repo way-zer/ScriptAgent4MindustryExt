@@ -1,14 +1,11 @@
 plugins {
-    kotlin("jvm") version "1.3.70"
+    kotlin("jvm") version "1.4.0"
     id("me.qoomon.git-versioning") version "2.1.1"
     id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 group = "cf.wayzer"
 version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val libraryVersion = "1.2.11"
-//val libraryVersion = "1.1.5"
-val mindustryVersion = "-SNAPSHOT"
 
 gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
     tag(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.VersionDescription> {
@@ -20,40 +17,18 @@ gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPlugin
     })
 })
 
-repositories {
-    maven("http://maven.aliyun.com/nexus/content/groups/public/")
-    mavenLocal()
-    mavenCentral()
-    jcenter()
-    maven(url = "https://www.jitpack.io")
-    maven("https://dl.bintray.com/way-zer/maven")
-}
-sourceSets(Action {
+sourceSets {
     main {
-        java.srcDir("src")
+        java.srcDir("scripts")
     }
     create("plugin") {
-        this.compileClasspath += main.get().compileClasspath
-        this.runtimeClasspath += main.get().runtimeClasspath
         java.srcDir("plugin/src")
         resources.srcDir("plugin/res")
     }
-})
-dependencies {
-    api("cf.wayzer:ScriptAgent:$libraryVersion")
-    implementation(kotlin("script-runtime"))
-    implementation(kotlin("stdlib-jdk8"))
-    implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
+}
 
-    //coreLibrary
-    api("cf.wayzer:PlaceHoldLib:2.1.0")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1")
-    implementation("org.jetbrains.exposed:exposed-core:0.24.1")
-    implementation("org.jetbrains.exposed:exposed-dao:0.24.1")
-    implementation("org.jetbrains.exposed:exposed-java-time:0.24.1")
-    implementation("io.github.config4k:config4k:0.4.1")
-    //mirai
-    implementation("net.mamoe:mirai-core:1.1.3")
+apply {
+    from("dependencies.gradle.kts")
 }
 
 tasks {
@@ -68,8 +43,8 @@ tasks {
         )
     }
     named<Delete>("clean") {
-        this.delete += fileTree("src").filter { it.name.endsWith(".cache.jar") }
-        this.delete += fileTree("src").filter { it.name.endsWith(".ktc") }
+        this.delete += fileTree("scripts").filter { it.name.endsWith(".cache.jar") }
+        this.delete += fileTree("scripts/cache")
     }
     create<Zip>("scriptsZip") {
         group = "plugin"
@@ -86,9 +61,9 @@ tasks {
         from(sourceSets.getByName("plugin").output)
         archiveClassifier.set("")
         archiveVersion.set(rootProject.version.toString().substringBeforeLast('.'))
-        configurations = listOf(project.configurations.getByName("compileClasspath"))
+        configurations = listOf(project.configurations.getByName("pluginCompileClasspath"))
         dependencies {
-            include(dependency("cf.wayzer:ScriptAgent:$libraryVersion"))
+            include(dependency("cf.wayzer:ScriptAgent"))
             include(dependency("cf.wayzer:LibraryManager"))
         }
     }
