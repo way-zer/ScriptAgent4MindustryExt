@@ -50,7 +50,7 @@ fun draw(p: Player, file: File) {
     fun place(x: Int, y: Int, item: Item) {
         val tile = world.tile(x, y) ?: return
         if (tile.block() != Blocks.air) return
-        Call.constructFinish(tile, Blocks.sorter, p.id, 0, p.team(), true)
+        Call.constructFinish(tile, Blocks.sorter, p.unit(), 0, p.team(), true)
         Call.tileConfig(p, tile.build, item.id.toInt())
     }
     //debug

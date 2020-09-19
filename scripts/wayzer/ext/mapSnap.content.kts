@@ -1,7 +1,6 @@
 package wayzer.ext
 
 import arc.util.Log
-import cf.wayzer.script_agent.Config
 import mindustry.core.ContentLoader
 import mindustry.core.World
 import mindustry.game.EventType
@@ -74,7 +73,7 @@ object MapRenderer {
 listen<EventType.WorldLoadEvent> {
     MapRenderer.drawAll(world)
 }
-listen<EventType.BuildinghangeEvent> {
+listen<EventType.TileChangeEvent> {
     launch {
         MapRenderer.update(it.tile)
     }
