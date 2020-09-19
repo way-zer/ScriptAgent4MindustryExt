@@ -5,9 +5,10 @@ import coreLibrary.lib.PlaceHoldString
 import coreLibrary.lib.util.calPage
 import coreLibrary.lib.util.menu
 import coreMindustry.lib.MsgType
+import coreMindustry.lib.compatibilities.isMobile
 import coreMindustry.lib.player
 import coreMindustry.lib.sendMessage
-import mindustry.entities.type.Player
+import mindustry.gen.Player
 
 fun <E> Player?.sendMenuPhone(title: String, list: List<E>, page: Int?, prePage: Int, handle: (E) -> PlaceHoldString) {
     fun getPage(i: Int) = menu(title, list, i, prePage, handle)

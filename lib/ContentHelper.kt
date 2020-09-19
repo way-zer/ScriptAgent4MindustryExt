@@ -8,9 +8,10 @@ import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.ColorApi
 import coreLibrary.lib.ConsoleColor
 import coreLibrary.lib.with
-import mindustry.Vars
+import coreMindustry.lib.compatibilities.Call
+import coreMindustry.lib.compatibilities.playerGroup
+import mindustry.Vars.netServer
 import mindustry.entities.type.Player
-import mindustry.gen.Call
 
 object ContentHelper{
     fun logToConsole(text:String){
@@ -30,8 +31,10 @@ object ContentHelper{
         return ""
     }
 }
-enum class MsgType{Message, InfoMessage, InfoToast}
-fun broadcast(text: PlaceHoldContext, type: MsgType = MsgType.Message, time: Float = 10f, quite: Boolean = false, players: Iterable<Player> = Vars.playerGroup) {
+
+enum class MsgType { Message, InfoMessage, InfoToast }
+
+fun broadcast(text: PlaceHoldContext, type: MsgType = MsgType.Message, time: Float = 10f, quite: Boolean = false, players: Iterable<Player> = playerGroup) {
     if (!quite) ContentHelper.logToConsole(text.toString())
     players.forEach {
         if (it.con != null)
@@ -43,15 +46,16 @@ fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message,
     if (this == null) ContentHelper.logToConsole(text.toString())
     else {
         if (con == null) return
-        val msg = ColorApi.handle("{text}".with("text" to text, "player" to this).toString(),ContentHelper::mindustryColorHandler)
-        when(type){
-            MsgType.Message -> Call.sendMessage(this.con,msg,null,null)
+        val msg = ColorApi.handle("{text}".with("text" to text, "player" to this).toString(), ContentHelper::mindustryColorHandler)
+        when (type) {
+            MsgType.Message -> Call.sendMessage(this.con, msg, null, null)
             MsgType.InfoMessage -> Call.onInfoMessage(this.con, msg)
             MsgType.InfoToast -> Call.onInfoToast(this.con, msg, time)
         }
     }
 }
-fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) = sendMessage(text.with(),type,time)
 
-val Config.clientCommands by DSLBuilder.dataKeyWithDefault<CommandHandler>{Vars.netServer.clientCommands}
-val Config.serverCommands by DSLBuilder.dataKeyWithDefault<CommandHandler>{ error("Can't find serverCommands")}
+fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) = sendMessage(text.with(), type, time)
+
+val Config.clientCommands by DSLBuilder.dataKeyWithDefault<CommandHandler> { netServer.clientCommands }
+val Config.serverCommands by DSLBuilder.dataKeyWithDefault<CommandHandler> { error("Can't find serverCommands") }
