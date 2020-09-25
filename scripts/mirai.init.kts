@@ -1,6 +1,6 @@
 @file:DependsModule("coreLibrary")
-@file:MavenDepends("net.mamoe:mirai-core:1.2.2", single = false)
-@file:MavenDepends("net.mamoe:mirai-core-qqandroid:1.2.2", single = false)
+@file:MavenDepends("net.mamoe:mirai-core:1.3.1", single = false)
+@file:MavenDepends("net.mamoe:mirai-core-qqandroid:1.3.1", single = false)
 
 import arc.util.Log
 import kotlinx.coroutines.channels.Channel
