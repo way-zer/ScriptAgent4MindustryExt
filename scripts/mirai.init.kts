@@ -6,6 +6,7 @@ import arc.util.Log
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
 import net.mamoe.mirai.Bot
+import net.mamoe.mirai.utils.BotConfiguration
 import net.mamoe.mirai.utils.DefaultLogger
 import net.mamoe.mirai.utils.DefaultLoginSolver
 import net.mamoe.mirai.utils.SimpleLogger
@@ -23,6 +24,7 @@ generateHelper()
 val enable by config.key(false, "是否启动机器人(开启前先设置账号密码)")
 val qq by config.key(1849301538L, "机器人qq号")
 val password by config.key("123456", "机器人qq密码")
+val qqProtocol by config.key(BotConfiguration.MiraiProtocol.ANDROID_PAD, "QQ登录类型，不同的类型可同时登录", "可用值: ANDROID_PHONE ANDROID_PAD ANDROID_WATCH")
 
 val channel = Channel<String>()
 
@@ -51,6 +53,7 @@ onEnable {
         }
     }
     val bot = Bot(qq, password) {
+        protocol = qqProtocol
         fileBasedDeviceInfo(Config.dataDirectory.resolve("miraiDeviceInfo.json").absolutePath)
         parentCoroutineContext = coroutineContext
         loginSolver = DefaultLoginSolver(channel::receive)
