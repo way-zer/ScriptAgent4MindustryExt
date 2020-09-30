@@ -70,6 +70,7 @@ onEnable {
         while (true) {
             delay(1000)
             playerGroup.forEach {
+                if (it.dead) return@forEach
                 it.data.playedTime++
                 if (it.isIdle)
                     it.data.idleTime++
