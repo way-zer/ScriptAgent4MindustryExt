@@ -65,7 +65,7 @@ command("ban", "管理指令: 列出已ban用户，ban或解ban", {
             Admin.secureLog("UnBan", "${player!!.name} unBan ${it.lastName}(${it.id})")
             return@command reply("[green]解Ban成功 {info.name}".with("info" to it))
         }
-        (netServer.admins.getInfoOptional(uuid)).let {
+        (netServer.admins.getInfoOptional(uuid))?.let {
             netServer.admins.banPlayerID(uuid)
             returnReply("[green]Ban成功 {player.name}".with("player" to it))
         }
