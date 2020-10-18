@@ -93,7 +93,7 @@ command("pixel", "绘制像素画", {
         val file = pixelDir.resolve(arg[0])
         if (!file.exists()) return@command reply("[red]找不到对应文件".with())
         reply("[yellow]准备开始绘制".with())
-        launch {
+        launch(Dispatchers.game) {
             draw(player!!, file)
             reply("[green]绘制完成".with())
         }
