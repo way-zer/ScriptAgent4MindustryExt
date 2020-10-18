@@ -15,7 +15,7 @@ fun broadcast(){
 }
 
 onEnable{
-    launch {
+    launch(Dispatchers.game) {
         while (true) {
             delay(time.toMillis())
             broadcast()
