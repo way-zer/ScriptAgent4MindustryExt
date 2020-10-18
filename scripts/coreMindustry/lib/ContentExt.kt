@@ -1,5 +1,6 @@
 package coreMindustry.lib
 
+import arc.Core
 import arc.func.Cons
 import arc.util.Log
 import cf.wayzer.script_agent.IContentScript
@@ -8,8 +9,12 @@ import coreLibrary.lib.CommandHandler
 import coreLibrary.lib.CommandInfo
 import coreMindustry.lib.ContentExt.allCommands
 import coreMindustry.lib.ContentExt.listener
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
 import mindustry.Vars
 import mindustry.entities.type.Player
+import kotlin.coroutines.CoroutineContext
 
 object ContentExt {
     val IContentScript.allCommands by dataKeyWithDefault { mutableListOf<CommandInfo>() }
@@ -34,6 +39,21 @@ object ContentExt {
             } catch (e: Exception) {
                 Log.err("Error when handle event $cls in ${script?.clsName ?: "Unknown"}", e)
             }
+        }
+    }
+
+    object MindustryDispatcher : CoroutineDispatcher() {
+        private var mainThread: Thread? = null
+
+        init {
+            Core.app.post {
+                mainThread = Thread.currentThread()
+            }
+        }
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            if (Thread.currentThread() == mainThread) block.run()
+            else Core.app.post(block)
         }
     }
 }
@@ -66,6 +86,10 @@ fun IContentScript.command(name: String, description: String, init: CommandInfo.
 fun IContentScript.command(name: String, description: String, init: CommandInfo.() -> Unit) {
     RootCommands += CommandInfo(this, name, description, init)
 }
+
+@Suppress("unused")
+val Dispatchers.game
+    get() = ContentExt.MindustryDispatcher
 
 @Suppress("unused")
 @Deprecated("请检查变量是否使用正确, Vars.player 为null", ReplaceWith("error(\"服务器中不允许使用该变量\")"), DeprecationLevel.ERROR)

@@ -6,6 +6,7 @@ import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.game.Team
 import mindustry.world.Block
+import mindustry.world.blocks.distribution.Conveyor
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.Serializable
 import java.time.Duration
@@ -19,15 +20,16 @@ data class StatisticsData(
         var idleTime: Int = 0,
         var buildScore: Float = 0f,
         var breakBlock: Int = 0,
+        var lastActive: Long = 0,
         @Transient var pvpTeam: Team = Team.sharded
 ) : Serializable {
     val win get() = state.rules.pvp && pvpTeam == teamWin
 
     //加权比分
-    val score get() = playedTime - 0.7 * idleTime + 0.6 * buildScore + if (win) 1200 else 0
+    val score get() = playedTime - 0.8 * idleTime + 0.6 * buildScore + if (win) 1200 * (1 - idleTime / playedTime) else 0
 
     //结算经验计算
-    val exp get() = min(ceil(score * 15 / 3600).toInt(), 25)//3600点积分为15,25封顶
+    val exp get() = min(ceil(score * 15 / 3600).toInt(), 40)//3600点积分为15,40封顶
 
     companion object {
         lateinit var teamWin: Team
@@ -39,7 +41,15 @@ val Block.buildScore: Float
         //如果有更好的建筑积分规则，请修改此处
         return buildCost / 60f //建筑时间(单位秒)
     }
-val Player.isIdle get() = unit().vel.isZero(1e-9F) && !builder().isBuilding && !shooting()
+val Player.isIdle get() = (unit().vel.isZero(1e-9F) || (unit().onSolid() && tileOn()?.block() is Conveyor)) && !builder().isBuilding && !shooting() && textFadeTime < 0
+val Player.active: Boolean
+    get() {//是否挂机超过10秒
+        if (!isIdle) data.lastActive = System.currentTimeMillis()
+        return System.currentTimeMillis() - data.lastActive < 10_000
+    }
+
+fun active(p: Player) = p.active
+export(::active)
 
 @Savable
 val statisticsData = mutableMapOf<String, StatisticsData>()
@@ -53,6 +63,9 @@ registerVarForType<StatisticsData>().apply {
         else obj.buildScore
     })
     registerChild("breakBlock", "破坏方块数", DynamicVar { obj, _ -> obj.breakBlock })
+}
+registerVarForType<Player>().apply {
+    registerChild("statistics", "游戏统计数据", DynamicVar { p, _ -> p.data })
 }
 onDisable {
     PlaceHoldString.bindTypes.remove(StatisticsData::class.java)//局部类，防止泄漏
@@ -71,7 +84,7 @@ onEnable {
             delay(1000)
             playerGroup.forEach {
                 it.data.playedTime++
-                if (it.isIdle)
+                if (!it.active)
                     it.data.idleTime++
             }
         }

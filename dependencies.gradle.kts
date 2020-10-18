@@ -1,4 +1,4 @@
-val libraryVersion = "1.3.2"
+val libraryVersion = "1.3.4"
 val mindustryVersion = "v105"
 
 repositories {
@@ -34,5 +34,5 @@ dependencies {
     compile("org.jline:jline-terminal:3.15.0")
     compile("org.jline:jline-reader:3.15.0")
     //mirai
-    compile("net.mamoe:mirai-core:1.2.2")
+    compile("net.mamoe:mirai-core:1.3.1")
 }
