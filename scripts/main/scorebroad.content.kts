@@ -24,12 +24,14 @@ command("broad", "开关积分板显示", { this.type = CommandType.Client }) {
 onEnable {
     launch {
         while (true) {
-            playerGroup.forEach {
-                if (disabled.contains(it.uuid)) return@forEach
-                if (it.isMobile) {
-                    Call.infoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 210, 0, 0, 0)
-                } else
-                    Call.infoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 155, 0, 0, 0)
+            withContext(Dispatchers.game) {
+                playerGroup.forEach {
+                    if (disabled.contains(it.uuid)) return@forEach
+                    if (it.isMobile) {
+                        Call.infoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 210, 0, 0, 0)
+                    } else
+                        Call.infoPopup(it.con, msg.with("player" to it).toString(), 2.013f, Align.topLeft, 155, 0, 0, 0)
+                }
             }
             delay(Duration.ofSeconds(2).toMillis())
         }
