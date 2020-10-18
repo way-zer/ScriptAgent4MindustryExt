@@ -1,4 +1,4 @@
-val libraryVersion = "1.3.2"
+val libraryVersion = "1.3.4"
 val mindustryVersion = "v104"
 
 repositories {
