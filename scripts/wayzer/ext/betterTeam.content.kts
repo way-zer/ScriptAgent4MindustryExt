@@ -44,6 +44,7 @@ command("ob", "切换为观察者", {
     broadcast("[yellow]玩家[green]{player.name}[yellow]选择成为观察者".with("player" to player!!), quite = true)
     player!!.run {
         teams[uuid] = spectateTeam
+        clearUnit()
         team(spectateTeam)
         clearUnit()
     }
@@ -62,6 +63,7 @@ command("team", "管理指令: 修改自己或他人队伍(PVP模式)", {
         playerGroup.find { p -> p.uuid.startsWith(it) } ?: return@command reply("[red]找不到玩家,请使用/list查询正确的3位id".with())
     } ?: player ?: return@command reply("[red]请输入玩家ID".with())
     teams[player.uuid] = team
+    player.clearUnit()
     player.team(team)
     player.clearUnit()
     broadcast("[green]管理员更改了{player.name}[green]为{team.colorizeName}".with("player" to player, "team" to team))

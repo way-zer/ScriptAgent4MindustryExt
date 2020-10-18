@@ -79,25 +79,30 @@ subVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图"
     if (arg.isEmpty())
         return@subVote reply("[red]请输入地图序号".with())
     val maps = SharedData.mapManager.maps
-    val map = when {
-        Regex("[0-9a-z]{32}.*").matches(arg[0]) -> {
-            if (!enableWebMap) return@subVote reply("[red]本服未开启网络地图的支持".with())
-            val mode = arg.getOrElse(1) { "Q" }
-            MapIO.createMap(NetFi(URL("https://mdt.wayzer.top/api/maps/${arg[0]}/download.msav"), mode + "download.msav"), true)
+    launch(Dispatchers.game) {
+        val map = when {
+            Regex("[0-9a-z]{32}.*").matches(arg[0]) -> {
+                if (!enableWebMap) return@launch reply("[red]本服未开启网络地图的支持".with())
+                val mode = arg.getOrElse(1) { "Q" }
+                reply("[green]加载网络地图中".with())
+                withContext(Dispatchers.IO) {
+                    MapIO.createMap(NetFi(URL("https://mdt.wayzer.top/api/maps/${arg[0]}/download.msav"), mode + "download.msav"), true)
+                }
+            }
+            arg[0].toIntOrNull() in 1..maps.size -> {
+                maps[arg[0].toInt() - 1]
+            }
+            else -> return@launch reply("[red]错误参数".with())
         }
-        arg[0].toIntOrNull() in 1..maps.size -> {
-            maps[arg[0].toInt() - 1]
-        }
-        else -> return@subVote reply("[red]错误参数".with())
-    }
-    VoteHandler.apply {
-        supportSingle = true
-        start("换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map)) {
-            if (!SaveIO.isSaveValid(map.file))
-                return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
-            SharedData.mapManager.loadMap(map)
-            Core.app.post { // 推后,确保地图成功加载
-                broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
+        VoteHandler.apply {
+            supportSingle = true
+            start("换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map)) {
+                if (!SaveIO.isSaveValid(map.file))
+                    return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
+                SharedData.mapManager.loadMap(map)
+                Core.app.post { // 推后,确保地图成功加载
+                    broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
+                }
             }
         }
     }
@@ -129,7 +134,7 @@ subVote("快速出波(默认10波,最高50)", "[波数]", "skipWave", "跳波") 
         supportSingle = true
         val t = min(arg.firstOrNull()?.toIntOrNull() ?: 10, 50)
         start("跳波({t}波)".with("t" to t)) {
-            launch {
+            launch(Dispatchers.game) {
                 val startTime = Time.millis()
                 var waitTime = 3
                 repeat(t) {
@@ -199,7 +204,7 @@ inner class VoteHandler {
         voting.set(true)
         this.voteDesc = voteDesc
         supportSingle = supportSingle && playerGroup.size() <= 1
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.game) {
             try {
                 if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".with())
                 broadcast("[yellow]{type}[yellow]投票开始,共需要{require}人,输入y或1同意".with("require" to requireNum(), "type" to voteDesc))

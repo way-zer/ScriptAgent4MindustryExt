@@ -9,7 +9,7 @@ import kotlin.math.ceil
 val time by config.key(600, "pvp保护时间(单位秒,小于等于0关闭)")
 
 listen<EventType.WorldLoadEvent> {
-    launch {
+    launch(Dispatchers.game) {
         delay(3_000)
         if (state.rules.mode() != Gamemode.pvp || time <= 0) return@launch
         var leftTime = time
