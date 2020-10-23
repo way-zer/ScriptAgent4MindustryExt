@@ -16,6 +16,7 @@ import java.time.Duration
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -24,12 +25,6 @@ name = "投票"
 
 val voteTime by config.key(Duration.ofSeconds(60)!!, "投票时间")
 val enableWebMap by config.key(false, "是否允许网络地图", "来自mdt.wayzer.top")
-fun allCanVote(): List<Player> {
-    val active = depends("wayzer/user/statistics")?.import<(Player) -> Boolean>("active") ?: { true }
-    return playerGroup.filter {
-        active(it)
-    }
-}
 
 inner class VoteCommands : Commands() {
     override fun invoke(context: CommandContext) {
@@ -91,15 +86,12 @@ subVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图"
         }
         else -> return@subVote reply("[red]错误参数".with())
     }
-    VoteHandler.apply {
-        supportSingle = true
-        start("换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map)) {
-            if (!SaveIO.isSaveValid(map.file))
-                return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
-            SharedData.mapManager.loadMap(map)
-            Core.app.post { // 推后,确保地图成功加载
-                broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
-            }
+    VoteHandler.start(player!!, "换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map), supportSingle = true) {
+        if (!SaveIO.isSaveValid(map.file))
+            return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
+        SharedData.mapManager.loadMap(map)
+        Core.app.post { // 推后,确保地图成功加载
+            broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
         }
     }
 }
@@ -109,40 +101,33 @@ subVote("投降或结束该局游戏，进行结算", "", "gameOver", "投降", 
         if (!state.teams.isActive(team) || state.teams.get(team)!!.cores.isEmpty)
             return@subVote reply("[red]队伍已输,无需投降".with())
         VoteHandler.apply {
-            requireNum = { allCanVote().count { it.team == team } }
-            canVote = { it.team == team }
-            start("投降({player.name}[yellow]|{team.colorizeName}[yellow]队|需要全队同意)".with("player" to player!!, "team" to team)) {
+            canVote = canVote.let { default -> { default(it) && it.team == team } }
+            start(player!!, "投降({team.colorizeName}[yellow]队|需要全队同意)".with("player" to player!!, "team" to team)) {
                 state.teams.get(team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
             }
         }
         return@subVote
     }
-    VoteHandler.apply {
-        supportSingle = true
-        start("投降".with()) {
-            state.teams.get(player!!.team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
-        }
+    VoteHandler.start(player!!, "投降".with(), supportSingle = true) {
+        state.teams.get(player!!.team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
     }
 }
 val lastResetTime by PlaceHold.reference<Date>("state.startTime")
 subVote("快速出波(默认10波,最高50)", "[波数]", "skipWave", "跳波") {
-    VoteHandler.apply {
-        supportSingle = true
-        val t = min(arg.firstOrNull()?.toIntOrNull() ?: 10, 50)
-        start("跳波({t}波)".with("t" to t)) {
-            launch {
-                val startTime = Time.millis()
-                var waitTime = 3
-                repeat(t) {
-                    while (state.enemies > 300) {//延长等待时间
-                        if (waitTime > 60) return@launch //等待超时
-                        delay(waitTime * 1000L)
-                        waitTime *= 2
-                    }
-                    if (lastResetTime.time > startTime) return@launch //Have change map
-                    Core.app.post { logic.runWave() }
+    val t = min(arg.firstOrNull()?.toIntOrNull() ?: 10, 50)
+    VoteHandler.start(player!!, "跳波({t}波)".with("t" to t), supportSingle = true) {
+        launch {
+            val startTime = Time.millis()
+            var waitTime = 3
+            repeat(t) {
+                while (state.enemies > 300) {//延长等待时间
+                    if (waitTime > 60) return@launch //等待超时
                     delay(waitTime * 1000L)
+                    waitTime *= 2
                 }
+                if (lastResetTime.time > startTime) return@launch //Have change map
+                Core.app.post { logic.runWave() }
+                delay(waitTime * 1000L)
             }
         }
     }
@@ -152,12 +137,9 @@ subVote("回滚到某个存档(使用/slots查看)", "<存档ID>", "rollback", "
         return@subVote reply("[red]请输入正确的存档编号".with())
     val map = SharedData.mapManager.getSlot(arg[0].toInt())
             ?: return@subVote reply("[red]存档不存在或存档损坏".with())
-    VoteHandler.apply {
-        supportSingle = true
-        start("回档".with()) {
-            SharedData.mapManager.loadSave(map)
-            broadcast("[green]回档成功".with(), quite = true)
-        }
+    VoteHandler.start(player!!, "回档".with(), supportSingle = true) {
+        SharedData.mapManager.loadSave(map)
+        broadcast("[green]回档成功".with(), quite = true)
     }
 }
 subVote("踢出某人15分钟", "<玩家名>", "kick", "踢出") {
@@ -165,14 +147,22 @@ subVote("踢出某人15分钟", "<玩家名>", "kick", "踢出") {
             ?: return@subVote reply("[red]请输入正确的玩家名，或者到列表点击投票".with())
     if (SharedData.admin.isAdmin(player!!))
         return@subVote SharedData.admin.ban(player!!, target.uuid)
+    VoteHandler.start(player!!, "踢人(踢出[red]{target.name}[yellow])".with("target" to target)) {
+        if (SharedData.admin.isAdmin(target)) {
+            return@start broadcast("[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target))
+        }
+        target.info.lastKicked = Time.millis() + (15 * 60 * 1000) //Kick for 15 Minutes
+        target.con?.kick("[yellow]你被投票踢出15分钟")
+        SharedData.admin.secureLog("Kick", "${target.name}(${target.uuid},${target.con.address}) is kicked By ${player!!.name}(${player!!.uuid})")
+    }
+}
+subVote("清理本队建筑记录", "", "clear", "清理", "清理记录") {
+    val team = player!!.team
     VoteHandler.apply {
-        start("踢人({player.name}[yellow]踢出[red]{target.name}[yellow])".with("player" to player!!, "target" to target)) {
-            if (SharedData.admin.isAdmin(target)) {
-                return@start broadcast("[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target))
-            }
-            target.info.lastKicked = Time.millis() + (15 * 60 * 1000) //Kick for 15 Minutes
-            target.con?.kick("[yellow]你被投票踢出15分钟")
-            SharedData.admin.secureLog("Kick", "${target.name}(${target.uuid},${target.con.address}) is kicked By ${player!!.name}(${player!!.uuid})")
+        canVote = canVote.let { default -> { default(it) && it.team == team } }
+        requireNum = { ceil(allCanVote().size * 2.0 / 5).toInt() }
+        start(player!!, "清理建筑记录({team.colorizeName}[yellow]队|需要2/5同意)".with("team" to team)) {
+            team.data().brokenBlocks.clear()
         }
     }
 }
@@ -185,8 +175,8 @@ inner class VoteHandler {
     //private set
     val voting = AtomicBoolean(false)
     private val voted: MutableSet<String> = ConcurrentHashMap.newKeySet()
+    private var lastAction = 0L //最后一次玩家退出或投票成功时间,用于处理单人投票
 
-    var supportSingle = false
     lateinit var voteDesc: PlaceHoldContext
     lateinit var requireNum: () -> Int
     lateinit var canVote: (Player) -> Boolean
@@ -195,15 +185,23 @@ inner class VoteHandler {
         reset()
     }
 
-    fun start(voteDesc: PlaceHoldContext, onSuccess: () -> Unit) {
+    fun start(player: Player, voteDesc: PlaceHoldContext, supportSingle: Boolean = false, onSuccess: () -> Unit) {
         if (voting.get()) return
         voting.set(true)
         this.voteDesc = voteDesc
-        supportSingle = supportSingle && playerGroup.size() <= 1
         GlobalScope.launch {
             try {
-                if (supportSingle) broadcast("[yellow]当前服务器只有一人,若投票结束前没人加入,则一人也可通过投票".with())
-                broadcast("[yellow]{type}[yellow]投票开始,共需要{require}人,输入y或1同意".with("require" to requireNum(), "type" to voteDesc))
+                if (supportSingle && allCanVote().run { count(canVote) == 0 || singleOrNull() == player }) {
+                    if (System.currentTimeMillis() - lastAction > 60_000) {
+                        broadcast("[yellow]单人快速投票{type}成功".with("type" to voteDesc))
+                        lastAction = System.currentTimeMillis()
+                        Core.app.post(onSuccess)
+                        return@launch
+                    } else
+                        broadcast("[red]距离上一玩家离开或上一投票成功不足1分钟,快速投票失败".with())
+                }
+                broadcast("[yellow]{player.name}[yellow]发起{type}[yellow]投票,共需要{require}人,输入y或1同意"
+                        .with("player" to player, "require" to requireNum(), "type" to voteDesc))
                 repeat(voteTime.seconds.toInt()) {
                     delay(1000L)
                     if (voted.size >= requireNum()) {//提前结束
@@ -214,23 +212,22 @@ inner class VoteHandler {
                     }
                 }
                 //TimeOut
-                if (supportSingle && voted.size == 1) {
-                    broadcast("[yellow]{type}[yellow]单人投票通过.".with("type" to voteDesc))
-                    Core.app.post(onSuccess)
-                } else {
-                    broadcast("[yellow]{type}[yellow]投票结束,投票失败.[green]{voted}/{all}[yellow],未达到[red]{require}[yellow]人"
-                            .with("type" to voteDesc, "voted" to voted.size, "require" to requireNum(), "all" to allCanVote().count(canVote)))
-                }
+                broadcast("[yellow]{type}[yellow]投票结束,投票失败.[green]{voted}/{all}[yellow],未达到[red]{require}[yellow]人"
+                        .with("type" to voteDesc, "voted" to voted.size, "require" to requireNum(), "all" to allCanVote().count(canVote)))
             } finally {
                 reset()
             }
         }
     }
 
+    fun allCanVote() = playerGroup.filter(canVote)
+
     private fun reset() {
-        supportSingle = false
-        requireNum = { max(allCanVote().size / 2 + 1, 2) }
-        canVote = { !it.dead }
+        requireNum = { max(ceil(allCanVote().size * 2.0 / 3).toInt(), 2) }
+        canVote = {
+            val active = depends("wayzer/user/statistics")?.import<(Player) -> Boolean>("active") ?: { true }
+            !it.dead && active(it)
+        }
         voted.clear()
         voting.set(false)
     }
@@ -242,6 +239,11 @@ inner class VoteHandler {
         voted.add(p.uuid)
         broadcast("[green]投票成功,还需{left}人投票".with("left" to (requireNum() - voted.size)), quite = true)
     }
+
+    fun onLeave(p: Player) {
+        lastAction = System.currentTimeMillis()
+        voted.remove(p.uuid)
+    }
 }
 
 listen<EventType.PlayerChatEvent> { e ->
@@ -250,6 +252,9 @@ listen<EventType.PlayerChatEvent> { e ->
 
 listen<EventType.PlayerJoin> {
     if (!VoteHandler.voting.get()) return@listen
-    VoteHandler.supportSingle = false
     it.player.sendMessage("[yellow]当前正在进行{type}[yellow]投票，输入y或1同意".with("type" to VoteHandler.voteDesc))
+}
+
+listen<EventType.PlayerLeave> {
+    VoteHandler.onLeave(it.player)
 }
