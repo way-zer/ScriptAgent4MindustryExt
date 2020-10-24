@@ -11,8 +11,8 @@ val time by config.key(600, "pvp保护时间(单位秒,小于等于0关闭)")
 listen<EventType.WorldLoadEvent> {
     launch {
         delay(3_000)
+        var leftTime = state.rules.tags.getInt("@pvpProtect", time)
         if (state.rules.mode() != Gamemode.pvp || time <= 0) return@launch
-        var leftTime = time
         broadcast("[yellow]PVP保护时间,禁止在其他基地攻击(持续{time:分钟})".with("time" to Duration.ofSeconds(leftTime.toLong())), quite = true)
         suspend fun checkAttack(time: Int) = repeat(time) {
             delay(1000)
