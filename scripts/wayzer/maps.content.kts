@@ -33,7 +33,12 @@ inner class MapManager : SharedData.IMapManager {
     override fun loadMap(map: Map, mode: Gamemode) {
         resetAndLoad {
             world.loadMap(map, map.applyRules(mode))
-            state.rules = world.map.applyRules(mode)
+            state.rules = world.map.applyRules(mode).apply {
+                Regex("\\[(@[a-zA-Z0-9]+)(=[0-9a-z]+)?]").findAll(map.description()).forEach {
+                    val value = it.groupValues[2].takeIf(String::isNotEmpty) ?: "true"
+                    tags.put(it.groupValues[1], value.removePrefix("="))
+                }
+            }
             logic.play()
         }
     }
