@@ -75,23 +75,33 @@ subVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图"
     if (arg.isEmpty())
         return@subVote reply("[red]请输入地图序号".with())
     val maps = SharedData.mapManager.maps
-    val map = when {
-        Regex("[0-9a-z]{32}.*").matches(arg[0]) -> {
-            if (!enableWebMap) return@subVote reply("[red]本服未开启网络地图的支持".with())
-            val mode = arg.getOrElse(1) { "Q" }
-            MapIO.createMap(NetFi(URL("https://mdt.wayzer.top/api/maps/${arg[0]}/download.msav"), mode + "download.msav"), true)
+    launch(Dispatchers.game) {
+        val map = when {
+            Regex("[0-9a-z]{32}.*").matches(arg[0]) -> {
+                if (!enableWebMap) return@launch reply("[red]本服未开启网络地图的支持".with())
+                val mode = arg.getOrElse(1) { "Q" }
+                reply("[green]加载网络地图中".with())
+                try {
+                    withContext(Dispatchers.IO) {
+                        MapIO.createMap(NetFi(URL("https://mdt.wayzer.top/api/maps/${arg[0]}/download.msav"), mode + "download.msav"), true)
+                    }
+                } catch (e: Exception) {
+                    reply("[red]网络地图加载失败,请稍后再试".with())
+                    throw e
+                }
+            }
+            arg[0].toIntOrNull() in 1..maps.size -> {
+                maps[arg[0].toInt() - 1]
+            }
+            else -> return@launch reply("[red]错误参数".with())
         }
-        arg[0].toIntOrNull() in 1..maps.size -> {
-            maps[arg[0].toInt() - 1]
-        }
-        else -> return@subVote reply("[red]错误参数".with())
-    }
-    VoteHandler.start(player!!, "换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map), supportSingle = true) {
-        if (!SaveIO.isSaveValid(map.file))
-            return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
-        SharedData.mapManager.loadMap(map)
-        Core.app.post { // 推后,确保地图成功加载
-            broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
+        VoteHandler.start(player!!, "换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map), supportSingle = true) {
+            if (!SaveIO.isSaveValid(map.file))
+                return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
+            SharedData.mapManager.loadMap(map)
+            Core.app.post { // 推后,确保地图成功加载
+                broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
+            }
         }
     }
 }
@@ -102,6 +112,7 @@ subVote("投降或结束该局游戏，进行结算", "", "gameOver", "投降", 
             return@subVote reply("[red]队伍已输,无需投降".with())
         VoteHandler.apply {
             canVote = canVote.let { default -> { default(it) && it.team() == team } }
+            requireNum = { allCanVote().size }
             start(player!!, "投降({team.colorizeName}[yellow]队|需要全队同意)".with("player" to player!!, "team" to team)) {
                 state.teams.get(team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
             }
@@ -189,7 +200,7 @@ inner class VoteHandler {
         if (voting.get()) return
         voting.set(true)
         this.voteDesc = voteDesc
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.game) {
             try {
                 if (supportSingle && allCanVote().run { count(canVote) == 0 || singleOrNull() == player }) {
                     if (System.currentTimeMillis() - lastAction > 60_000) {
@@ -247,6 +258,7 @@ inner class VoteHandler {
 }
 
 listen<EventType.PlayerChatEvent> { e ->
+    e.player.textFadeTime = 0f //防止因为不说话判定为挂机
     if (e.message.equals("y", true) || e.message == "1") VoteHandler.onVote(e.player)
 }
 
