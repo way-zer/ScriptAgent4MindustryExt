@@ -35,17 +35,27 @@ listen<EventType.ResetEvent> {
     teams.clear()
 }
 
+fun changeTeam(p: Player, team: Team) {
+    teams[p.uuid] = team
+    p.clearUnit()
+    p.team(team)
+    p.clearUnit()
+}
+
+export(::changeTeam)
+
 command("ob", "切换为观察者", {
     type = CommandType.Client
     permission = "wayzer.ext.observer"
 }) {
-    if (player!!.team() == spectateTeam)
-        return@command reply("[red]你已经是观察者了".with())
-    broadcast("[yellow]玩家[green]{player.name}[yellow]选择成为观察者".with("player" to player!!), quite = true)
-    player!!.run {
-        teams[uuid] = spectateTeam
-        team(spectateTeam)
-        clearUnit()
+    if (player!!.team() == spectateTeam) {
+        val team = netServer.assignTeam(player!!)
+        changeTeam(player!!, team)
+        broadcast("[yellow]玩家[green]{player.name}[yellow]重新投胎到{team.colorizeName}".with("player" to player!!, "team" to team), quite = true)
+    } else {
+        changeTeam(player!!, spectateTeam)
+        broadcast("[yellow]玩家[green]{player.name}[yellow]选择成为观察者".with("player" to player!!), quite = true)
+        player!!.sendMessage("[green]再次输入指令可以重新投胎")
     }
 }
 
@@ -61,8 +71,6 @@ command("team", "管理指令: 修改自己或他人队伍(PVP模式)", {
     val player = arg.getOrNull(1)?.let {
         playerGroup.find { p -> p.uuid.startsWith(it) } ?: return@command reply("[red]找不到玩家,请使用/list查询正确的3位id".with())
     } ?: player ?: return@command reply("[red]请输入玩家ID".with())
-    teams[player.uuid] = team
-    player.team(team)
-    player.clearUnit()
+    changeTeam(player, team)
     broadcast("[green]管理员更改了{player.name}[green]为{team.colorizeName}".with("player" to player, "team" to team))
 }
