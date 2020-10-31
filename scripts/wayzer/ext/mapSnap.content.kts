@@ -1,6 +1,7 @@
 package wayzer.ext
 
 import arc.util.Log
+import mindustry.content.Blocks
 import mindustry.core.ContentLoader
 import mindustry.core.World
 import mindustry.game.EventType
@@ -40,16 +41,16 @@ object MapRenderer {
         val img = Config.getModuleDir("wayzer").resolve("res/block_colors.png")
                 .takeIf { it.exists() && it.canRead() }?.inputStream()?.use { ImageIO.read(it) }
         if (img == null) Log.warn("[wayzer/ext/mapSnap]找不到图集res/block_colors.png")
-        fun ARGBtoRGBA(argb: Int): Int {
-            val a = argb ushr 24
-            val rgb = argb and 0xff_ff_ff
-            return (rgb shl 8) + a
-        }
         img?.apply {
             repeat(width) { i ->
-                val c = ARGBtoRGBA(getRGB(i, 0))
-                if (c != 0) {
-                    content.block(i).mapColor.set(c)
+                val color = getRGB(i, 0)
+                if (color != 0 && color != 255) {
+                    content.block(i).apply {
+                        mapColor.argb8888(color)
+                        squareSprite = mapColor.a > 0.5f
+                        mapColor.a = 1.0f
+                        hasColor = true
+                    }
                 }
             }
             Log.info("[wayzer/ext/mapSnap]加载方块颜色集成功")
@@ -64,19 +65,21 @@ object MapRenderer {
     }
 
     private fun getRGBA(tile: Tile?): Int {
-        if (tile == null) return 0
-        val blockColor = tile.block().minimapColor(tile)
-        if (blockColor != 0) return blockColor
-        return MapIO.colorFor(tile.floor(), tile.block(), tile.overlay(), tile.team())
+        return when {
+            tile == null -> 0
+            tile.block().minimapColor(tile) != 0 -> tile.block().minimapColor(tile)
+            tile.block().synthetic() -> tile.team().color.rgba()
+            tile.block().solid -> tile.block().mapColor.rgba()
+            tile.overlay() != Blocks.air -> tile.overlay().mapColor.rgba()
+            else -> tile.floor().mapColor.rgba()
+        }
     }
 }
 listen<EventType.WorldLoadEvent> {
     MapRenderer.drawAll(world)
 }
 listen<EventType.TileChangeEvent> {
-    launch {
-        MapRenderer.update(it.tile)
-    }
+    MapRenderer.update(it.tile)
 }
 onEnable {
     if (net.server())
