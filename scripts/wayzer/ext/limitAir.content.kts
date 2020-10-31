@@ -24,6 +24,11 @@ onEnable {
 listen<EventType.BlockBuildEndEvent> {
     if (it.tile.block() == Blocks.airFactory && !it.breaking) {
         if (enable)
-            Call.label("[yellow]本地图限制空军,禁止进入敌方领空", 60 * 60f, it.tile.getX(), it.tile.getY())
+            Call.label("[yellow]本地图限制空军,禁止进入敌方领空", 60f, it.tile.getX(), it.tile.getY())
     }
+}
+
+listen<EventType.PlayerJoin> {
+    if (enable)
+        it.player.sendMessage("[yellow]本地图限制空军,禁止进入敌方领空")
 }
