@@ -2,7 +2,10 @@ package wayzer.ext.reGrief
 
 import cf.wayzer.placehold.PlaceHoldApi.with
 import mindustry.content.Blocks
+import mindustry.entities.type.Player
 import mindustry.game.EventType
+import mindustry.gen.Call
+import mindustry.io.JsonIO
 import mindustry.type.Item
 import mindustry.world.Block
 import mindustry.world.blocks.storage.CoreBlock
@@ -46,18 +49,40 @@ fun log(x: Int, y: Int, log: Log) {
     }
 }
 listen<EventType.BlockBuildEndEvent> {
-    if (it.unit.player == null) return@listen
+    val player = it.unit.player ?: return@listen
     if (it.breaking)
-        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Break(it.unit.player.uuid(), Instant.now()))
+        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Break(player.uuid(), Instant.now()))
     else
-        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Place(it.unit.player.uuid(), Instant.now(), it.tile.block()))
+        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Place(player.uuid(), Instant.now(), it.tile.block()))
 }
 listen<EventType.ConfigEvent> {
-    if (it.player == null) return@listen
-    log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Config(it.player.uuid(), Instant.now(), it.value.toString()))
+    val player = it.player ?: return@listen
+    log(it.tile.tileX(), it.tile.tileY(), Log.Config(player.uuid(), Instant.now(), it.value.toString()))
 }
 listen<EventType.DepositEvent> {
-    log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Deposit(it.player.uuid(), Instant.now(), it.item, it.amount))
+    val player = it.player ?: return@listen
+    log(it.tile.tileX(), it.tile.tileY(), Log.Deposit(player.uuid(), Instant.now(), it.item, it.amount))
+}
+
+fun Player.showLog(xf: Float, yf: Float) {
+    val x = xf.toInt() / 8
+    val y = yf.toInt() / 8
+    if (x < 0 || x >= world.width()) return
+    if (y < 0 || y >= world.height()) return
+    val logs = logs[x][y]
+    if (logs.isEmpty()) Call.label(con, "[yellow]位置($x,$y)无记录", 5f, xf, yf)
+    else {
+        val list = logs.map { log ->
+            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}\n".with(
+                    "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid), "desc" to when (log) {
+                is Log.Place -> "放置了方块${log.type.name}"
+                is Log.Break -> "拆除了方块"
+                is Log.Config -> "修改了属性: ${log.value}"
+                is Log.Deposit -> "往里面丢了${log.amount}个${log.item.name}"
+            })
+        }
+        Call.label(con, "====[gold]操作记录($x,$y)[]====\n{list}".with("list" to list).toString(), 15f, xf, yf)
+    }
 }
 
 //查询
@@ -77,28 +102,21 @@ command("history", "开关查询模式", {
     } else {
         enabledPlayer.add(player!!.uuid)
         reply("[green]开启查询模式,点击方块查询历史".with())
+        launch {
+            val p = player!!
+            while (p.con != null) {
+                delay(100)
+                if (p.uuid() !in enabledPlayer) break
+                if (p.shooting) {
+                    withContext(Dispatchers.game) {
+                        p.showLog(p.mouseX, p.mouseY)
+                    }
+                }
+            }
+            enabledPlayer.remove(p.uuid())
+        }
     }
 }
-TODO("未找到可代替TapEvent的事件")
-//listen<EventType.TapEvent> {
-//    if (it.player.uuid !in enabledPlayer) return@listen
-//    val x = it.tile.x.toInt()
-//    val y = it.tile.y.toInt()
-//    val logs = logs[x][y]
-//    if (logs.isEmpty()) Call.onLabel(it.player.con, "[yellow]位置($x,$y)无记录", 5f, it.tile.getX(), it.tile.getY())
-//    else {
-//        val list = logs.map { log ->
-//            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}\n".with(
-//                    "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid), "desc" to when (log) {
-//                is Log.Place -> "放置了方块${log.type.name}"
-//                is Log.Break -> "拆除了方块"
-//                is Log.Config -> "修改了属性: ${log.value}"
-//                is Log.Deposit -> "往里面丢了${log.amount}个${log.item.name}"
-//            })
-//        }
-//        Call.onLabel(it.player.con, "====[gold]操作记录($x,$y)[]====\n{list}".with("list" to list).toString(), 15f, it.tile.getX(), it.tile.getY())
-//    }
-//}
 
 // 自动保留破坏核心的可疑行为
 var lastCoreLog = emptyList<String>()
@@ -109,7 +127,7 @@ val dangerBlock = arrayOf(
         Blocks.conduit, Blocks.platedConduit, Blocks.pulseConduit)
 listen<EventType.BlockDestroyEvent> { event ->
     if (event.tile.block() is CoreBlock) {
-        if (System.currentTimeMillis() - lastTime < 5000) { //防止核心连环爆炸,仅记录第一个被炸核心
+        if (System.currentTimeMillis() - lastTime > 5000) { //防止核心连环爆炸,仅记录第一个被炸核心
             val list = mutableListOf<String>()
             for (x in event.tile.x.let { it - 10..it + 10 })
                 for (y in event.tile.y.let { it - 10..it + 10 })
