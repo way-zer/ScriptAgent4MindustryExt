@@ -1,8 +1,9 @@
 //WayZer 版权所有(请勿删除版权注解)
-package main
+package coreMindustry
 
 import arc.util.Time
 import cf.wayzer.placehold.DynamicVar
+import mindustry.core.Version
 import mindustry.entities.type.Player
 import mindustry.game.Team
 import mindustry.gen.Groups
@@ -35,6 +36,7 @@ registerVar("state.allBan", "总禁封人数", DynamicVar<Int> { netServer.admin
 registerVar("state.playerSize", "当前玩家数量", DynamicVar<Int> { playerGroup.size() })
 registerVar("state.wave", "当前波数", DynamicVar<Int> { state.wave })
 registerVar("state.enemies", "当前敌人数量", DynamicVar<Int> { state.enemies })
+registerVar("game.version", "当前游戏版本", DynamicVar<Int> { Version.build })
 
 //PlayerVars
 registerVarForType<Player>("玩家基础信息").apply {
