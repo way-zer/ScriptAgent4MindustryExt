@@ -41,7 +41,7 @@ val Block.buildScore: Float
         //如果有更好的建筑积分规则，请修改此处
         return buildCost / 60f //建筑时间(单位秒)
     }
-val Player.isIdle get() = (unit().vel.isZero(1e-9F) || (unit().onSolid() && tileOn()?.block() is Conveyor)) && !builder().isBuilding && !shooting() && textFadeTime < 0
+val Player.isIdle get() = (unit().vel.isZero(1e-9F) || (unit().onSolid() && tileOn()?.block() is Conveyor)) && !unit().isBuilding && !shooting() && textFadeTime < 0
 val Player.active: Boolean
     get() {//是否挂机超过10秒
         if (!isIdle) data.lastActive = System.currentTimeMillis()
@@ -54,7 +54,7 @@ export(::active)
 @Savable
 val statisticsData = mutableMapOf<String, StatisticsData>()
 customLoad(::statisticsData) { statisticsData += it }
-val Player.data get() = statisticsData.getOrPut(uuid ?: "UNKNOW") { StatisticsData() }
+val Player.data get() = statisticsData.getOrPut(uuid) { StatisticsData() }
 registerVarForType<StatisticsData>().apply {
     registerChild("playedTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.playedTime.toLong()) })
     registerChild("idleTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.idleTime.toLong()) })
@@ -135,7 +135,7 @@ listen<EventType.GameOverEvent> { event ->
                 val map = mutableMapOf<PlayerProfile, StatisticsData>()
                 sortedData.groupBy { PlayerData.find(it.first)?.profile }.forEach { (key, value) ->
                     if (key == null || value.isEmpty()) return@forEach
-                    map[key] = value.maxBy { it.second.score }!!.second
+                    map[key] = value.maxByOrNull { it.second.score }!!.second
                 }
                 map.forEach { (profile, data) ->
                     profile.updateExp(data.exp).forEach {

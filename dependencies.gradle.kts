@@ -1,5 +1,5 @@
 val libraryVersion = "1.3.4"
-val mindustryVersion = "v105"
+val mindustryVersion = "v115"
 
 repositories {
 //    maven("http://maven.aliyun.com/nexus/content/groups/public/")
