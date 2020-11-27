@@ -9,6 +9,7 @@ import mindustry.game.Gamemode
 import mindustry.gen.Call
 import mindustry.io.SaveIO
 import mindustry.maps.Map
+import org.jline.utils.Log
 import java.time.Duration
 import java.util.*
 
@@ -27,7 +28,11 @@ inner class MapManager : SharedData.IMapManager {
     override val maps: Array<Map>
         get() {
             Vars.maps.reload()
-            return if (configEnableInternMaps) Vars.maps.all().toArray(Map::class.java) else Vars.maps.customMaps()!!.toArray(Map::class.java)
+            if (!configEnableInternMaps && Vars.maps.customMaps().isEmpty) {
+                Log.warn("服务器未安装自定义地图,使用自带地图")
+                return Vars.maps.all().toArray(Map::class.java)
+            }
+            return if (configEnableInternMaps) Vars.maps.all().toArray(Map::class.java) else Vars.maps.customMaps().toArray(Map::class.java)
         }
 
     override fun loadMap(map: Map, mode: Gamemode) {
