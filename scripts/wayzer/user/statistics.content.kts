@@ -54,7 +54,7 @@ export(::active)
 @Savable
 val statisticsData = mutableMapOf<String, StatisticsData>()
 customLoad(::statisticsData) { statisticsData += it }
-val Player.data get() = statisticsData.getOrPut(uuid) { StatisticsData() }
+val Player.data get() = statisticsData.getOrPut(uuid()) { StatisticsData() }
 registerVarForType<StatisticsData>().apply {
     registerChild("playedTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.playedTime.toLong()) })
     registerChild("idleTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.idleTime.toLong()) })
@@ -100,16 +100,20 @@ listen<EventType.BlockBuildEndEvent> {
 }
 
 listen<EventType.GameOverEvent> { event ->
+    onGameOver(event.winner)
+}
+
+fun onGameOver(winner: Team) {
     val startTime by PlaceHold.reference<Date>("state.startTime")
     val gameTime = Duration.between(startTime.toInstant(), Instant.now())
     if (state.rules.mode() in arrayOf(Gamemode.editor, Gamemode.sandbox)) {
-        broadcast("""
+        return broadcast("""
             [yellow]本局游戏时长: {gameTime:分钟}
             [yellow]沙盒或编辑器模式,不计算贡献
         """.trimIndent().with("gameTime" to gameTime))
     }
 
-    StatisticsData.teamWin = if (state.rules.mode() != Gamemode.survival) event.winner else Team.sharded
+    StatisticsData.teamWin = if (state.rules.mode() != Gamemode.survival) winner else Team.sharded
     var totalTime = 0
     val sortedData = statisticsData.filterValues { it.playedTime > 60 }
             .mapKeys { netServer.admins.getInfo(it.key) }
@@ -146,4 +150,6 @@ listen<EventType.GameOverEvent> { event ->
             }
         }
     }
+    statisticsData.clear()
 }
+export(::onGameOver)//Need in Dispatchers.game
