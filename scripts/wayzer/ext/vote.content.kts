@@ -7,6 +7,7 @@ import cf.wayzer.placehold.PlaceHoldContext
 import coreMindustry.lib.util.sendMenuPhone
 import mindustry.entities.type.Player
 import mindustry.game.EventType
+import mindustry.game.Team
 import mindustry.gen.Call
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
@@ -98,6 +99,7 @@ subVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图"
         VoteHandler.start(player!!, "换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map), supportSingle = true) {
             if (!SaveIO.isSaveValid(map.file))
                 return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
+            depends("wayzer/user/statistics")?.import<(Team) -> Unit>("onGameOver")?.invoke(Team.derelict)
             SharedData.mapManager.loadMap(map)
             Core.app.post { // 推后,确保地图成功加载
                 broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
@@ -149,6 +151,7 @@ subVote("回滚到某个存档(使用/slots查看)", "<存档ID>", "rollback", "
     val map = SharedData.mapManager.getSlot(arg[0].toInt())
             ?: return@subVote reply("[red]存档不存在或存档损坏".with())
     VoteHandler.start(player!!, "回档".with(), supportSingle = true) {
+        depends("wayzer/user/statistics")?.import<(Team) -> Unit>("onGameOver")?.invoke(Team.derelict)
         SharedData.mapManager.loadSave(map)
         broadcast("[green]回档成功".with(), quite = true)
     }
