@@ -1,8 +1,11 @@
 package wayzer.ext
 
+import arc.math.geom.Geometry
 import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.gen.Groups
+import mindustry.gen.Unit
+import mindustry.world.blocks.storage.CoreBlock
 import java.time.Duration
 import kotlin.math.ceil
 
@@ -17,7 +20,11 @@ listen<EventType.WorldLoadEvent> {
         suspend fun checkAttack(time: Int) = repeat(time) {
             delay(1000)
             Groups.unit.forEach {
-                if (state.teams.closestEnemyCore(it.x, it.y, it.team)?.within(it, state.rules.enemyCoreBuildRadius) == true) {
+                fun Unit.nearest(): CoreBlock.CoreBuild? {
+                    return Geometry.findClosest(it.x, it.y, state.teams.present
+                            .filterNot { t -> t.team == it.team }.flatMap { t -> t.cores })
+                }
+                if (it.nearest()?.within(it, state.rules.enemyCoreBuildRadius) == true) {
                     it.player?.sendMessage("[red]PVP保护时间,禁止在其他基地攻击".with())
                     it.kill()
                 }
