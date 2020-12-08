@@ -87,8 +87,7 @@ inner class MapManager : SharedData.IMapManager {
             players.forEach {
                 if (it.con == null) return@forEach
                 it.reset()
-                if (state.rules.pvp)
-                    it.team(netServer.assignTeam(it, players))
+                it.team(netServer.assignTeam(it, players))
                 netServer.sendWorldData(it)
             }
             registerVar("state.startTime", "本局游戏开始时间", Date())
