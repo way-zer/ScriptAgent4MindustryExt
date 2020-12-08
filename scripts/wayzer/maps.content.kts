@@ -1,6 +1,7 @@
 package wayzer
 
 import arc.files.Fi
+import arc.util.Log
 import cf.wayzer.placehold.DynamicVar
 import coreMindustry.lib.util.sendMenuPhone
 import mindustry.Vars
@@ -9,7 +10,6 @@ import mindustry.game.Gamemode
 import mindustry.gen.Call
 import mindustry.io.SaveIO
 import mindustry.maps.Map
-import org.jline.utils.Log
 import java.time.Duration
 import java.util.*
 
