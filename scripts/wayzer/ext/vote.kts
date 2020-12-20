@@ -152,7 +152,7 @@ fun VoteService.register() {
     }
     addSubVote("自定义投票", "<内容>", "text", "文本", "t") {
         if (arg.isEmpty()) returnReply("[red]请输入投票内容".with())
-        start(player!!, "自定义([green]{text}[yellow])".with("text" to arg[0])) {}
+        start(player!!, "自定义([green]{text}[yellow])".with("text" to arg.joinToString(" "))) {}
     }
 }
 
