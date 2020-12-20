@@ -18,29 +18,30 @@ onEnable {
                     val list = ScriptManager.loadedInitScripts.values.map {
                         val enable = if (it.enabled) "purple" else "reset"
                         "[{enable}]{name} [blue]{desc}\n".with(
-                                "enable" to enable,
-                                "name" to it.id.padEnd(20),
-                                "desc" to it.name
+                            "enable" to enable,
+                            "name" to it.id.padEnd(20),
+                            "desc" to it.name
                         )
                     }
                     return@body reply(
-                            """
+                        """
                     [yellow]==== [light_yellow]已加载模块[yellow] ====
                     {list}
                 """.trimIndent().with("list" to list)
                     )
                 }
-                val module = arg[0].let(ScriptManager::getScript)?.let { it as? IInitScript }
-                        ?: return@body reply("[red]找不到模块".with())
+                val module = arg[0].let(ScriptManager::getScript)?.let { it as? IModuleScript }
+                    ?: return@body reply("[red]找不到模块".with())
                 val list = module.children.map {
                     val enable = if (it.enabled) "purple" else "reset"
                     "[{enable}]{name} [blue]{desc}\n".with(
-                            "enable" to enable,
-                            "name" to it.id.padEnd(30),
-                            "desc" to it.name
+                        "enable" to enable,
+                        "name" to it.id.padEnd(30),
+                        "desc" to it.name
                     )
                 }
-                reply("""
+                reply(
+                    """
                 [yellow]==== [light_yellow]{module}脚本[yellow] ====
                 {list}
             """.trimIndent().with("module" to module.name, "list" to list)
@@ -52,8 +53,8 @@ onEnable {
             permission = "scriptAgent.control.reload"
             onComplete {
                 onComplete(0) {
-                    (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IInitScript }?.children
-                            ?: ScriptManager.loadedInitScripts.values).map { it.id }
+                    (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IModuleScript }?.children
+                        ?: ScriptManager.loadedInitScripts.values).map { it.id }
                 }
             }
             body {
@@ -61,10 +62,15 @@ onEnable {
                 GlobalScope.launch {
                     reply("[yellow]异步处理中".with())
                     val success: Boolean = when (val script = arg.getOrNull(0)?.let(ScriptManager::getScript)) {
-                        is IInitScript -> ScriptManager.loadModule(script.sourceFile, force = true, enable = true) != null
-                        is IContentScript -> ScriptManager.loadContent(script.module, script.sourceFile,
-                                force = true,
-                                enable = true
+                        is IModuleScript -> ScriptManager.loadModule(
+                            script.sourceFile,
+                            force = true,
+                            enable = true
+                        ) != null
+                        is ISubScript -> ScriptManager.loadContent(
+                            script.module, script.sourceFile,
+                            force = true,
+                            enable = true
                         ) != null
                         else -> return@launch reply("[red]找不到模块或者脚本".with())
                     }
@@ -78,14 +84,17 @@ onEnable {
             permission = "scriptAgent.control.load"
             body {
                 val file = arg.getOrNull(0)?.let(Config.rootDir::resolve)
-                        ?: return@body reply("[red]未找到对应文件".with())
+                    ?: return@body reply("[red]未找到对应文件".with())
                 GlobalScope.launch {
                     reply("[yellow]异步处理中".with())
                     val success: Boolean = when {
-                        file.name.endsWith(Config.moduleDefineSuffix) -> ScriptManager.loadModule(file, enable = true) != null
+                        file.name.endsWith(Config.moduleDefineSuffix) -> ScriptManager.loadModule(
+                            file,
+                            enable = true
+                        ) != null
                         file.name.endsWith(Config.contentScriptSuffix) -> {
                             val module = ScriptManager.getScript(arg[0].split('/')[0])
-                            if (module !is IInitScript) return@launch reply("[red]找不到模块,请确定模块已先加载".with())
+                            if (module !is IModuleScript) return@launch reply("[red]找不到模块,请确定模块已先加载".with())
                             ScriptManager.loadContent(module, file, enable = true) != null
                         }
                         else -> return@launch reply("[red]不支持的文件格式".with())

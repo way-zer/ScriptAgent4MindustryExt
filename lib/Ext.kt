@@ -1,7 +1,7 @@
 package coreLibrary.lib
 
 import cf.wayzer.script_agent.Config
-import cf.wayzer.script_agent.IContentScript
+import cf.wayzer.script_agent.ISubScript
 import java.util.logging.Logger
 
 val Config.dataDirectory
@@ -9,4 +9,4 @@ val Config.dataDirectory
         mkdirs()
     }
 
-val IContentScript.logger get() = Logger.getLogger(id.replace("/", "."))
+val ISubScript.logger get() = Logger.getLogger(id.replace("/", "."))

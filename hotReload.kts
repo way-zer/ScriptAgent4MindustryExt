@@ -32,7 +32,7 @@ fun enableWatch() {
                         println("脚本文件更新: ${event.kind().name()} ${Config.getIdByFile(file.toFile())}")
                         delay(1000)
                         val module = Config.findModuleBySource(file.toFile())?.let {
-                            ScriptManager.getScript(it) as? IInitScript
+                            ScriptManager.getScript(it) as? IModuleScript
                         } ?: return@forEach println("[WARN]Can't get Module by $file")
                         ScriptManager.loadContent(module, file.toFile(), force = true, enable = true)
                     }
