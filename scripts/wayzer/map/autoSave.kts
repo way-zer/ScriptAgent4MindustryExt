@@ -1,4 +1,4 @@
-package wayzer.ext
+package wayzer.map
 
 import mindustry.core.GameState
 import mindustry.io.SaveIO

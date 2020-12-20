@@ -1,4 +1,4 @@
-package wayzer.ext
+package wayzer.map
 
 import mindustry.content.Blocks
 import mindustry.game.EventType

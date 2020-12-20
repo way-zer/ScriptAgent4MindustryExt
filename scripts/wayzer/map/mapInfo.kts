@@ -1,4 +1,4 @@
-package wayzer.ext
+package wayzer.map
 
 import mindustry.entities.type.Player
 import mindustry.game.EventType
