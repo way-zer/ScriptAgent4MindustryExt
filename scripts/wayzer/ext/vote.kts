@@ -7,6 +7,7 @@ import arc.files.Fi
 import arc.util.Time
 import cf.wayzer.script_agent.util.ServiceRegistry
 import mindustry.game.Team
+import mindustry.gen.Player
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
 import wayzer.services.MapService
@@ -125,15 +126,15 @@ fun VoteService.register() {
     addSubVote("踢出某人15分钟", "<玩家名>", "kick", "踢出") {
         val target = playerGroup.find { it.name == arg.joinToString(" ") }
             ?: returnReply("[red]请输入正确的玩家名，或者到列表点击投票".with())
-        if (SharedData.admin.isAdmin(player!!))
-            return@addSubVote SharedData.admin.ban(player!!, target.uuid)
+        val adminBan = depends("wayzer/admin")?.import<(Player, String) -> Unit>("ban")
+        if (hasPermission("wayzer.vote.ban") && adminBan != null) {
+            return@addSubVote adminBan(player!!, target.uuid)
+        }
         start(player!!, "踢人(踢出[red]{target.name}[yellow])".with("target" to target)) {
-            if (SharedData.admin.isAdmin(target)) {
-                return@start broadcast("[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target))
-            }
             target.info.lastKicked = Time.millis() + (15 * 60 * 1000) //Kick for 15 Minutes
             target.con?.kick("[yellow]你被投票踢出15分钟")
-            SharedData.admin.secureLog(
+            val secureLog = depends("wayzer/admin")?.import<(String, String) -> Unit>("secureLog") ?: return@start
+            secureLog(
                 "Kick",
                 "${target.name}(${target.uuid},${target.con.address}) is kicked By ${player!!.name}(${player!!.uuid})"
             )
