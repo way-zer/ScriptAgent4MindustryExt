@@ -1,18 +1,19 @@
 package coreLibrary.lib.util
 
-import cf.wayzer.script_agent.IContentScript
-import cf.wayzer.script_agent.events.ScriptDisableEvent
-import cf.wayzer.script_agent.getContextModule
+import cf.wayzer.script_agent.ISubScript
 import cf.wayzer.script_agent.listenTo
 import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.event.ServiceProvidedEvent
 import java.lang.ref.WeakReference
 import kotlin.reflect.KProperty
 
+/**
+ * 模块化服务提供工具库
+ */
 interface ServiceInterface
 abstract class ServerClass<T : ServiceInterface> {
     private var inst: WeakReference<T> = WeakReference(null)
-    fun provide(script: IContentScript, inst: T) {
+    fun provide(script: ISubScript, inst: T) {
         script.providedService.add(this to inst)
         this.inst = WeakReference(inst)
         ServiceProvidedEvent(inst, script).emit()
@@ -26,7 +27,7 @@ abstract class ServerClass<T : ServiceInterface> {
         return get()
     }
 
-    fun waitForProvider(script: IContentScript, once: Boolean = false, body: ServiceProvidedEvent<T>.() -> Unit) {
+    fun waitForProvider(script: ISubScript, once: Boolean = false, body: ServiceProvidedEvent<T>.() -> Unit) {
         var moreThanOnce = false
         script.listenTo<ServiceProvidedEvent<T>> {
             if (once && moreThanOnce)
@@ -36,6 +37,6 @@ abstract class ServerClass<T : ServiceInterface> {
     }
 
     companion object {
-        val IContentScript.providedService by DSLBuilder.dataKeyWithDefault { mutableSetOf<Pair<ServerClass<out ServiceInterface>, ServiceInterface>>() }
+        val ISubScript.providedService by DSLBuilder.dataKeyWithDefault { mutableSetOf<Pair<ServerClass<out ServiceInterface>, ServiceInterface>>() }
     }
 }

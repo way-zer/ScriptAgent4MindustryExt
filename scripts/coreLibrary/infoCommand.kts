@@ -11,8 +11,8 @@ onEnable {
             permission = "scriptAgent.info"
             onComplete {
                 onComplete(0) {
-                    (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IInitScript }?.children
-                            ?: ScriptManager.loadedInitScripts.values).map { it.id }
+                    (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IModuleScript }?.children
+                        ?: ScriptManager.loadedInitScripts.values).map { it.id }
                 }
             }
             body {
@@ -26,14 +26,16 @@ onEnable {
                     "[purple]{key} [blue]{desc}\n".with("key" to it.key, "desc" to it.value)
                 }
 
-                returnReply("""
+                returnReply(
+                    """
                 [yellow]==== [light_yellow]{name}信息[yellow] ====
                 [cyan]配置项:
                 {configs}
                 [cyan]提供的变量:
                 {registeredVars}
                 [cyan]注册的指令:暂未实现
-            """.trimIndent().with("name" to script.clsName, "configs" to configs, "registeredVars" to registeredVars))
+            """.trimIndent().with("name" to script.clsName, "configs" to configs, "registeredVars" to registeredVars)
+                )
             }
         })
         onDisable { removeAll(thisRef) }
