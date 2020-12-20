@@ -6,6 +6,7 @@ package wayzer.ext
 import arc.files.Fi
 import arc.util.Time
 import cf.wayzer.script_agent.util.ServiceRegistry
+import mindustry.Vars
 import mindustry.game.Team
 import mindustry.gen.Player
 import mindustry.io.MapIO
@@ -148,6 +149,10 @@ fun VoteService.register() {
         start(player!!, "清理建筑记录({team.colorizeName}[yellow]队|需要2/5同意)".with("team" to team)) {
             team.data().blocks.clear()
         }
+    }
+    addSubVote("自定义投票", "<内容>", "text", "文本", "t") {
+        if (arg.isEmpty()) returnReply("[red]请输入投票内容".with())
+        start(Vars.player!!, "自定义投票({text}[yellow])".with("text" to arg[0])) {}
     }
 }
 
