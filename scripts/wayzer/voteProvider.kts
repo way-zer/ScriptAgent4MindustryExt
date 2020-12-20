@@ -145,7 +145,7 @@ inner class VoteHandler : VoteService {
         vararg aliases: String,
         body: CommandContext.() -> Unit
     ) {
-        voteCommands += CommandInfo(null, aliases.first(), desc) {
+        voteCommands += CommandInfo(this, aliases.first(), desc) {
             this.usage = usage
             this.aliases = aliases.toList()
             body(body)
@@ -154,7 +154,7 @@ inner class VoteHandler : VoteService {
     }
 }
 
-ServiceRegistry.provideImpl(this, VoteService::class.java, VoteHandler)
+provide<VoteService>(VoteHandler)
 
 command("vote", "发起投票") {
     type = CommandType.Client
