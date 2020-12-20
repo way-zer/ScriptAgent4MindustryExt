@@ -7,19 +7,19 @@ name = "权限管理系统"
 
 var groups by config.key(
     mapOf(
-        "@default" to listOf("wayzer.ext.observer", "wayzer.ext.history"),
-        "@admin" to listOf(
+        "%default" to listOf("wayzer.ext.observer", "wayzer.ext.history"),
+        "%admin" to listOf(
             "wayzer.admin.ban", "wayzer.info.other", "wayzer.vote.ban",
             "wayzer.maps.host", "wayzer.maps.load", "wayzer.ext.team.change",
         ),
     ),
-    "权限设置", "特殊组有:@default,@admin,@lvl0,@lvl1等,用户qq可单独做组", "值为权限，@开头为组,支持末尾通配符.*"
+    "权限设置", "特殊组有:%default,%admin,%lvl0,%lvl1等,用户qq可单独做组", "值为权限，%开头为组,支持末尾通配符.*"
 )
 
 fun hasPermission(permission: String, list: List<String>): Boolean {
     list.forEach {
         when {
-            it.startsWith("@") -> {
+            it.startsWith("%") -> {
                 if (checkGroup(permission, it))
                     return true
             }
@@ -47,14 +47,14 @@ listenTo<PermissionRequestEvent> {
                 CommandInfo.Return()
             }
         }
-        check { checkGroup(permission, "@default") }
+        check { checkGroup(permission, "%default") }
         val uuid = context.player!!.uuid()
-        check { checkGroup(permission, "@$uuid") }
+        check { checkGroup(permission, "%$uuid") }
         val profile = PlayerData[uuid].profile ?: return@listenTo
-        check { checkGroup(permission, profile.qq.toString()) }
+        check { checkGroup(permission, "%" + profile.qq.toString()) }
         val level = (PlaceHoldApi.GlobalContext.typeResolve(profile, "level") ?: return@listenTo) as Int
         for (lvl in level downTo 0) {
-            check { checkGroup("@lvl$lvl", profile.qq.toString()) }
+            check { checkGroup(permission, "%lvl$lvl") }
         }
     } catch (e: CommandInfo.Return) {
     }
@@ -62,7 +62,7 @@ listenTo<PermissionRequestEvent> {
 
 command("permission", "权限系统配置") {
     permission = "wayzer.permission"
-    usage = "<group> <add/list/remove> [permission]"
+    usage = "<group> <add/list/remove/delGroup> [permission]"
     onComplete {
         onComplete(0) { groups.keys.toList() }
         onComplete(1) { listOf("add", "list", "remove") }
@@ -102,7 +102,7 @@ command("permission", "权限系统配置") {
                     )
                 )
             }
-            "delGroup" -> {
+            "delgroup" -> {
                 val now = groups[group].orEmpty()
                 if (group in groups)
                     groups = groups - group
@@ -123,25 +123,25 @@ command("madmin", "列出或添加删除管理") {
     body {
         val uuid = arg.getOrNull(0)
         if (uuid == null) {
-            val list = groups.filter { it.value.contains("@admin") }.keys.joinToString()
+            val list = groups.filter { it.value.contains("%admin") }.keys.joinToString()
             returnReply("Admins: {list}".with("list" to list))
         } else {
-            val now = groups["@$uuid"].orEmpty()
-            if ("@admin" in now) {
+            val now = groups["%$uuid"].orEmpty()
+            if ("%admin" in now) {
                 groups = if (now.size == 1) {
-                    groups - "@$uuid"
+                    groups - "%$uuid"
                 } else {
-                    groups + ("@$uuid" to (now - "@admin"))
+                    groups + ("%$uuid" to (now - "%admin"))
                 }
                 returnReply("[red]$uuid [green] has been removed from Admins[]".with())
             } else {
-                if (uuid.length > 5 && uuid.toIntOrNull() != null) {
-                    groups + ("@$uuid" to (now + "@admin"))
+                if (uuid.length > 5 && uuid.toLongOrNull() != null) {
+                    groups = groups + ("%$uuid" to (now + "%admin"))
                     reply("[red] {qq} [green] has been added to Admins".with("qq" to uuid))
                 } else {
                     val info = netServer.admins.getInfoOptional(uuid)
                         ?: returnReply("[red]Can't found player".with())
-                    groups + ("@$uuid" to (now + "@admin"))
+                    groups = groups + ("%$uuid" to (now + "%admin"))
                     reply("[red] {info.name}({info.uuid}) [green] has been added to Admins".with("info" to info))
                 }
             }
