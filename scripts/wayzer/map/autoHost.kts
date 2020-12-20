@@ -1,5 +1,5 @@
 @file:Import("@wayzer/services/MapService", sourceFile = true)
-package wayzer.ext
+package wayzer.map
 
 import mindustry.game.EventType
 import wayzer.services.MapService

@@ -1,11 +1,10 @@
-package wayzer.ext
+package wayzer.map
 
 import arc.util.Log
 import mindustry.content.Blocks
 import mindustry.core.ContentLoader
 import mindustry.core.World
 import mindustry.game.EventType
-import mindustry.io.MapIO
 import mindustry.world.Tile
 import java.awt.image.BufferedImage
 import java.text.SimpleDateFormat
