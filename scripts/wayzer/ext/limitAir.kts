@@ -1,3 +1,5 @@
+package wayzer.ext
+
 import mindustry.content.Blocks
 import mindustry.game.EventType
 import mindustry.gen.Call
