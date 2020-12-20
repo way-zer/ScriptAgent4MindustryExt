@@ -63,7 +63,7 @@ command("team", "管理指令: 修改自己或他人队伍(PVP模式)", {
     this.usage = "[队伍,不填列出] [玩家3位id,默认自己]"
     permission = "wayzer.ext.team.change"
 }) {
-    if (!state.rules.pvp) reply("[red]仅PVP模式可用".with())
+    if (!state.rules.pvp) returnReply("[red]仅PVP模式可用".with())
     val team = arg.getOrNull(0)?.toIntOrNull()?.let { Team.get(it) } ?: let {
         val teams = Team.baseTeams.mapIndexed { i, t -> "{id}({team.colorizeName}[]) ".with("id" to i, "team" to t) }
         return@command reply("[yellow]可用队伍: []{list}".with("list" to teams))
