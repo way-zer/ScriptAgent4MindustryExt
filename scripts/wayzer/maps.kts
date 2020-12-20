@@ -1,3 +1,5 @@
+@file:Import("@wayzer/services/MapService", sourceFile = true)
+
 package wayzer
 
 import arc.files.Fi
@@ -10,6 +12,7 @@ import mindustry.game.Gamemode
 import mindustry.gen.Call
 import mindustry.io.SaveIO
 import mindustry.maps.Map
+import wayzer.services.MapService
 import java.time.Duration
 import java.util.*
 
@@ -24,7 +27,7 @@ registerVar("state.startTime", "本局游戏开始时间", Date())
 @Suppress("PropertyName")
 val MapManager = MapManager()
 
-inner class MapManager : SharedData.IMapManager {
+inner class MapManager : MapService {
     override val maps: Array<Map>
         get() {
             Vars.maps.reload()
@@ -32,7 +35,8 @@ inner class MapManager : SharedData.IMapManager {
                 Log.warn("服务器未安装自定义地图,使用自带地图")
                 return Vars.maps.all().toArray(Map::class.java)
             }
-            return if (configEnableInternMaps) Vars.maps.all().toArray(Map::class.java) else Vars.maps.customMaps().toArray(Map::class.java)
+            return if (configEnableInternMaps) Vars.maps.all().toArray(Map::class.java) else Vars.maps.customMaps()
+                .toArray(Map::class.java)
         }
 
     override fun loadMap(map: Map, mode: Gamemode) {
@@ -55,7 +59,13 @@ inner class MapManager : SharedData.IMapManager {
         }
     }
 
+    var nextMap: Map? = null
+
     override fun nextMap(map: Map?, mode: Gamemode): Map {
+        nextMap?.let {
+            nextMap = null
+            return it
+        }
         val maps = maps.toMutableList()
         maps.shuffle()
         val ret = maps.filter { bestMode(it) == mode }.firstOrNull { it.file != map?.file } ?: maps[0]
@@ -64,6 +74,10 @@ inner class MapManager : SharedData.IMapManager {
             return nextMap(map, mode)
         }
         return ret
+    }
+
+    override fun setNextMap(map: Map) {
+        nextMap = map
     }
 
     override fun bestMode(map: Map): Gamemode {
@@ -103,7 +117,8 @@ inner class MapManager : SharedData.IMapManager {
         return voteFile
     }
 }
-SharedData.mapManager = MapManager
+provide<MapService>(MapManager)
+
 PlaceHold.registerForType<Map>(this).apply {
     registerChild("id", "在/maps中的id", DynamicVar { obj, _ ->
         MapManager.maps.indexOfFirst { it.file == obj.file } + 1
@@ -134,7 +149,7 @@ command("maps", "列出服务器地图", {
         maps.filter { mode == null || MapManager.bestMode(it.second) == mode }
     sendMenuPhone("服务器地图 By WayZer", maps, page, mapsPrePage) { (id, map) ->
         "[red]{id}[green]({map.width},{map.height})[]:[yellow]{map.fileName}[] | [blue]{map.name}\n"
-                .with("id" to "%2d".format(id), "map" to map)
+            .with("id" to "%2d".format(id), "map" to map)
     }
 }
 onEnable {
@@ -151,8 +166,8 @@ val waitingTime by config.key(Duration.ofSeconds(10)!!, "游戏结束换图的�
 val gameOverMsgType by config.key(MsgType.InfoMessage, "游戏结束消息是显示方式")
 listen<EventType.GameOverEvent> { event ->
     ContentHelper.logToConsole(
-            if (state.rules.pvp) "&lcGame over! Team &ly${event.winner.name}&lc is victorious with &ly${playerGroup.size()}&lc players online on map &ly${world.map.name()}&lc."
-            else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${playerGroup.size()}&lc players online on map &ly${world.map.name()}&lc."
+        if (state.rules.pvp) "&lcGame over! Team &ly${event.winner.name}&lc is victorious with &ly${playerGroup.size()}&lc players online on map &ly${world.map.name()}&lc."
+        else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${playerGroup.size()}&lc players online on map &ly${world.map.name()}&lc."
     )
     val map = MapManager.nextMap(world.map)
     val winnerMsg: Any = if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
@@ -175,7 +190,7 @@ command("host", "管理指令: 换图", {
 }) {
     val map = if (arg.isEmpty()) MapManager.nextMap(world.map) else
         arg[0].toIntOrNull()?.let { MapManager.maps.getOrNull(it - 1) }
-                ?: return@command reply("[red]请输入正确的地图ID".with())
+            ?: return@command reply("[red]请输入正确的地图ID".with())
     val mode = arg.getOrNull(1)?.let { name ->
         Gamemode.values().find { it.name == name } ?: return@command reply("[red]请输入正确的模式".with())
     } ?: MapManager.bestMode(map)
