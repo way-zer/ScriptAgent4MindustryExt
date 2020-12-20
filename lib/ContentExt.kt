@@ -3,7 +3,7 @@ package coreMindustry.lib
 import arc.Core
 import arc.func.Cons
 import arc.util.Log
-import cf.wayzer.script_agent.IContentScript
+import cf.wayzer.script_agent.ISubScript
 import cf.wayzer.script_agent.util.DSLBuilder.Companion.dataKeyWithDefault
 import coreLibrary.lib.CommandHandler
 import coreLibrary.lib.CommandInfo
@@ -17,21 +17,21 @@ import mindustry.entities.type.Player
 import kotlin.coroutines.CoroutineContext
 
 object ContentExt {
-    val IContentScript.allCommands by dataKeyWithDefault { mutableListOf<CommandInfo>() }
-    val IContentScript.listener by dataKeyWithDefault { mutableListOf<Listener<*>>() }
+    val ISubScript.allCommands by dataKeyWithDefault { mutableListOf<CommandInfo>() }
+    val ISubScript.listener by dataKeyWithDefault { mutableListOf<Listener<*>>() }
 
     data class CommandInfo(
-            val name: String,
-            val description: String,
-            val param: String = "",
-            val type: CommandType = CommandType.Both,
-            val runner: (arg: Array<String>, player: Player?) -> Unit
+        val name: String,
+        val description: String,
+        val param: String = "",
+        val type: CommandType = CommandType.Both,
+        val runner: (arg: Array<String>, player: Player?) -> Unit
     )
 
     data class Listener<T : Any>(
-            val script: IContentScript?,
-            val cls: Class<T>,
-            val handler: (T) -> Unit
+        val script: ISubScript?,
+        val cls: Class<T>,
+        val handler: (T) -> Unit
     ) : Cons<T> {
         override fun get(p0: T) {
             try {
@@ -59,31 +59,30 @@ object ContentExt {
 }
 
 
-
-inline fun <reified T : Any> IContentScript.listen(noinline handler: (T) -> Unit) {
+inline fun <reified T : Any> ISubScript.listen(noinline handler: (T) -> Unit) {
     listener.add(ContentExt.Listener(this, T::class.java, handler))
 }
 
 @Deprecated("use new command api", ReplaceWith("command(name,description,{usage=param;this.type=type},runner)"))
-fun IContentScript.command(
-        name: String,
-        description: String,
-        param: String,
-        type: CommandType = CommandType.Both,
-        runner: (arg: Array<String>, player: Player?) -> Unit
+fun ISubScript.command(
+    name: String,
+    description: String,
+    param: String,
+    type: CommandType = CommandType.Both,
+    runner: (arg: Array<String>, player: Player?) -> Unit
 ) {
     allCommands.add(ContentExt.CommandInfo(name, description, param, type, runner))
 }
 
 @Deprecated("use new command api", ReplaceWith("command(name,description){init();body(handler)}"))
-fun IContentScript.command(name: String, description: String, init: CommandInfo.() -> Unit, handler: CommandHandler) {
+fun ISubScript.command(name: String, description: String, init: CommandInfo.() -> Unit, handler: CommandHandler) {
     RootCommands += CommandInfo(this, name, description) {
         init()
         body(handler)
     }
 }
 
-fun IContentScript.command(name: String, description: String, init: CommandInfo.() -> Unit) {
+fun ISubScript.command(name: String, description: String, init: CommandInfo.() -> Unit) {
     RootCommands += CommandInfo(this, name, description, init)
 }
 
