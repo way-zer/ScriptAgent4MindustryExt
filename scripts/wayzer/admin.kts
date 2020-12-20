@@ -10,9 +10,6 @@ name = "基础: 禁封管理"
 
 val pluginLog by config.key(dataDirectory.child("logs").child("secureLog.log").file()!!, "安全日记文件")
 
-@Suppress("PropertyName")
-val Admin = Admin()
-
 fun secureLog(tag: String, text: String) {
     ContentHelper.logToConsole("[red][$tag][yellow]$text")
     pluginLog.appendText("[$tag][${Date()}] $text\n")
@@ -52,7 +49,7 @@ command("ban", "管理指令: 列出已ban用户，ban或解ban", {
     } else {
         netServer.admins.banned.find { it.id.startsWith(uuid) }?.let {
             netServer.admins.unbanPlayerID(it.id)
-            Admin.secureLog("UnBan", "${player!!.name} unBan ${it.lastName}(${it.id})")
+            secureLog("UnBan", "${player!!.name} unBan ${it.lastName}(${it.id})")
             return@command reply("[green]解Ban成功 {info.name}".with("info" to it))
         }
         (netServer.admins.getInfoOptional(uuid))?.let {
@@ -60,7 +57,7 @@ command("ban", "管理指令: 列出已ban用户，ban或解ban", {
             returnReply("[green]Ban成功 {player.name}".with("player" to it))
         }
         if (player != null) playerGroup.find { it.uuid.startsWith(uuid) }?.let {
-            Admin.ban(player!!, it.uuid)
+            ban(player!!, it.uuid)
             returnReply("[green]Ban成功 {player.name}".with("player" to it))
         }
         reply("[red]找不到该用户,请确定三位字母id输入正确! /list 或 /ban 查看".with())

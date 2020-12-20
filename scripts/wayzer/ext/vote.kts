@@ -1,5 +1,5 @@
 @file:Import("@wayzer/services/VoteService.kt", sourceFile = true)
-@file:Import("@wayzer/services/MapService", sourceFile = true)
+@file:Import("@wayzer/services/MapService.kt", sourceFile = true)
 
 package wayzer.ext
 

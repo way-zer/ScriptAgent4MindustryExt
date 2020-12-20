@@ -9,8 +9,8 @@ var groups by config.key(
     mapOf(
         "@default" to listOf("wayzer.ext.observer", "wayzer.ext.history"),
         "@admin" to listOf(
-            "wayzer.admin.ban", "wayzer.info.other", "wayzer.vote.ban"
-            "wayzer.maps.host", "wayzer.maps.load", "wayzer.ext.team.change"
+            "wayzer.admin.ban", "wayzer.info.other", "wayzer.vote.ban",
+            "wayzer.maps.host", "wayzer.maps.load", "wayzer.ext.team.change",
         ),
     ),
     "权限设置", "特殊组有:@default,@admin,@lvl0,@lvl1等,用户qq可单独做组", "值为权限，@开头为组,支持末尾通配符.*"
