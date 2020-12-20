@@ -2,6 +2,7 @@ package wayzer.user
 
 import mindustry.entities.type.Player
 import org.jetbrains.exposed.sql.transactions.transaction
+import wayzer.lib.dao.Achievement
 
 fun finishAchievement(profile: PlayerProfile, name: String, exp: Int, broadcast: Boolean = false) {
     val updateExp = depends("wayzer/user/level")?.import<PlayerProfile.(Int) -> List<Player>>("updateExp")
