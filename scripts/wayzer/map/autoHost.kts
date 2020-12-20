@@ -1,4 +1,4 @@
-@file:Import("@wayzer/services/MapService", sourceFile = true)
+@file:Import("@wayzer/services/MapService.kt", sourceFile = true)
 package wayzer.map
 
 import mindustry.game.EventType

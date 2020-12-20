@@ -1,4 +1,4 @@
-@file:Import("@wayzer/services/MapService", sourceFile = true)
+@file:Import("@wayzer/services/MapService.kt", sourceFile = true)
 
 package wayzer
 
@@ -59,11 +59,11 @@ inner class MapManager : MapService {
         }
     }
 
-    var nextMap: Map? = null
+    var _nextMap: Map? = null
 
     override fun nextMap(map: Map?, mode: Gamemode): Map {
-        nextMap?.let {
-            nextMap = null
+        _nextMap?.let {
+            _nextMap = null
             return it
         }
         val maps = maps.toMutableList()
@@ -77,7 +77,7 @@ inner class MapManager : MapService {
     }
 
     override fun setNextMap(map: Map) {
-        nextMap = map
+        _nextMap = map
     }
 
     override fun bestMode(map: Map): Gamemode {
