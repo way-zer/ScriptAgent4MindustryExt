@@ -34,6 +34,6 @@ dependencies {
     compile("org.jline:jline-terminal:3.15.0")
     compile("org.jline:jline-reader:3.15.0")
     //mirai
-    compile("net.mamoe:mirai-core-all-2.0-M1")
-    compile("net.mamoe:mirai-core-api-2.0-M1")
+    compile("net.mamoe:mirai-core-all:2.0-M1")
+    compile("net.mamoe:mirai-core-api:2.0-M1")
 }
