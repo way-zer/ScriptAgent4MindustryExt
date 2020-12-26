@@ -8,5 +8,5 @@ subscribeGroupMessages {
         })
     }
     content { message.filterIsInstance<PlainText>().any { it.content.contains("欢迎新人") } }
-            .reply { message[At.Key]?.let { PlainText("欢迎") + it } ?: "欢迎新人!" }
+        .reply { message.firstIsInstanceOrNull<At>()?.let { PlainText("欢迎") + it } ?: "欢迎新人!" }
 }

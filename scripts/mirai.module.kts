@@ -1,15 +1,12 @@
 @file:DependsModule("coreLibrary")
-@file:MavenDepends("net.mamoe:mirai-core:1.3.1", single = false)
-@file:MavenDepends("net.mamoe:mirai-core-qqandroid:1.3.1", single = false)
+@file:MavenDepends("net.mamoe:mirai-core:2.0-M1-1", single = false)
 
 import arc.util.Log
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
-import net.mamoe.mirai.Bot
-import net.mamoe.mirai.utils.BotConfiguration
-import net.mamoe.mirai.utils.DefaultLogger
-import net.mamoe.mirai.utils.DefaultLoginSolver
-import net.mamoe.mirai.utils.SimpleLogger
+import net.mamoe.mirai.BotFactory
+import net.mamoe.mirai.newBot
+import net.mamoe.mirai.utils.*
 
 addDefaultImport("mirai.lib.*")
 addLibraryByClass("net.mamoe.mirai.Bot")
@@ -33,7 +30,7 @@ onEnable {
         println("机器人未开启,请先修改配置文件")
         return@onEnable
     }
-    DefaultLogger = {
+    MiraiLogger.setDefaultLoggerCreator {
         SimpleLogger { priority, msg, throwable ->
             when (priority) {
                 SimpleLogger.LogPriority.WARNING -> {
@@ -52,10 +49,11 @@ onEnable {
             }
         }
     }
-    val bot = Bot(qq, password) {
+    val bot = BotFactory.newBot(qq, password) {
         protocol = qqProtocol
         fileBasedDeviceInfo(Config.dataDirectory.resolve("miraiDeviceInfo.json").absolutePath)
         parentCoroutineContext = coroutineContext
+        @Suppress("EXPERIMENTAL_API_USAGE")
         loginSolver = DefaultLoginSolver(channel::receive)
     }
     launch {

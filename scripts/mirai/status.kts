@@ -1,6 +1,7 @@
 package mirai
 
 import cf.wayzer.placehold.PlaceHoldApi
+import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import java.awt.image.BufferedImage
 
 val address by config.key("", "服务器地址,为空则不显示")
