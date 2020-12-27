@@ -1,5 +1,7 @@
 package coreLibrary
 
+import cf.wayzer.script_agent.events.ModuleDisableEvent
+import cf.wayzer.script_agent.events.ScriptDisableEvent
 import kotlinx.coroutines.launch
 
 val thisRef = this
@@ -75,6 +77,28 @@ onEnable {
                         else -> return@launch reply("[red]找不到模块或者脚本".with())
                     }
                     reply((if (success) "[green]重载成功" else "[red]加载失败").with())
+                }
+            }
+        })
+        addSub(CommandInfo(thisRef, "disable", "关闭一个脚本或者模块") {
+            usage = "<module[/script]>"
+            permission = "scriptAgent.control.disable"
+            onComplete {
+                onComplete(0) {
+                    (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IModuleScript }?.children
+                        ?: ScriptManager.loadedInitScripts.values).map { it.id }
+                }
+            }
+            body {
+                if (arg.isEmpty()) replyUsage()
+                GlobalScope.launch {
+                    reply("[yellow]异步处理中".with())
+                    when (val script = arg.getOrNull(0)?.let(ScriptManager::getScript)) {
+                        is IModuleScript -> ModuleDisableEvent(script).emit()
+                        is ISubScript -> ScriptDisableEvent(script).emit()
+                        else -> return@launch reply("[red]找不到模块或者脚本".with())
+                    }
+                    reply("[green]关闭脚本成功".with())
                 }
             }
         })
