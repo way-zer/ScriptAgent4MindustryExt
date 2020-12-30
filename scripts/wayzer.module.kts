@@ -3,7 +3,9 @@
 import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.TemplateHandler
 import cf.wayzer.placehold.TemplateHandlerKey
+import coreLibrary.lib.*
 import mindustry.entities.type.Player
+import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.lib.LangApi
 import wayzer.lib.dao.Achievement
@@ -59,7 +61,7 @@ registerVarForType<Player>().apply {
 onEnable{
     @OptIn(CacheEntity.NeedTransaction::class)
     transaction {
-        playerGroup.forEach {
+        Groups.player.forEach {
             PlayerData.findOrCreate(it)
         }
     }
