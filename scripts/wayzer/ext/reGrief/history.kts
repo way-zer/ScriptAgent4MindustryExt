@@ -1,7 +1,9 @@
 package wayzer.ext.reGrief
 
+import arc.graphics.Color
 import cf.wayzer.placehold.PlaceHoldApi.with
 import mindustry.content.Blocks
+import mindustry.content.Fx
 import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.gen.Call
@@ -26,7 +28,7 @@ lateinit var logs: Array<Array<List<Log>>>
 fun initData() {
     logs = Array(world.width()) {
         Array(world.height()) {
-            emptyList<Log>()
+            emptyList()
         }
     }
 }
@@ -93,7 +95,7 @@ command("history", "开关查询模式", {
     aliases = listOf("历史")
 }) {
     if (arg.getOrElse(0) { "" }.contains("core")) returnReply(
-            "[green]核心破坏周边情况:\n{list}".with("list" to lastCoreLog)
+        "[green]核心破坏周边情况:\n{list}".with("list" to lastCoreLog)
     )
     if (player == null) returnReply("[red]控制台仅可查询核心破坏记录".with())
     if (player!!.uuid in enabledPlayer) {
@@ -102,29 +104,24 @@ command("history", "开关查询模式", {
     } else {
         enabledPlayer.add(player!!.uuid)
         reply("[green]开启查询模式,点击方块查询历史".with())
-        launch {
-            val p = player!!
-            while (p.con != null) {
-                delay(100)
-                if (p.uuid() !in enabledPlayer) break
-                if (p.shooting) {
-                    withContext(Dispatchers.game) {
-                        p.showLog(p.mouseX, p.mouseY)
-                    }
-                }
-            }
-            enabledPlayer.remove(p.uuid())
-        }
     }
+}
+
+listen<EventType.TapEvent> {
+    val p = it.player
+    if (p.uuid() !in enabledPlayer) return@listen
+    Call.effect(p.con, Fx.placeBlock, it.tile.worldx(), it.tile.worldy(), 0.5f, Color.green)
+    p.showLog(it.tile.worldx(), it.tile.worldy())
 }
 
 // 自动保留破坏核心的可疑行为
 var lastCoreLog = emptyList<String>()
 var lastTime = 0L
 val dangerBlock = arrayOf(
-        Blocks.thoriumReactor,
-        Blocks.liquidTank, Blocks.liquidRouter, Blocks.bridgeConduit, Blocks.phaseConduit,
-        Blocks.conduit, Blocks.platedConduit, Blocks.pulseConduit)
+    Blocks.thoriumReactor,
+    Blocks.liquidTank, Blocks.liquidRouter, Blocks.bridgeConduit, Blocks.phaseConduit,
+    Blocks.conduit, Blocks.platedConduit, Blocks.pulseConduit
+)
 listen<EventType.BlockDestroyEvent> { event ->
     if (event.tile.block() is CoreBlock) {
         if (System.currentTimeMillis() - lastTime > 5000) { //防止核心连环爆炸,仅记录第一个被炸核心
