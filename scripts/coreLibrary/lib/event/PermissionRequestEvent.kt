@@ -7,7 +7,7 @@ class PermissionRequestEvent(val permission: String, val context: CommandContext
     var result: Boolean? = null
     override var cancelled: Boolean
         get() = result != null
-        set(value) {
+        set(@Suppress("UNUSED_PARAMETER") value) {
             error("Can't cancel,please set result")
         }
     override val handler = Companion
