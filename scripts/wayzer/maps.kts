@@ -22,7 +22,6 @@ val configEnableInternMaps by config.key(false, "是否开启原版内置地图"
 val mapsDistinguishMode by config.key(false, "是否在/maps区分不同模式的地图")
 val configTempSaveSlot by config.key(111, "临时缓存的存档格位")
 val mapsPrePage by config.key(9, "/maps每页显示数")
-registerVar("state.startTime", "本局游戏开始时间", Date())
 
 @Suppress("PropertyName")
 val MapManager = MapManager()
@@ -104,7 +103,6 @@ inner class MapManager : MapService {
                 it.team(netServer.assignTeam(it, players))
                 netServer.sendWorldData(it)
             }
-            registerVar("state.startTime", "本局游戏开始时间", Date())
         }
     }
 
@@ -120,10 +118,10 @@ inner class MapManager : MapService {
 provide<MapService>(MapManager)
 
 PlaceHold.registerForType<Map>(this).apply {
-    registerChild("id", "在/maps中的id", DynamicVar { obj, _ ->
+    registerChild("id", "在/maps中的id", DynamicVar.obj { obj ->
         MapManager.maps.indexOfFirst { it.file == obj.file } + 1
     })
-    registerChild("mode", "地图设定模式", DynamicVar { obj, _ ->
+    registerChild("mode", "地图设定模式", DynamicVar.obj { obj ->
         MapManager.bestMode(obj).name
     })
 }

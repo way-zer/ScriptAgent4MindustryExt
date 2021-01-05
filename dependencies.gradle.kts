@@ -21,7 +21,7 @@ dependencies {
     compile(kotlin("script-runtime"))
     compile("cf.wayzer:ScriptAgent:$libraryVersion")
     //coreLibrary
-    compile("cf.wayzer:PlaceHoldLib:2.1.0")
+    compile("cf.wayzer:PlaceHoldLib:3.1")
     compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1")
     compile("org.jetbrains.exposed:exposed-core:0.24.1")
     compile("org.jetbrains.exposed:exposed-dao:0.24.1")

@@ -3,8 +3,6 @@ package wayzer.user
 import mindustry.entities.type.Player
 import mindustry.game.EventType
 import java.time.Duration
-import java.time.Instant
-import java.util.*
 
 onEnable {
     launch {
@@ -20,8 +18,8 @@ onEnable {
 var endTime = false
 val finishProfile = mutableSetOf<Int>()
 listen<EventType.GameOverEvent> {
-    val startTime by PlaceHold.reference<Date>("state.startTime")
-    if (Duration.between(startTime.toInstant(), Instant.now()) > Duration.ofMinutes(20)) {
+    val gameTime by PlaceHold.reference<Duration>("state.gameTime")
+    if (gameTime > Duration.ofMinutes(20)) {
         endTime = true
     }
 }

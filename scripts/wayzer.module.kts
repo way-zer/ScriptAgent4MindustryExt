@@ -46,16 +46,14 @@ addDefaultImport("wayzer.lib.dao.*")
 generateHelper()
 registerTable(PlayerProfile.T, PlayerData.T,Achievement.T)
 
-registerVar(TemplateHandlerKey,"多语言处理", TemplateHandler{
-    getVar("player.lang")?.let {lang->
+registerVar(TemplateHandlerKey, "多语言处理", TemplateHandler.new {
+    getVar("player.lang")?.let { lang ->
         LangApi.getLang(lang.toString()).trans(it)
-    }?: it
+    } ?: it
 })
 
 registerVarForType<Player>().apply {
-    registerChild("lang","玩家选定语言(占位)", DynamicVar { _, _ ->
-        LangApi.DEFAULT
-    })
+    registerChild("lang", "玩家选定语言(占位)", DynamicVar.obj { LangApi.DEFAULT })
 }
 
 onEnable{

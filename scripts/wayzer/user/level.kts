@@ -21,17 +21,16 @@ fun level(exp: Int) = floor(sqrt(max(exp, 0).toDouble()) / 10).toInt()
 fun expByLevel(level: Int) = level * level * 100
 
 registerVarForType<PlayerProfile>().apply {
-    registerChild("totalExp", "总经验", DynamicVar { obj, _ -> obj.totalExp })
-    registerChild("level", "当前等级", DynamicVar { obj, _ -> level(obj.totalExp) })
-    registerChild("levelIcon", "当前等级图标", DynamicVar { obj, _ -> getIcon(level(obj.totalExp)) })
-    registerChild("nextLevel", "下一级的要求经验值", DynamicVar { obj, _ -> expByLevel(level(obj.totalExp) + 1) })
+    registerChild("level", "当前等级", DynamicVar.obj { level(it.totalExp) })
+    registerChild("levelIcon", "当前等级图标", DynamicVar.obj { getIcon(level(it.totalExp)) })
+    registerChild("nextLevel", "下一级的要求经验值", DynamicVar.obj { expByLevel(level(it.totalExp) + 1) })
 }
 
 /**
  * @return 所有在线用户
  */
 fun updateExp(p: PlayerProfile, dot: Int): List<Player> {
-    val players = playerGroup.filter { PlayerData.getOrNull(it.uuid ?: "")?.profile == p }
+    val players = playerGroup.filter { PlayerData.getOrNull(it.uuid())?.profile == p }
     p.apply {
         totalExp += dot
         if (level(totalExp) != level(totalExp - dot)) {

@@ -6,7 +6,6 @@ package wayzer.ext
 import arc.files.Fi
 import arc.util.Time
 import cf.wayzer.script_agent.util.ServiceRegistry
-import mindustry.Vars
 import mindustry.game.Team
 import mindustry.gen.Player
 import mindustry.io.MapIO
@@ -15,7 +14,7 @@ import wayzer.services.MapService
 import wayzer.services.VoteService
 import java.io.InputStream
 import java.net.URL
-import java.util.*
+import java.time.Instant
 import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.random.Random
@@ -94,11 +93,11 @@ fun VoteService.register() {
         }
     }
     addSubVote("快速出波(默认10波,最高50)", "[波数]", "skipWave", "跳波") {
-        val lastResetTime by PlaceHold.reference<Date>("state.startTime")
+        val lastResetTime by PlaceHold.reference<Instant>("state.startTime")
         val t = min(arg.firstOrNull()?.toIntOrNull() ?: 10, 50)
         start(player!!, "跳波({t}波)".with("t" to t), supportSingle = true) {
             launch {
-                val startTime = Time.millis()
+                val startTime = Instant.now()
                 var waitTime = 3
                 repeat(t) {
                     while (state.enemies > 300) {//延长等待时间
@@ -106,7 +105,7 @@ fun VoteService.register() {
                         delay(waitTime * 1000L)
                         waitTime *= 2
                     }
-                    if (lastResetTime.time > startTime) return@launch //Have change map
+                    if (lastResetTime > startTime) return@launch //Have change map
                     Core.app.post { logic.runWave() }
                     delay(waitTime * 1000L)
                 }

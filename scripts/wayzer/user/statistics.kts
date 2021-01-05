@@ -56,16 +56,16 @@ val statisticsData = mutableMapOf<String, StatisticsData>()
 customLoad(::statisticsData) { statisticsData += it }
 val Player.data get() = statisticsData.getOrPut(uuid()) { StatisticsData() }
 registerVarForType<StatisticsData>().apply {
-    registerChild("playedTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.playedTime.toLong()) })
-    registerChild("idleTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.idleTime.toLong()) })
-    registerChild("buildScore", "建筑积分", DynamicVar { obj, p ->
+    registerChild("playedTime", "本局在线时间", DynamicVar.obj { Duration.ofSeconds(it.playedTime.toLong()) })
+    registerChild("idleTime", "本局在线时间", DynamicVar.obj { Duration.ofSeconds(it.idleTime.toLong()) })
+    registerChild("buildScore", "建筑积分") { _, obj, p ->
         if (!p.isNullOrBlank()) p.format(obj.buildScore)
         else obj.buildScore
-    })
-    registerChild("breakBlock", "破坏方块数", DynamicVar { obj, _ -> obj.breakBlock })
+    }
+    registerChild("breakBlock", "破坏方块数", DynamicVar.obj { it.breakBlock })
 }
 registerVarForType<Player>().apply {
-    registerChild("statistics", "游戏统计数据", DynamicVar { p, _ -> p.data })
+    registerChild("statistics", "游戏统计数据", DynamicVar.obj { it.data })
 }
 onDisable {
     PlaceHoldString.bindTypes.remove(StatisticsData::class.java)//局部类，防止泄漏
@@ -104,8 +104,7 @@ listen<EventType.GameOverEvent> { event ->
 }
 
 fun onGameOver(winner: Team) {
-    val startTime by PlaceHold.reference<Date>("state.startTime")
-    val gameTime = Duration.between(startTime.toInstant(), Instant.now())
+    val gameTime by PlaceHold.reference<Duration>("state.gameTime")
     if (state.rules.mode() in arrayOf(Gamemode.editor, Gamemode.sandbox)) {
         return broadcast("""
             [yellow]本局游戏时长: {gameTime:分钟}
