@@ -2,7 +2,7 @@
 
 package coreMindustry.lib
 
-import arc.struct.Array
+import arc.struct.Seq
 import arc.util.CommandHandler
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.getContextModule
@@ -10,9 +10,8 @@ import cf.wayzer.script_agent.listenTo
 import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.*
 import coreLibrary.lib.event.PermissionRequestEvent
-import coreMindustry.lib.compatibilities.isAdmin
 import coreMindustry.lib.util.sendMenuPhone
-import mindustry.entities.type.Player
+import mindustry.gen.Player
 
 object RootCommands : Commands() {
     var overwrite = true
@@ -106,7 +105,7 @@ object RootCommands : Commands() {
         }
         RootCommands::class.java.getContextModule()!!.apply {
             listenTo<PermissionRequestEvent> {
-                if (context.player?.isAdmin != false)
+                if (context.player?.admin != false)
                     result = true
             }
         }
@@ -128,7 +127,7 @@ class MyCommandHandler(private var prefix: String, val origin: CommandHandler) :
         return origin.removeCommand(text)
     }
 
-    override fun getCommandList(): Array<Command> {
+    override fun getCommandList(): Seq<Command> {
         return origin.commandList
     }
 

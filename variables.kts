@@ -4,10 +4,10 @@ package coreMindustry
 import arc.util.Time
 import cf.wayzer.placehold.DynamicVar
 import mindustry.core.Version
-import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.game.Team
 import mindustry.gen.Groups
+import mindustry.gen.Player
 import mindustry.maps.Map
 import mindustry.net.Administration
 import java.time.Duration
@@ -25,7 +25,7 @@ registerVar("heapUse", "内存占用(MB)", DynamicVar.v {
 })
 //GameVars
 registerVar("map", "当前游戏中的地图", DynamicVar.v {
-    world.map
+    state.map
 })
 registerVarForType<Map>().apply {
     registerChild("name", "地图名", DynamicVar.obj { it.name() })
@@ -52,7 +52,7 @@ registerVarForType<Player>().apply {
     registerChild("uuid", "uuid", DynamicVar.obj { it.uuid() })
     registerChild("ip", "当前ip", DynamicVar.obj { it.con?.address })
     registerChild("team", "当前队伍", DynamicVar.obj { it.team() })
-    registerChild("info", "PlayerInfo", DynamicVar.obj { netServer.admins.getInfoOptional(it.uuid) })
+    registerChild("info", "PlayerInfo", DynamicVar.obj { netServer.admins.getInfoOptional(it.uuid()) })
 }
 registerVarForType<Administration.PlayerInfo>().apply {
     registerChild("name", "名字", DynamicVar.obj { it.lastName })
