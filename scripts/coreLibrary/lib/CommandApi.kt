@@ -126,7 +126,11 @@ class CommandInfo(
 
 open class Commands : (CommandContext) -> Unit, TabCompleter {
     protected val subCommands = mutableMapOf<String, CommandInfo>()
-    open fun getSubCommands(context: CommandContext): Map<String, CommandInfo> = subCommands
+
+    /**
+     * @return [subCommands] when [context] is null
+     */
+    open fun getSubCommands(context: CommandContext?): Map<String, CommandInfo> = subCommands
     fun getSub(context: CommandContext): CommandInfo? {
         return context.arg.getOrNull(0)?.let { getSubCommands(context)[it.toLowerCase()] }
     }
@@ -165,13 +169,20 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
     }
 
     open fun removeSub(name: String) {
-        subCommands.remove(name)
+        subCommands.remove(name.toLowerCase())
     }
 
     fun addSub(command: CommandInfo) {
         addSub(command.name, command, false)
         command.aliases.forEach {
             addSub(it, command, true)
+        }
+    }
+
+    fun removeSub(command: CommandInfo) {
+        subCommands.remove(command.name.toLowerCase(), command)
+        command.aliases.forEach {
+            subCommands.remove(it.toLowerCase(), command)
         }
     }
 
