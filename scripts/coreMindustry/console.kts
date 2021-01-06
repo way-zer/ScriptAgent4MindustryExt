@@ -28,12 +28,12 @@ onEnable {
                 .completer(MyCompleter).build() as LineReader
         while (enabled) {
             val line = try {
-                reader.readLine("> ")
+                reader.readLine("> ").trim()
             } catch (e: UserInterruptException) {
                 println(e)
                 continue
             }
-            if (line.isBlank()) continue
+            if (line.isEmpty()) continue
             try {
                 RootCommands.invoke(CommandContext().apply {
                     hasPermission = { true }
