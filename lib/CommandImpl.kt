@@ -105,7 +105,7 @@ object RootCommands : Commands() {
         }
         RootCommands::class.java.getContextModule()!!.apply {
             listenTo<PermissionRequestEvent> {
-                if (context.player?.admin != false)
+                if (context.player?.admin == true)
                     result = true
             }
         }
