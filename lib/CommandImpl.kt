@@ -16,18 +16,22 @@ import mindustry.entities.type.Player
 
 object RootCommands : Commands() {
     var overwrite = true
-    override fun getSubCommands(context: CommandContext): Map<String, CommandInfo> {
-        if (!overwrite) return super.getSubCommands(context)
-        val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).let { originHandler ->
-            originHandler.commandList.associate {
-                it.text.toLowerCase() to CommandInfo(null, it.text, it.description) {
-                    usage = it.paramText
-                    body {
-                        prefix = prefix.removePrefix("* ")
-                        (if (originHandler is MyCommandHandler) originHandler.origin else originHandler).handleMessage(prefix + arg.joinToString(" "), player)
+    override fun getSubCommands(context: CommandContext?): Map<String, CommandInfo> {
+        if (!overwrite || context == null) return super.getSubCommands(context)
+        val origin =
+            (if (context.player != null) Config.clientCommands else Config.serverCommands).let { originHandler ->
+                originHandler.commandList.associate {
+                    it.text.toLowerCase() to CommandInfo(null, it.text, it.description) {
+                        usage = it.paramText
+                        body {
+                            prefix = prefix.removePrefix("* ")
+                            (if (originHandler is MyCommandHandler) originHandler.origin else originHandler).handleMessage(
+                                prefix + arg.joinToString(" "),
+                                player
+                            )
+                        }
                     }
                 }
-            }
         }
         return origin.filterValues { if (context.player != null) it.type.client() else it.type.server() } + subCommands.filterValues { if (context.player != null) it.type.client() else it.type.server() }
     }
