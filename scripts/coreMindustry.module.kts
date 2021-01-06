@@ -11,6 +11,8 @@ name = "Mindustry 核心脚本模块"
 
 addLibraryByClass("mindustry.Vars")
 addDefaultImport("arc.Core")
+addDefaultImport("mindustry.gen.Player")
+addDefaultImport("mindustry.game.EventType")
 addDefaultImport("mindustry.Vars.*")
 addDefaultImport("coreMindustry.lib.*")
 addDefaultImport("coreMindustry.lib.compatibilities.*")

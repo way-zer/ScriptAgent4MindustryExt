@@ -8,10 +8,10 @@ import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.ColorApi
 import coreLibrary.lib.ConsoleColor
 import coreLibrary.lib.with
-import coreMindustry.lib.compatibilities.Call
-import coreMindustry.lib.compatibilities.playerGroup
 import mindustry.Vars.netServer
-import mindustry.entities.type.Player
+import mindustry.gen.Call
+import mindustry.gen.Groups
+import mindustry.gen.Player
 
 object ContentHelper{
     fun logToConsole(text:String){
@@ -34,7 +34,13 @@ object ContentHelper{
 
 enum class MsgType { Message, InfoMessage, InfoToast }
 
-fun broadcast(text: PlaceHoldContext, type: MsgType = MsgType.Message, time: Float = 10f, quite: Boolean = false, players: Iterable<Player> = playerGroup) {
+fun broadcast(
+    text: PlaceHoldContext,
+    type: MsgType = MsgType.Message,
+    time: Float = 10f,
+    quite: Boolean = false,
+    players: Iterable<Player> = Groups.player
+) {
     if (!quite) ContentHelper.logToConsole(text.toString())
     players.forEach {
         if (it.con != null)
@@ -49,8 +55,8 @@ fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message,
         val msg = ColorApi.handle("{text}".with("text" to text, "player" to this).toString(), ContentHelper::mindustryColorHandler)
         when (type) {
             MsgType.Message -> Call.sendMessage(this.con, msg, null, null)
-            MsgType.InfoMessage -> Call.onInfoMessage(this.con, msg)
-            MsgType.InfoToast -> Call.onInfoToast(this.con, msg, time)
+            MsgType.InfoMessage -> Call.infoMessage(this.con, msg)
+            MsgType.InfoToast -> Call.infoToast(this.con, msg, time)
         }
     }
 }
