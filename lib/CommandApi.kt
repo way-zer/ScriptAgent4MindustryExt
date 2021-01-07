@@ -237,9 +237,10 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
                 if (it.script != null) append(" | ${it.script?.id}")
                 if (it.permission.isNotBlank()) append(" | ${it.permission}")
             }
-            return "[light_yellow]{prefix}{name}[light_red]{aliases} [white]{usage}  [light_cyan]{desc}[cyan]{detail}\n".with(
-                    "prefix" to prefix, "name" to it.name, "aliases" to alias,
-                    "usage" to it.usage, "desc" to it.description, "detail" to detail)
+            return "[light_yellow]{prefix}{name}[light_red]{aliases} [white]{usage}  [light_cyan]{desc}[cyan]{detail}".with(
+                "prefix" to prefix, "name" to it.name, "aliases" to alias,
+                "usage" to it.usage, "desc" to it.description, "detail" to detail
+            )
         }
     }
 }
