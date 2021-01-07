@@ -2,7 +2,6 @@ package main
 
 import arc.graphics.Color
 import mindustry.content.Blocks
-import mindustry.entities.type.Player
 import mindustry.gen.Call
 import mindustry.type.Item
 import java.awt.Image
@@ -77,25 +76,28 @@ fun draw(p: Player, file: File) {
     }
 }
 
-command("pixel", "绘制像素画", {
+command("pixel", "绘制像素画") {
     usage = "[fileName]"
     type = CommandType.Client
     permission = id.replace("/", ".")
     aliases = listOf("像素画")
-}) {
-    if (arg.isEmpty()) {
-        val list = (pixelDir.listFiles() ?: emptyArray()).joinToString("\n") { it.name }
-        reply("""
+    body {
+        if (arg.isEmpty()) {
+            val list = (pixelDir.listFiles() ?: emptyArray()).joinToString("\n") { it.name }
+            reply(
+                """
             ==== 可用图片 ====
             {list}
-        """.trimIndent().with("list" to list))
-    } else {
-        val file = pixelDir.resolve(arg[0])
-        if (!file.exists()) return@command reply("[red]找不到对应文件".with())
-        reply("[yellow]准备开始绘制".with())
-        launch(Dispatchers.game) {
-            draw(player!!, file)
-            reply("[green]绘制完成".with())
+        """.trimIndent().with("list" to list)
+            )
+        } else {
+            val file = pixelDir.resolve(arg[0])
+            if (!file.exists()) returnReply("[red]找不到对应文件".with())
+            reply("[yellow]准备开始绘制".with())
+            launch(Dispatchers.game) {
+                draw(player!!, file)
+                reply("[green]绘制完成".with())
+            }
         }
     }
 }
