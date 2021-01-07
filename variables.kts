@@ -8,6 +8,7 @@ import mindustry.game.EventType
 import mindustry.game.Team
 import mindustry.gen.Groups
 import mindustry.gen.Player
+import mindustry.gen.Unit
 import mindustry.maps.Map
 import mindustry.net.Administration
 import java.time.Duration
@@ -52,6 +53,7 @@ registerVarForType<Player>().apply {
     registerChild("uuid", "uuid", DynamicVar.obj { it.uuid() })
     registerChild("ip", "当前ip", DynamicVar.obj { it.con?.address })
     registerChild("team", "当前队伍", DynamicVar.obj { it.team() })
+    registerChild("unit", "获取玩家Unit", DynamicVar.obj { it.unit() })
     registerChild("info", "PlayerInfo", DynamicVar.obj { netServer.admins.getInfoOptional(it.uuid()) })
 }
 registerVarForType<Administration.PlayerInfo>().apply {
@@ -69,6 +71,17 @@ registerVarForType<Team>().apply {
         "colorizeName",
         "彩色队伍名",
         DynamicVar.obj { typeResolve(it, "color")?.toString() + typeResolve(it, "name")?.toString() })
+}
+
+//Unit
+registerVarForType<Unit>().apply {
+    registerChild("x", "坐标x", DynamicVar.obj { it.tileX() })
+    registerChild("y", "坐标y", DynamicVar.obj { it.tileY() })
+    registerChild("health", "当前血量", DynamicVar.obj { it.health })
+    registerChild("maxHealth", "最大血量", DynamicVar.obj { it.maxHealth })
+    registerChild("shield", "护盾值", DynamicVar.obj { it.shield })
+    registerChild("ammo", "弹药", DynamicVar.obj { if (state.rules.unitAmmo) it.shield else typeResolve(it, "maxAmmo") })
+    registerChild("maxAmmo", "弹药容量", DynamicVar.obj { it.type.ammoCapacity })
 }
 
 var startTime = Instant.now()!!
