@@ -4,7 +4,6 @@ import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.TemplateHandler
 import cf.wayzer.placehold.TemplateHandlerKey
 import coreLibrary.lib.*
-import mindustry.entities.type.Player
 import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.lib.LangApi

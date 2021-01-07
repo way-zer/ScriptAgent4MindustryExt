@@ -1,6 +1,5 @@
 package wayzer.user
 
-import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.gen.Firec
@@ -28,7 +27,7 @@ fun skill(name: String, desc: String, allowPvp: Boolean, coolDown: Int?, vararg 
             if (player!!.dead())
                 returnReply("[red]你已死亡".with())
             if (coolDown != null) {
-                val id = PlayerData[player!!.uuid].profile?.id?.value ?: 0
+                val id = PlayerData[player!!.uuid()].profile?.id?.value ?: 0
                 val key = "${name}@$id"
                 if (key in used) {
                     if (coolDown < 0)

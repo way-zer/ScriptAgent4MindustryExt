@@ -7,6 +7,7 @@ import arc.files.Fi
 import arc.util.Time
 import cf.wayzer.script_agent.util.ServiceRegistry
 import mindustry.game.Team
+import mindustry.gen.Groups
 import mindustry.gen.Player
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
@@ -89,7 +90,7 @@ fun VoteService.register() {
             }
         }
         start(player!!, "投降".with(), supportSingle = true) {
-            state.teams.get(player!!.team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
+            state.teams.get(player!!.team()).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
         }
     }
     addSubVote("快速出波(默认10波,最高50)", "[波数]", "skipWave", "跳波") {
@@ -124,11 +125,11 @@ fun VoteService.register() {
         }
     }
     addSubVote("踢出某人15分钟", "<玩家名>", "kick", "踢出") {
-        val target = playerGroup.find { it.name == arg.joinToString(" ") }
+        val target = Groups.player.find { it.name == arg.joinToString(" ") }
             ?: returnReply("[red]请输入正确的玩家名，或者到列表点击投票".with())
         val adminBan = depends("wayzer/admin")?.import<(Player, String) -> Unit>("ban")
         if (hasPermission("wayzer.vote.ban") && adminBan != null) {
-            return@addSubVote adminBan(player!!, target.uuid)
+            return@addSubVote adminBan(player!!, target.uuid())
         }
         start(player!!, "踢人(踢出[red]{target.name}[yellow])".with("target" to target)) {
             target.info.lastKicked = Time.millis() + (15 * 60 * 1000) //Kick for 15 Minutes
@@ -136,14 +137,14 @@ fun VoteService.register() {
             val secureLog = depends("wayzer/admin")?.import<(String, String) -> Unit>("secureLog") ?: return@start
             secureLog(
                 "Kick",
-                "${target.name}(${target.uuid},${target.con.address}) is kicked By ${player!!.name}(${player!!.uuid})"
+                "${target.name}(${target.uuid()},${target.con.address}) is kicked By ${player!!.name}(${player!!.uuid()})"
             )
         }
     }
     addSubVote("清理本队建筑记录", "", "clear", "清理", "清理记录") {
-        val team = player!!.team
+        val team = player!!.team()
 
-        canVote = canVote.let { default -> { default(it) && it.team == team } }
+        canVote = canVote.let { default -> { default(it) && it.team() == team } }
         requireNum = { ceil(allCanVote().size * 2.0 / 5).toInt() }
         start(player!!, "清理建筑记录({team.colorizeName}[yellow]队|需要2/5同意)".with("team" to team)) {
             team.data().blocks.clear()

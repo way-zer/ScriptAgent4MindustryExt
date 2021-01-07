@@ -12,7 +12,7 @@ listen<EventType.UnitCreateEvent> { e ->
     if (e.unit.team == state.rules.waveTeam) return@listen
     fun alert(text: PlaceHoldString) {
         if (interval[0, 2 * 60f]) {//2s cooldown
-            broadcast(text, MsgType.InfoToast, 4f, true, playerGroup.filter { it.team() == e.unit.team })
+            broadcast(text, MsgType.InfoToast, 4f, true, Groups.player.filter { it.team() == e.unit.team })
         }
     }
 

@@ -1,7 +1,6 @@
 package wayzer.lib.dao
 
-import coreMindustry.lib.compatibilities.uuid
-import mindustry.entities.type.Player
+import mindustry.gen.Player
 import mindustry.net.Administration
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
@@ -62,11 +61,11 @@ class PlayerData : CacheEntity<String>(T) {
 
         @NeedTransaction
         //给新进入玩家使用，自动添加进入缓存
-        fun findOrCreate(p: Player) = findOrCreate(p.uuid,cache = true) {
+        fun findOrCreate(p: Player) = findOrCreate(p.uuid(), cache = true) {
             firstIP = p.con.address
             lastIp = p.con.address
             lastName = p.name
-            save(p.uuid)
+            save(p.uuid())
         }.apply {
             lastIp = p.con.address
             lastName = p.name

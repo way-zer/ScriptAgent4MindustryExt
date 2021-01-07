@@ -1,10 +1,10 @@
 package wayzer.user
 
 import cf.wayzer.placehold.DynamicVar
-import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.game.Team
+import mindustry.gen.Groups
 import mindustry.world.Block
 import mindustry.world.blocks.distribution.Conveyor
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -82,7 +82,7 @@ onEnable {
     launch {
         while (true) {
             delay(1000)
-            playerGroup.forEach {
+            Groups.player.forEach {
                 it.data.playedTime++
                 if (!it.active)
                     it.data.idleTime++

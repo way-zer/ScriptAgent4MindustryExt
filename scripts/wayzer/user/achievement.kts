@@ -1,6 +1,5 @@
 package wayzer.user
 
-import mindustry.entities.type.Player
 import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.lib.dao.Achievement
 

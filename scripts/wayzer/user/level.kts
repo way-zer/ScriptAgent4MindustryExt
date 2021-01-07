@@ -2,8 +2,8 @@ package wayzer.user
 
 import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.PlaceHoldApi.with
-import mindustry.entities.type.Player
 import mindustry.game.EventType
+import mindustry.gen.Groups
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -30,7 +30,7 @@ registerVarForType<PlayerProfile>().apply {
  * @return 所有在线用户
  */
 fun updateExp(p: PlayerProfile, dot: Int): List<Player> {
-    val players = playerGroup.filter { PlayerData.getOrNull(it.uuid())?.profile == p }
+    val players = Groups.player.filter { PlayerData.getOrNull(it.uuid())?.profile == p }
     p.apply {
         totalExp += dot
         if (level(totalExp) != level(totalExp - dot)) {
@@ -47,7 +47,7 @@ export(::updateExp)
 listen<EventType.PlayerConnect> {
     Core.app.post {
         it.player.apply {
-            name = "[white]<${getIcon(level(PlayerData.getOrNull(uuid)?.profile?.totalExp ?: 0))}>[#$color]$name"
+            name = "[white]<${getIcon(level(PlayerData.getOrNull(uuid())?.profile?.totalExp ?: 0))}>[#$color]$name"
         }
     }
 }

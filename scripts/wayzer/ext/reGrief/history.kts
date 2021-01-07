@@ -4,10 +4,7 @@ import arc.graphics.Color
 import cf.wayzer.placehold.PlaceHoldApi.with
 import mindustry.content.Blocks
 import mindustry.content.Fx
-import mindustry.entities.type.Player
-import mindustry.game.EventType
 import mindustry.gen.Call
-import mindustry.io.JsonIO
 import mindustry.type.Item
 import mindustry.world.Block
 import mindustry.world.blocks.storage.CoreBlock
@@ -89,22 +86,23 @@ fun Player.showLog(xf: Float, yf: Float) {
 
 //查询
 val enabledPlayer = mutableSetOf<String>()
-command("history", "开关查询模式", {
+command("history", "开关查询模式") {
     permission = "wayzer.ext.history"
     usage = "[core(查询核心)]"
     aliases = listOf("历史")
-}) {
-    if (arg.getOrElse(0) { "" }.contains("core")) returnReply(
-        "[green]核心破坏周边情况:\n{list}".with("list" to lastCoreLog)
-    )
-    if (player == null) returnReply("[red]控制台仅可查询核心破坏记录".with())
-    if (player!!.uuid in enabledPlayer) {
-        enabledPlayer.remove(player!!.uuid)
-        reply("[green]关闭查询模式".with())
-    } else {
-        enabledPlayer.add(player!!.uuid)
-        reply("[green]开启查询模式,点击方块查询历史".with())
-    }
+    body {
+        if (arg.getOrElse(0) { "" }.contains("core")) returnReply(
+            "[green]核心破坏周边情况:\n{list}".with("list" to lastCoreLog)
+        )
+        if (player == null) returnReply("[red]控制台仅可查询核心破坏记录".with())
+        if (player!!.uuid() in enabledPlayer) {
+            enabledPlayer.remove(player!!.uuid())
+            reply("[green]关闭查询模式".with())
+        } else {
+            enabledPlayer.add(player!!.uuid())
+            reply("[green]开启查询模式,点击方块查询历史".with())
+        }
+}
 }
 
 listen<EventType.TapEvent> {
