@@ -10,12 +10,12 @@ val autoSaveRange = 100 until 106
 command("slots", "列出自动保存的存档") {
     body {
         val list = autoSaveRange.map { it to SaveIO.fileFor(it) }.filter { it.second.exists() }.map { (id, file) ->
-            "[red]{id}[]: [yellow]Save on {date:hh:mm}\n".with("id" to id, "date" to file.lastModified().let(::Date))
+            "[red]{id}[]: [yellow]Save on {date:hh:mm}".with("id" to id, "date" to file.lastModified().let(::Date))
         }
         reply(
             """
             |[green]===[white] 自动存档 [green]===
-            |{list}
+            |{list:${"\n"}}
             |[green]===[white] {range} [green]===
         """.trimMargin().with("range" to autoSaveRange, "list" to list)
         )

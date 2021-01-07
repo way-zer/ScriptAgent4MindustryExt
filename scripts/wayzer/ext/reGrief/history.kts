@@ -72,15 +72,16 @@ fun Player.showLog(xf: Float, yf: Float) {
     if (logs.isEmpty()) Call.label(con, "[yellow]位置($x,$y)无记录", 5f, xf, yf)
     else {
         val list = logs.map { log ->
-            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}\n".with(
-                    "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid), "desc" to when (log) {
-                is Log.Place -> "放置了方块${log.type.name}"
-                is Log.Break -> "拆除了方块"
-                is Log.Config -> "修改了属性: ${log.value}"
-                is Log.Deposit -> "往里面丢了${log.amount}个${log.item.name}"
-            })
+            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}".with(
+                "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid), "desc" to when (log) {
+                    is Log.Place -> "放置了方块${log.type.name}"
+                    is Log.Break -> "拆除了方块"
+                    is Log.Config -> "修改了属性: ${log.value}"
+                    is Log.Deposit -> "往里面丢了${log.amount}个${log.item.name}"
+                }
+            )
         }
-        Call.label(con, "====[gold]操作记录($x,$y)[]====\n{list}".with("list" to list).toString(), 15f, xf, yf)
+        Call.label(con, "====[gold]操作记录($x,$y)[]====\n{list:\n}".with("list" to list).toString(), 15f, xf, yf)
     }
 }
 
@@ -92,7 +93,7 @@ command("history", "开关查询模式") {
     aliases = listOf("历史")
     body {
         if (arg.getOrElse(0) { "" }.contains("core")) returnReply(
-            "[green]核心破坏周边情况:\n{list}".with("list" to lastCoreLog)
+            "[green]核心破坏周边情况:\n{list:\n}".with("list" to lastCoreLog)
         )
         if (player == null) returnReply("[red]控制台仅可查询核心破坏记录".with())
         if (player!!.uuid() in enabledPlayer) {
@@ -128,10 +129,12 @@ listen<EventType.BlockDestroyEvent> { event ->
                 for (y in event.tile.y.let { it - 10..it + 10 })
                     logs.getOrNull(x)?.getOrNull(y)?.lastOrNull { it is Log.Place }?.let { log ->
                         if (log is Log.Place && log.type in dangerBlock)
-                            list.add("[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}\n".with(
+                            list.add(
+                                "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}".with(
                                     "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid),
                                     "desc" to "在距离核心(${x - event.tile.x},${y - event.tile.y})的位置放置了${log.type.name}"
-                            ).toString())
+                                ).toString()
+                            )
                     }
             lastCoreLog = list
         }

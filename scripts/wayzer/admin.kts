@@ -30,7 +30,7 @@ listen<EventType.PlayerBanEvent> {
 command("list", "列出当前玩家") {
     body {
         val list = Groups.player.map {
-            "{player.name}[white]([red]{player.shortID}[white]) ".with("player" to it)
+            "{player.name}[white]([red]{player.shortID}[white])".with("player" to it)
         }
         reply("{list}".with("list" to list))
     }
@@ -43,7 +43,7 @@ command("ban", "管理指令: 列出已ban用户，ban或解ban") {
         if (uuid == null || uuid.length < 3) {//list
             val sorted = netServer.admins.banned.sortedByDescending { it.lastKicked }
             val list = sorted.map {
-                "[white]{info.name}[white]([red]{info.shortID}[] [white]{info.lastBan:MM/dd}[]),"
+                "[white]{info.name}[white]([red]{info.shortID}[] [white]{info.lastBan:MM/dd}[])"
                     .with("info" to it)
             }
             reply("Bans: {list}".with("list" to list))

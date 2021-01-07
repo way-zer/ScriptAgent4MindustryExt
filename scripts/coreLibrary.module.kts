@@ -1,4 +1,4 @@
-@file:MavenDepends("cf.wayzer:PlaceHoldLib:3.1", "https://dl.bintray.com/way-zer/maven/")
+@file:MavenDepends("cf.wayzer:PlaceHoldLib:3.2", "https://dl.bintray.com/way-zer/maven/")
 @file:MavenDepends("io.github.config4k:config4k:0.4.2")
 @file:MavenDepends("com.typesafe:config:1.3.3")
 @file:MavenDepends("org.slf4j:slf4j-simple:1.7.28")

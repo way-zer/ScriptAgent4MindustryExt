@@ -69,7 +69,7 @@ command("team", "管理指令: 修改自己或他人队伍(PVP模式)") {
         if (!state.rules.pvp) returnReply("[red]仅PVP模式可用".with())
         val team = arg.getOrNull(0)?.toIntOrNull()?.let { Team.get(it) } ?: let {
             val teams = Team.baseTeams
-                .mapIndexed { i, t -> "{id}({team.colorizeName}[]) ".with("id" to i, "team" to t) }
+                .mapIndexed { i, t -> "{id}({team.colorizeName}[])".with("id" to i, "team" to t) }
             returnReply("[yellow]可用队伍: []{list}".with("list" to teams))
         }
         val player = arg.getOrNull(1)?.let {

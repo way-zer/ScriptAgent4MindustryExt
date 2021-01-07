@@ -21,7 +21,7 @@ fun <E> menu(title: String, list: List<E>, page: Int, prePage: Int, handle: (E) 
     val list2 = list.subList((newPage - 1) * prePage, min(list.size, newPage * prePage)).map(handle)
     return """
                 [green]==== [white]{title}[green] ====
-                {list}
+                {list:${"\n"}}
                 [green]==== [white]{page}/{total}[green] ====
             """.trimIndent().with("title" to title, "list" to list2, "page" to newPage, "total" to totalPage)
 }

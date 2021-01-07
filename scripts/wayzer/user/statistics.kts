@@ -120,8 +120,8 @@ fun onGameOver(winner: Team) {
             .sortedByDescending { it.second.score }
     val list = sortedData.map { (player, data) ->
         totalTime += data.playedTime - data.idleTime
-        "[white]{pvpState}{player.name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f}),".with(
-                "player" to player, "statistics" to data, "pvpState" to if (data.win) "[green][胜][]" else ""
+        "[white]{pvpState}{player.name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f})".with(
+            "player" to player, "statistics" to data, "pvpState" to if (data.win) "[green][胜][]" else ""
         )
     }
     broadcast("""
