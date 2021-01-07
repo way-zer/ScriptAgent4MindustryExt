@@ -145,7 +145,7 @@ command("maps", "列出服务器地图") {
         else
             maps.filter { mode == null || MapManager.bestMode(it.second) == mode }
         sendMenuPhone("服务器地图 By WayZer", maps, page, mapsPrePage) { (id, map) ->
-            "[red]{id}[green]({map.width},{map.height})[]:[yellow]{map.fileName}[] | [blue]{map.name}\n"
+            "[red]{id}[green]({map.width},{map.height})[]:[yellow]{map.fileName}[] | [blue]{map.name}"
                 .with("id" to "%2d".format(id), "map" to map)
         }
     }
