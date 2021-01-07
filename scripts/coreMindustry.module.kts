@@ -1,10 +1,7 @@
 @file:DependsModule("coreLibrary")
 
 import arc.Core
-import coreMindustry.lib.MyCommandHandler
-import coreMindustry.lib.RootCommands
-import coreMindustry.lib.clientCommands
-import coreMindustry.lib.serverCommands
+import coreMindustry.lib.*
 import mindustry.Vars
 
 name = "Mindustry 核心脚本模块"
@@ -32,6 +29,8 @@ fun updateOriginCommandHandler(client: arc.util.CommandHandler, server: arc.util
         }
     }
 }
+
+Listener//ensure init
 
 onEnable {
     Vars.dataDirectory.child("scriptsConfig.conf").file().takeIf { it.exists() }?.apply {
