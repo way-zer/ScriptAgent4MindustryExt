@@ -66,10 +66,10 @@ sealed class Listener<T : Any> : Cons<T> {
         init {
             Listener::class.java.getContextModule()!!.apply {
                 listenTo<ScriptEnableEvent>(4) { //after
-                    key.run { get() }?.forEach { it.register() }
+                    key.run { script.get() }?.forEach { it.register() }
                 }
                 listenTo<ScriptDisableEvent>(2) { //before
-                    key.run { get() }?.forEach { it.unregister() }
+                    key.run { script.get() }?.forEach { it.unregister() }
                 }
             }
         }
