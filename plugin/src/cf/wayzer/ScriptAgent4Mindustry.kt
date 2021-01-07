@@ -2,7 +2,9 @@ package cf.wayzer
 
 import arc.ApplicationListener
 import arc.Core
+import arc.util.ColorCodes
 import arc.util.CommandHandler
+import arc.util.Log
 import cf.wayzer.ConfigExt.clientCommands
 import cf.wayzer.ConfigExt.serverCommands
 import cf.wayzer.script_agent.Config
@@ -26,11 +28,20 @@ class ScriptAgent4Mindustry: Plugin() {
     }
 
     override fun init() {
-        ScriptManager.loadDir(Vars.dataDirectory.child("scripts").file())
-        Core.app.addListener(object :ApplicationListener{
+        val dir = Vars.dataDirectory.child("scripts").file()
+        ScriptManager.loadDir(dir)
+        Core.app.addListener(object : ApplicationListener {
             override fun pause() {
                 ScriptManager.disableAll()
             }
         })
+        Log.info("&y===========================")
+        Log.info("&lm&fb     ScriptAgent          ")
+        Log.info("&b           By &cWayZer    ")
+        Log.info("&b插件官网: http://git.io/SA4Mindustry")
+        Log.info("&bQQ交流群: 1033116078")
+        if (dir.listFiles()?.isEmpty() != false)
+            Log.warn("未在config/scripts下发现脚本,请下载安装脚本包,以发挥本插件功能")
+        Log.info("&y===========================")
     }
 }
