@@ -31,4 +31,5 @@ jobs:
       - name: Upload Scripts Zip
         uses: actions/upload-artifact@v2.2.1
         with:
+          path: build/distributions
           name: "ScriptAgent4Mindustry-${{github.sha}}-scripts.zip" 
