@@ -52,7 +52,10 @@ fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message,
     if (this == null) ContentHelper.logToConsole(text.toString())
     else {
         if (con == null) return
-        val msg = ColorApi.handle("{text}".with("text" to text, "player" to this).toString(), ContentHelper::mindustryColorHandler)
+        val msg = ColorApi.handle(
+            "{text}".with("text" to text, "player" to this, "receiver" to this).toString(),
+            ContentHelper::mindustryColorHandler
+        )
         when (type) {
             MsgType.Message -> Call.sendMessage(this.con, msg, null, null)
             MsgType.InfoMessage -> Call.infoMessage(this.con, msg)
