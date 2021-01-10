@@ -81,7 +81,13 @@ fun Player.showLog(xf: Float, yf: Float) {
                 }
             )
         }
-        Call.label(con, "====[gold]操作记录($x,$y)[]====\n{list:\n}".with("list" to list).toString(), 15f, xf, yf)
+        Call.label(
+            con,
+            "====[gold]操作记录($x,$y)[]====\n{list:\n}".with("list" to list, "receiver" to this).toString(),
+            15f,
+            xf,
+            yf
+        )
     }
 }
 
@@ -103,7 +109,7 @@ command("history", "开关查询模式") {
             enabledPlayer.add(player!!.uuid())
             reply("[green]开启查询模式,点击方块查询历史".with())
         }
-}
+    }
 }
 
 listen<EventType.TapEvent> {
@@ -114,7 +120,7 @@ listen<EventType.TapEvent> {
 }
 
 // 自动保留破坏核心的可疑行为
-var lastCoreLog = emptyList<String>()
+var lastCoreLog = emptyList<PlaceHoldString>()
 var lastTime = 0L
 val dangerBlock = arrayOf(
     Blocks.thoriumReactor,
@@ -124,7 +130,7 @@ val dangerBlock = arrayOf(
 listen<EventType.BlockDestroyEvent> { event ->
     if (event.tile.block() is CoreBlock) {
         if (System.currentTimeMillis() - lastTime > 5000) { //防止核心连环爆炸,仅记录第一个被炸核心
-            val list = mutableListOf<String>()
+            val list = mutableListOf<PlaceHoldString>()
             for (x in event.tile.x.let { it - 10..it + 10 })
                 for (y in event.tile.y.let { it - 10..it + 10 })
                     logs.getOrNull(x)?.getOrNull(y)?.lastOrNull { it is Log.Place }?.let { log ->
@@ -132,8 +138,10 @@ listen<EventType.BlockDestroyEvent> { event ->
                             list.add(
                                 "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}".with(
                                     "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid),
-                                    "desc" to "在距离核心(${x - event.tile.x},${y - event.tile.y})的位置放置了${log.type.name}"
-                                ).toString()
+                                    "desc" to "在距离核心({x},{})的位置放置了{type}".with(
+                                        "x" to (x - event.tile.x), "y" to (y - event.tile.y), "type" to log.type.name
+                                    )
+                                )
                             )
                     }
             lastCoreLog = list
