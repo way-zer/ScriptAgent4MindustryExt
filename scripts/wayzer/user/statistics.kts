@@ -105,11 +105,13 @@ listen<EventType.GameOverEvent> { event ->
 
 fun onGameOver(winner: Team) {
     val gameTime by PlaceHold.reference<Duration>("state.gameTime")
-    if (state.rules.mode() in arrayOf(Gamemode.editor, Gamemode.sandbox)) {
-        return broadcast("""
+    if (state.rules.infiniteResources || state.rules.editor) {
+        return broadcast(
+            """
             [yellow]本局游戏时长: {gameTime:分钟}
             [yellow]沙盒或编辑器模式,不计算贡献
-        """.trimIndent().with("gameTime" to gameTime))
+        """.trimIndent().with("gameTime" to gameTime)
+        )
     }
 
     StatisticsData.teamWin = if (state.rules.mode() != Gamemode.survival) winner else Team.sharded
