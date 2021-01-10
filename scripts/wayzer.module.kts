@@ -6,6 +6,7 @@ import wayzer.lib.dao.Achievement
 import wayzer.lib.dao.CacheEntity
 import wayzer.lib.dao.PlayerData
 import wayzer.lib.dao.PlayerProfile
+import coreLibrary.lib.registerTable
 
 name = "WayZer Mindustry Plugin"
 /**

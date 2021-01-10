@@ -178,7 +178,9 @@ listen<EventType.GameOverEvent> { event ->
     broadcast(msg, gameOverMsgType, quite = true)
     ContentHelper.logToConsole("Next Map is ${map.name()}")
     launch {
+        val now = state.map
         delay(waitingTime.toMillis())
+        if (state.map != now) return@launch//已经通过其他方式换图
         MapManager.loadMap(map)
     }
 }
