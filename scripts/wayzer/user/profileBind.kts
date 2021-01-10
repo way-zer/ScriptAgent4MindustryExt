@@ -25,11 +25,17 @@ class ExpireMutableMap<K, V> {
         return expireQueue.add(ExpireItem(System.currentTimeMillis() + expireTime, key))
     }
 
-    operator fun get(key: K): V? {
-        expireQueue.peek()?.takeIf { it.time < System.currentTimeMillis() }?.let {
+    fun checkOut() {
+        while (true) {
+            val item = expireQueue.peek() ?: break
+            if (item.time >= System.currentTimeMillis()) break
             expireQueue.poll()
-            map.remove(it.v)
+            map.remove(item.v)
         }
+    }
+
+    operator fun get(key: K): V? {
+        checkOut()
         return map[key]
     }
 
@@ -54,6 +60,15 @@ fun generate(qq: Long): Int {
 
 fun check(code: Int): Long? {
     return map[code]
+}
+
+onEnable {
+    launch {
+        while (true) {
+            delay(60_000)
+            map.checkOut()
+        }
+    }
 }
 
 command("genCode", "管理指令: 为用户生成随机绑定码") {
