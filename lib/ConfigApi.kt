@@ -11,16 +11,18 @@ package coreLibrary.lib
  * println(welcomeMsg)
  */
 import cf.wayzer.script_agent.IBaseScript
+import cf.wayzer.script_agent.events.ScriptDisableEvent
+import cf.wayzer.script_agent.getContextModule
+import cf.wayzer.script_agent.listenTo
 import cf.wayzer.script_agent.util.DSLBuilder
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigOriginFactory
-import com.typesafe.config.ConfigRenderOptions
+import com.typesafe.config.*
 import io.github.config4k.ClassContainer
 import io.github.config4k.TypeReference
 import io.github.config4k.readers.SelectReader
 import io.github.config4k.toConfig
 import java.io.File
+import java.util.logging.Level
+import java.util.logging.Logger
 import kotlin.reflect.KProperty
 
 open class ConfigBuilder(private val path: String) {
@@ -30,13 +32,18 @@ open class ConfigBuilder(private val path: String) {
     data class ConfigKey<T : Any>(val path: String, val cls: ClassContainer, val default: T, val desc: List<String>) {
         private lateinit var cache: T
         private var cacheTime = 0L
-        private fun cache(v:T):T{
+        private var onChange: ((T) -> Unit)? = null
+        private fun cache(v: T): T {
+            val changed = cacheTime == 0L || cache != v
             cache = v
             cacheTime = System.currentTimeMillis()
+            if (changed)
+                onChange?.invoke(v)
             return v
         }
+
         fun get(): T {
-            if (cacheTime> lastLoad)return cache
+            if (cacheTime > lastLoad) return cache
             val v = fileConfig.extract(cls, path) ?: return cache(default)
             @Suppress("UNCHECKED_CAST")
             if (cls.mapperClass.isInstance(v))
@@ -45,8 +52,10 @@ open class ConfigBuilder(private val path: String) {
         }
 
         fun set(v: T) {
-            fileConfig = fileConfig.withValue(path, v.toConfig(path).getValue(path)
-                    .withOrigin(ConfigOriginFactory.newSimple().withComments(desc)))
+            fileConfig = fileConfig.withValue(
+                path,
+                v.toConfigValue().withOrigin(ConfigOriginFactory.newSimple().withComments(desc))
+            )
             cache(v)
             saveFile()
         }
@@ -86,6 +95,14 @@ open class ConfigBuilder(private val path: String) {
             throw IllegalArgumentException("Parse \"$str\" fail: get $v")
         }
 
+        /**
+         * add hook when value change, and when first time.
+         */
+        fun onChange(body: (T) -> Unit): ConfigKey<T> {
+            onChange = body
+            return this
+        }
+
         operator fun getValue(thisRef: Any?, prop: KProperty<*>) = get()
         operator fun setValue(thisRef: Any?, prop: KProperty<*>, v: T) = set(v)
 
@@ -97,36 +114,61 @@ open class ConfigBuilder(private val path: String) {
                 if (!hasPath(path)) return null
                 return SelectReader.getReader(cls).invoke(this, path)
             }
+
+            fun Any.toConfigValue(): ConfigValue {
+                return if (this is Map<*, *> && this.keys.all { it is String }) {//修复issue #7
+                    ConfigValueFactory.fromMap(this.mapKeys {
+                        it.key as String
+                    }.mapValues { it.value?.toConfigValue() })
+                } else this.toConfig("root").root()["root"]!!
+            }
         }
     }
 
     fun child(sub: String) = ConfigBuilder("$path.$sub")
-    fun <T : Any> key(cls: ClassContainer, default: T, vararg desc: String) = DSLBuilder.Companion.ProvideDelegate<IBaseScript, ConfigKey<T>> { script, name ->
-        val key = ConfigKey("$path.$name", cls, default, desc.toList())
-        script.configs.add(key)
-        all[key.path] = key
-        return@ProvideDelegate key
-    }
+    fun <T : Any> key(cls: ClassContainer, default: T, vararg desc: String) =
+        DSLBuilder.Companion.ProvideDelegate<IBaseScript, ConfigKey<T>> { script, name ->
+            val key = ConfigKey("$path.$name", cls, default, desc.toList())
+            script.configs.add(key)
+            all[key.path] = key
+            return@ProvideDelegate key
+        }
 
-    inline fun <reified T : Any> key(default: T, vararg desc: String): DSLBuilder.Companion.ProvideDelegate<IBaseScript, ConfigKey<T>> {
+    inline fun <reified T : Any> key(
+        default: T,
+        vararg desc: String
+    ): DSLBuilder.Companion.ProvideDelegate<IBaseScript, ConfigKey<T>> {
         val genericType = object : TypeReference<T>() {}.genericType()
         return key(ClassContainer(T::class, genericType), default, *desc)
     }
 
     companion object {
-        val IBaseScript.configs by DSLBuilder.dataKeyWithDefault { mutableSetOf<ConfigKey<*>>() }
+        private val key_configs = DSLBuilder.DataKeyWithDefault("configs") { mutableSetOf<ConfigKey<*>>() }
+        val IBaseScript.configs by key_configs
         val all = mutableMapOf<String, ConfigKey<*>>()
         var configFile: File = cf.wayzer.script_agent.Config.dataDirectory.resolve("config.conf")
         private lateinit var fileConfig: Config
         private var lastLoad: Long = -1
 
         init {
+            ConfigBuilder::class.java.getContextModule()!!.listenTo<ScriptDisableEvent>(2) {
+                key_configs.apply {
+                    script.get()?.forEach { all.remove(it.path) }
+                }
+            }
             reloadFile()
         }
 
         fun reloadFile() {
             fileConfig = ConfigFactory.parseFile(configFile)
             lastLoad = System.currentTimeMillis()
+            all.values.forEach {
+                try {
+                    it.get()
+                } catch (e: Exception) {
+                    Logger.getLogger("ConfigApi").log(Level.WARNING, "Fail to parse config ${it.path}", e)
+                }
+            }
         }
 
         fun saveFile() {
