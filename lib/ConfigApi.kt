@@ -77,7 +77,7 @@ open class ConfigBuilder(private val path: String) {
         }
 
         fun getString(): String {
-            return get().toConfig(path).getValue(path).render()
+            return get().toConfigValue().render(renderConfig)
         }
 
         /**
@@ -143,6 +143,7 @@ open class ConfigBuilder(private val path: String) {
     }
 
     companion object {
+        private val renderConfig = ConfigRenderOptions.defaults().setOriginComments(false)
         private val key_configs = DSLBuilder.DataKeyWithDefault("configs") { mutableSetOf<ConfigKey<*>>() }
         val IBaseScript.configs by key_configs
         val all = mutableMapOf<String, ConfigKey<*>>()
@@ -172,7 +173,7 @@ open class ConfigBuilder(private val path: String) {
         }
 
         fun saveFile() {
-            configFile.writeText(fileConfig.root().render(ConfigRenderOptions.defaults().setOriginComments(false)))
+            configFile.writeText(fileConfig.root().render(renderConfig))
         }
     }
 }
