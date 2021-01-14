@@ -1,11 +1,10 @@
 @file:DependsModule("coreLibrary")
-@file:MavenDepends("net.mamoe:mirai-core:2.0-M1-1", single = false)
+@file:MavenDepends("net.mamoe:mirai-core-jvm:2.0-RC", single = false)
 
 import arc.util.Log
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
 import net.mamoe.mirai.BotFactory
-import net.mamoe.mirai.newBot
 import net.mamoe.mirai.utils.*
 
 addDefaultImport("mirai.lib.*")
@@ -53,8 +52,7 @@ onEnable {
         protocol = qqProtocol
         fileBasedDeviceInfo(Config.dataDirectory.resolve("miraiDeviceInfo.json").absolutePath)
         parentCoroutineContext = coroutineContext
-        @Suppress("EXPERIMENTAL_API_USAGE")
-        loginSolver = DefaultLoginSolver(channel::receive)
+        loginSolver = StandardCharImageLoginSolver(channel::receive)
     }
     launch {
         bot.login()
