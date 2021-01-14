@@ -2,11 +2,14 @@ package mirai
 
 import cf.wayzer.placehold.PlaceHoldApi
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
+import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import java.awt.image.BufferedImage
+import java.io.File
+import javax.imageio.ImageIO
 
 val address by config.key("", "服务器地址,为空则不显示")
 
-subscribeGroupMessages {
+globalEventChannel().subscribeGroupMessages {
     case("服务器状态") {
         @Suppress("UNCHECKED_CAST")
         val getMapSnap = PlaceHoldApi.GlobalContext.getVar("wayzer.ext.mapSnap._get") as? () -> BufferedImage
@@ -17,9 +20,19 @@ subscribeGroupMessages {
                 服务器FPS: {fps} 内存占用(MB) {heapUse}
                 当前人数: {state.playerSize} 总单位数: {state.allUnit}
             """.trimIndent().with("addressInfo" to addressInfo, "receiver" to this.sender).toString()
-        getMapSnap?.let{
-            msg += uploadImage(it())
-        }
-        reply(msg)
+        if (getMapSnap != null) {
+            launch(Dispatchers.IO) {
+                val file = File.createTempFile("status_Image", ".png")
+                try {
+                    ImageIO.write(getMapSnap(), "png", file)
+                    file.toExternalResource("png").use {
+                        msg += subject.uploadImage(it)
+                    }
+                } finally {
+                    file.delete()
+                }
+                subject.sendMessage(msg)
+            }
+        } else subject.sendMessage(msg)
     }
 }
