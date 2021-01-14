@@ -2,6 +2,7 @@ package wayzer.ext
 
 import cf.wayzer.placehold.TemplateHandler
 import cf.wayzer.placehold.TemplateHandlerKey
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.util.*
 
@@ -9,9 +10,28 @@ name = "国际化多语言"
 
 var default by config.key("default.user", "默认语言")
 var console by config.key("default.console", "控制台语言(不发给玩家的语句)")
+
+val tempLang = mutableMapOf<String, String>()//uuid -> lang
+
 var Player.lang
-    get() = default
-    set(v) = TODO("暂不支持玩家语言设置")
+    get() = PlayerData[uuid()].profile?.lang ?: tempLang[uuid()] ?: default
+    set(v) {
+        if (lang == v) return
+        PlayerData[uuid()].profile?.apply {
+            @OptIn(CacheEntity.NeedTransaction::class)
+            transaction {
+                lang = v
+                save()
+            }
+        } ?: let {
+            tempLang[uuid()] = v
+            sendMessage("[yellow]当前未绑定账号,语言设置将在退出游戏后重置".with())
+        }
+    }
+
+listen<EventType.PlayerLeave> {
+    tempLang.remove(it.player.uuid())
+}
 
 
 //===main===
