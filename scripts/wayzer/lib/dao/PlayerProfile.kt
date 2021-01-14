@@ -10,10 +10,12 @@ class PlayerProfile:CacheEntity<Int>(T){
     var totalTime by T.totalTime //time in s
     var registerTime by T.registerTime
     var lastTime by T.lastTime
+    var lang by T.lang
     object T:IntIdTable("PlayerProfile"){
         val qq = long("qq").uniqueIndex()
         val totalExp = integer("totalExp").default(0)
         val totalTime = integer("totalTime").default(0)
+        val lang = varchar("lang", length = 16).nullable()
         val registerTime = timestamp("registerTime").defaultExpression(CurrentTimestamp())
         val lastTime = timestamp("lastTime").defaultExpression(CurrentTimestamp())
     }

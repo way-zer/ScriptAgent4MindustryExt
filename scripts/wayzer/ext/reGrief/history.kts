@@ -4,10 +4,7 @@ import arc.graphics.Color
 import cf.wayzer.placehold.PlaceHoldApi.with
 import mindustry.content.Blocks
 import mindustry.content.Fx
-import mindustry.entities.type.Player
-import mindustry.game.EventType
 import mindustry.gen.Call
-import mindustry.io.JsonIO
 import mindustry.type.Item
 import mindustry.world.Block
 import mindustry.world.blocks.storage.CoreBlock
@@ -75,35 +72,43 @@ fun Player.showLog(xf: Float, yf: Float) {
     if (logs.isEmpty()) Call.label(con, "[yellow]位置($x,$y)无记录", 5f, xf, yf)
     else {
         val list = logs.map { log ->
-            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}\n".with(
-                    "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid), "desc" to when (log) {
-                is Log.Place -> "放置了方块${log.type.name}"
-                is Log.Break -> "拆除了方块"
-                is Log.Config -> "修改了属性: ${log.value}"
-                is Log.Deposit -> "往里面丢了${log.amount}个${log.item.name}"
-            })
+            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}".with(
+                "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid), "desc" to when (log) {
+                    is Log.Place -> "放置了方块${log.type.name}"
+                    is Log.Break -> "拆除了方块"
+                    is Log.Config -> "修改了属性: ${log.value}"
+                    is Log.Deposit -> "往里面丢了${log.amount}个${log.item.name}"
+                }
+            )
         }
-        Call.label(con, "====[gold]操作记录($x,$y)[]====\n{list}".with("list" to list).toString(), 15f, xf, yf)
+        Call.label(
+            con,
+            "====[gold]操作记录($x,$y)[]====\n{list:\n}".with("list" to list, "receiver" to this).toString(),
+            15f,
+            xf,
+            yf
+        )
     }
 }
 
 //查询
 val enabledPlayer = mutableSetOf<String>()
-command("history", "开关查询模式", {
+command("history", "开关查询模式") {
     permission = "wayzer.ext.history"
     usage = "[core(查询核心)]"
     aliases = listOf("历史")
-}) {
-    if (arg.getOrElse(0) { "" }.contains("core")) returnReply(
-        "[green]核心破坏周边情况:\n{list}".with("list" to lastCoreLog)
-    )
-    if (player == null) returnReply("[red]控制台仅可查询核心破坏记录".with())
-    if (player!!.uuid in enabledPlayer) {
-        enabledPlayer.remove(player!!.uuid)
-        reply("[green]关闭查询模式".with())
-    } else {
-        enabledPlayer.add(player!!.uuid)
-        reply("[green]开启查询模式,点击方块查询历史".with())
+    body {
+        if (arg.getOrElse(0) { "" }.contains("core")) returnReply(
+            "[green]核心破坏周边情况:\n{list:\n}".with("list" to lastCoreLog)
+        )
+        if (player == null) returnReply("[red]控制台仅可查询核心破坏记录".with())
+        if (player!!.uuid() in enabledPlayer) {
+            enabledPlayer.remove(player!!.uuid())
+            reply("[green]关闭查询模式".with())
+        } else {
+            enabledPlayer.add(player!!.uuid())
+            reply("[green]开启查询模式,点击方块查询历史".with())
+        }
     }
 }
 
@@ -115,7 +120,7 @@ listen<EventType.TapEvent> {
 }
 
 // 自动保留破坏核心的可疑行为
-var lastCoreLog = emptyList<String>()
+var lastCoreLog = emptyList<PlaceHoldString>()
 var lastTime = 0L
 val dangerBlock = arrayOf(
     Blocks.thoriumReactor,
@@ -125,15 +130,19 @@ val dangerBlock = arrayOf(
 listen<EventType.BlockDestroyEvent> { event ->
     if (event.tile.block() is CoreBlock) {
         if (System.currentTimeMillis() - lastTime > 5000) { //防止核心连环爆炸,仅记录第一个被炸核心
-            val list = mutableListOf<String>()
+            val list = mutableListOf<PlaceHoldString>()
             for (x in event.tile.x.let { it - 10..it + 10 })
                 for (y in event.tile.y.let { it - 10..it + 10 })
                     logs.getOrNull(x)?.getOrNull(y)?.lastOrNull { it is Log.Place }?.let { log ->
                         if (log is Log.Place && log.type in dangerBlock)
-                            list.add("[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}\n".with(
+                            list.add(
+                                "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}".with(
                                     "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid),
-                                    "desc" to "在距离核心(${x - event.tile.x},${y - event.tile.y})的位置放置了${log.type.name}"
-                            ).toString())
+                                    "desc" to "在距离核心({x},{})的位置放置了{type}".with(
+                                        "x" to (x - event.tile.x), "y" to (y - event.tile.y), "type" to log.type.name
+                                    )
+                                )
+                            )
                     }
             lastCoreLog = list
         }

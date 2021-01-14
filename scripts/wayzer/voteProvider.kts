@@ -6,9 +6,9 @@ package wayzer
 import cf.wayzer.placehold.PlaceHoldContext
 import cf.wayzer.script_agent.util.ServiceRegistry
 import coreMindustry.lib.util.sendMenuPhone
-import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.gen.Call
+import mindustry.gen.Groups
 import wayzer.services.VoteService
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
@@ -114,7 +114,7 @@ inner class VoteHandler : VoteService {
         }
     }
 
-    override fun allCanVote() = playerGroup.filter(canVote)
+    override fun allCanVote() = Groups.player.filter(canVote)
 
     private fun reset() {
         requireNum = { max(ceil(allCanVote().size * 2.0 / 3).toInt(), 2) }
@@ -128,15 +128,15 @@ inner class VoteHandler : VoteService {
 
     fun onVote(p: Player) {
         if (!voting.get()) return
-        if (p.uuid in voted) return p.sendMessage("[red]你已经投票".with())
+        if (p.uuid() in voted) return p.sendMessage("[red]你已经投票".with())
         if (!canVote(p)) return p.sendMessage("[red]你不能对此投票".with())
-        voted.add(p.uuid)
+        voted.add(p.uuid())
         broadcast("[green]投票成功,还需{left}人投票".with("left" to (requireNum() - voted.size)), quite = true)
     }
 
     fun onLeave(p: Player) {
         lastAction = System.currentTimeMillis()
-        voted.remove(p.uuid)
+        voted.remove(p.uuid())
     }
 
     override fun ISubScript.addSubVote(

@@ -1,16 +1,14 @@
 package wayzer.user
 
-import mindustry.entities.type.Player
 import mindustry.game.EventType
+import mindustry.gen.Groups
 import java.time.Duration
-import java.time.Instant
-import java.util.*
 
 onEnable {
     launch {
         while (true) {
             delay(5000)
-            playerGroup.mapNotNull { PlayerData.getOrNull(it.uuid)?.profile }.toSet().forEach {
+            Groups.player.mapNotNull { PlayerData.getOrNull(it.uuid())?.profile }.toSet().forEach {
                 it.totalTime += 5
             }
         }
@@ -20,8 +18,8 @@ onEnable {
 var endTime = false
 val finishProfile = mutableSetOf<Int>()
 listen<EventType.GameOverEvent> {
-    val startTime by PlaceHold.reference<Date>("state.startTime")
-    if (Duration.between(startTime.toInstant(), Instant.now()) > Duration.ofMinutes(20)) {
+    val gameTime by PlaceHold.reference<Duration>("state.gameTime")
+    if (gameTime > Duration.ofMinutes(20)) {
         endTime = true
     }
 }
@@ -33,7 +31,7 @@ listen<EventType.PlayerChatEvent> {
     if (!endTime || !it.message.equals("gg", true)) return@listen
     val updateExp = depends("wayzer/user/level")?.import<PlayerProfile.(Int) -> List<Player>>("updateExp")
     if (updateExp != null) {
-        val profile = PlayerData[it.player.uuid].profile
+        val profile = PlayerData[it.player.uuid()].profile
         if (profile == null || finishProfile.contains(profile.id.value)) return@listen
         finishProfile.add(profile.id.value)
         profile.updateExp(3).forEach { p ->

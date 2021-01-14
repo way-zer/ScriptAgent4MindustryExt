@@ -126,7 +126,11 @@ class CommandInfo(
 
 open class Commands : (CommandContext) -> Unit, TabCompleter {
     protected val subCommands = mutableMapOf<String, CommandInfo>()
-    open fun getSubCommands(context: CommandContext): Map<String, CommandInfo> = subCommands
+
+    /**
+     * @return [subCommands] when [context] is null
+     */
+    open fun getSubCommands(context: CommandContext?): Map<String, CommandInfo> = subCommands
     fun getSub(context: CommandContext): CommandInfo? {
         return context.arg.getOrNull(0)?.let { getSubCommands(context)[it.toLowerCase()] }
     }
@@ -165,13 +169,20 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
     }
 
     open fun removeSub(name: String) {
-        subCommands.remove(name)
+        subCommands.remove(name.toLowerCase())
     }
 
     fun addSub(command: CommandInfo) {
         addSub(command.name, command, false)
         command.aliases.forEach {
             addSub(it, command, true)
+        }
+    }
+
+    fun removeSub(command: CommandInfo) {
+        subCommands.remove(command.name.toLowerCase(), command)
+        command.aliases.forEach {
+            subCommands.remove(it.toLowerCase(), command)
         }
     }
 
@@ -226,9 +237,10 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
                 if (it.script != null) append(" | ${it.script?.id}")
                 if (it.permission.isNotBlank()) append(" | ${it.permission}")
             }
-            return "[light_yellow]{prefix}{name}[light_red]{aliases} [white]{usage}  [light_cyan]{desc}[cyan]{detail}\n".with(
-                    "prefix" to prefix, "name" to it.name, "aliases" to alias,
-                    "usage" to it.usage, "desc" to it.description, "detail" to detail)
+            return "[light_yellow]{prefix}{name}[light_red]{aliases} [white]{usage}  [light_cyan]{desc}[cyan]{detail}".with(
+                "prefix" to prefix, "name" to it.name, "aliases" to alias,
+                "usage" to it.usage, "desc" to it.description, "detail" to detail
+            )
         }
     }
 }

@@ -6,6 +6,7 @@ import arc.util.async.Threads
 import arc.util.serialization.Jval
 import mindustry.core.Version
 import mindustry.game.EventType
+import mindustry.gen.Groups
 import mindustry.io.SaveIO
 import mindustry.net.BeControl
 import java.io.File
@@ -53,7 +54,7 @@ fun update(version: Int, url: String) {
         }
         Log.info("新版本 $version 下载完成: ${size / 1024 / 1024}MB")
         updateCallback = {
-            playerGroup.forEach {
+            Groups.player.forEach {
                 it.kick("[yellow]服务器重启更新到新版本 $version")
             }
             Threads.sleep(32L)
@@ -63,7 +64,7 @@ fun update(version: Int, url: String) {
         }
         Core.app.post {
             broadcast("[yellow]服务器新版本{version}下载完成,将在本局游戏后自动重启更新".with("version" to version))
-            if (playerGroup.isEmpty) {
+            if (Groups.player.isEmpty) {
                 Log.info("&lcSaving...")
                 @Suppress("SpellCheckingInspection")
                 SaveIO.save(saveDirectory.child("autosavebe.$saveExtension"))

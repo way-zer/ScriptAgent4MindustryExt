@@ -19,7 +19,7 @@ onEnable {
                 if (arg.isEmpty()) {
                     val list = ScriptManager.loadedInitScripts.values.map {
                         val enable = if (it.enabled) "purple" else "reset"
-                        "[{enable}]{name} [blue]{desc}\n".with(
+                        "[{enable}]{name} [blue]{desc}".with(
                             "enable" to enable,
                             "name" to it.id.padEnd(20),
                             "desc" to it.name
@@ -28,7 +28,7 @@ onEnable {
                     return@body reply(
                         """
                     [yellow]==== [light_yellow]已加载模块[yellow] ====
-                    {list}
+                    {list:${"\n"}}
                 """.trimIndent().with("list" to list)
                     )
                 }
@@ -36,7 +36,7 @@ onEnable {
                     ?: return@body reply("[red]找不到模块".with())
                 val list = module.children.map {
                     val enable = if (it.enabled) "purple" else "reset"
-                    "[{enable}]{name} [blue]{desc}\n".with(
+                    "[{enable}]{name} [blue]{desc}".with(
                         "enable" to enable,
                         "name" to it.id.padEnd(30),
                         "desc" to it.name
@@ -45,7 +45,7 @@ onEnable {
                 reply(
                     """
                 [yellow]==== [light_yellow]{module}脚本[yellow] ====
-                {list}
+                {list:${"\n"}}
             """.trimIndent().with("module" to module.name, "list" to list)
                 )
             }

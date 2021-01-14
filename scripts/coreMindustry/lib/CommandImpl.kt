@@ -2,7 +2,7 @@
 
 package coreMindustry.lib
 
-import arc.struct.Array
+import arc.struct.Seq
 import arc.util.CommandHandler
 import cf.wayzer.script_agent.Config
 import cf.wayzer.script_agent.getContextModule
@@ -10,24 +10,27 @@ import cf.wayzer.script_agent.listenTo
 import cf.wayzer.script_agent.util.DSLBuilder
 import coreLibrary.lib.*
 import coreLibrary.lib.event.PermissionRequestEvent
-import coreMindustry.lib.compatibilities.isAdmin
 import coreMindustry.lib.util.sendMenuPhone
-import mindustry.entities.type.Player
+import mindustry.gen.Player
 
 object RootCommands : Commands() {
     var overwrite = true
-    override fun getSubCommands(context: CommandContext): Map<String, CommandInfo> {
-        if (!overwrite) return super.getSubCommands(context)
-        val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands).let { originHandler ->
-            originHandler.commandList.associate {
-                it.text.toLowerCase() to CommandInfo(null, it.text, it.description) {
-                    usage = it.paramText
-                    body {
-                        prefix = prefix.removePrefix("* ")
-                        (if (originHandler is MyCommandHandler) originHandler.origin else originHandler).handleMessage(prefix + arg.joinToString(" "), player)
+    override fun getSubCommands(context: CommandContext?): Map<String, CommandInfo> {
+        if (!overwrite || context == null) return super.getSubCommands(context)
+        val origin =
+            (if (context.player != null) Config.clientCommands else Config.serverCommands).let { originHandler ->
+                originHandler.commandList.associate {
+                    it.text.toLowerCase() to CommandInfo(null, it.text, it.description) {
+                        usage = it.paramText
+                        body {
+                            prefix = prefix.removePrefix("* ")
+                            (if (originHandler is MyCommandHandler) originHandler.origin else originHandler).handleMessage(
+                                prefix + arg.joinToString(" "),
+                                player
+                            )
+                        }
                     }
                 }
-            }
         }
         return origin.filterValues { if (context.player != null) it.type.client() else it.type.server() } + subCommands.filterValues { if (context.player != null) it.type.client() else it.type.server() }
     }
@@ -102,7 +105,7 @@ object RootCommands : Commands() {
         }
         RootCommands::class.java.getContextModule()!!.apply {
             listenTo<PermissionRequestEvent> {
-                if (context.player?.isAdmin != false)
+                if (context.player?.admin == true)
                     result = true
             }
         }
@@ -124,7 +127,7 @@ class MyCommandHandler(private var prefix: String, val origin: CommandHandler) :
         return origin.removeCommand(text)
     }
 
-    override fun getCommandList(): Array<Command> {
+    override fun getCommandList(): Seq<Command> {
         return origin.commandList
     }
 

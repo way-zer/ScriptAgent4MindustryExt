@@ -15,7 +15,7 @@ subscribeGroupMessages {
                 当前地图为: {map.name} 波数: {state.wave}
                 服务器FPS: {fps} 内存占用(MB) {heapUse}
                 当前人数: {state.playerSize} 总单位数: {state.allUnit}
-            """.trimIndent().with("addressInfo" to addressInfo).toString()
+            """.trimIndent().with("addressInfo" to addressInfo, "receiver" to this.sender).toString()
         getMapSnap?.let{
             msg += uploadImage(it())
         }

@@ -7,19 +7,19 @@ name = "权限管理系统"
 
 var groups by config.key(
     mapOf(
-        "%default" to listOf("wayzer.ext.observer", "wayzer.ext.history"),
-        "%admin" to listOf(
+        "@default" to listOf("wayzer.ext.observer", "wayzer.ext.history"),
+        "@admin" to listOf(
             "wayzer.admin.ban", "wayzer.info.other", "wayzer.vote.ban",
             "wayzer.maps.host", "wayzer.maps.load", "wayzer.ext.team.change",
         ),
     ),
-    "权限设置", "特殊组有:%default,%admin,%lvl0,%lvl1等,用户qq可单独做组", "值为权限，%开头为组,支持末尾通配符.*"
+    "权限设置", "特殊组有:@default,@admin,@lvl0,@lvl1等,用户qq可单独做组", "值为权限，@开头为组,支持末尾通配符.*"
 )
 
 fun hasPermission(permission: String, list: List<String>): Boolean {
     list.forEach {
         when {
-            it.startsWith("%") -> {
+            it.startsWith("@") -> {
                 if (checkGroup(permission, it))
                     return true
             }
@@ -47,14 +47,14 @@ listenTo<PermissionRequestEvent> {
                 CommandInfo.Return()
             }
         }
-        check { checkGroup(permission, "%default") }
+        check { checkGroup(permission, "@default") }
         val uuid = context.player!!.uuid()
         check { checkGroup(permission, uuid) }
         val profile = PlayerData[uuid].profile ?: return@listenTo
         check { checkGroup(permission, "qq${profile.qq}") }
         val level = (PlaceHoldApi.GlobalContext.typeResolve(profile, "level") ?: return@listenTo) as Int
         for (lvl in level downTo 0) {
-            check { checkGroup(permission, "%lvl$lvl") }
+            check { checkGroup(permission, "@lvl$lvl") }
         }
     } catch (e: CommandInfo.Return) {
     }
@@ -65,7 +65,7 @@ command("permission", "权限系统配置") {
     usage = "<group> <add/list/remove/delGroup> [permission]"
     onComplete {
         onComplete(0) { groups.keys.toList() }
-        onComplete(1) { listOf("add", "list", "remove") }
+        onComplete(1) { listOf("add", "list", "remove", "addGroup") }
     }
     body {
         if (arg.isEmpty()) returnReply("当前已有组: {list}".with("list" to groups.keys))
@@ -123,27 +123,27 @@ command("madmin", "列出或添加删除管理") {
     body {
         val uuid = arg.getOrNull(0)
         if (uuid == null) {
-            val list = groups.filter { it.value.contains("%admin") }.keys.joinToString()
+            val list = groups.filter { it.value.contains("@admin") }.keys.joinToString()
             returnReply("Admins: {list}".with("list" to list))
         } else {
             val isQQ = uuid.length > 5 && uuid.toLongOrNull() != null
             val key = if (isQQ) "qq$uuid" else uuid
             val now = groups[key].orEmpty()
-            if ("%admin" in now) {
+            if ("@admin" in now) {
                 groups = if (now.size == 1) {
                     groups - key
                 } else {
-                    groups + (key to (now - "%admin"))
+                    groups + (key to (now - "@admin"))
                 }
                 returnReply("[red]{uuid} [green] has been removed from Admins[]".with("uuid" to uuid))
             } else {
                 if (isQQ) {
-                    groups = groups + (key to (now + "%admin"))
+                    groups = groups + (key to (now + "@admin"))
                     reply("[green]QQ [red]{qq}[] has been added to Admins".with("qq" to uuid))
                 } else {
                     val info = netServer.admins.getInfoOptional(uuid)
                         ?: returnReply("[red]Can't found player".with())
-                    groups = groups + (key to (now + "%admin"))
+                    groups = groups + (key to (now + "@admin"))
                     reply("[green]Player [red]{info.name}({info.uuid})[] has been added to Admins".with("info" to info))
                 }
             }

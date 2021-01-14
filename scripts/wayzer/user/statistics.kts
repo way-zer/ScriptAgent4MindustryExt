@@ -1,10 +1,10 @@
 package wayzer.user
 
 import cf.wayzer.placehold.DynamicVar
-import mindustry.entities.type.Player
 import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.game.Team
+import mindustry.gen.Groups
 import mindustry.world.Block
 import mindustry.world.blocks.distribution.Conveyor
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -56,16 +56,16 @@ val statisticsData = mutableMapOf<String, StatisticsData>()
 customLoad(::statisticsData) { statisticsData += it }
 val Player.data get() = statisticsData.getOrPut(uuid()) { StatisticsData() }
 registerVarForType<StatisticsData>().apply {
-    registerChild("playedTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.playedTime.toLong()) })
-    registerChild("idleTime", "本局在线时间", DynamicVar { obj, _ -> Duration.ofSeconds(obj.idleTime.toLong()) })
-    registerChild("buildScore", "建筑积分", DynamicVar { obj, p ->
+    registerChild("playedTime", "本局在线时间", DynamicVar.obj { Duration.ofSeconds(it.playedTime.toLong()) })
+    registerChild("idleTime", "本局在线时间", DynamicVar.obj { Duration.ofSeconds(it.idleTime.toLong()) })
+    registerChild("buildScore", "建筑积分") { _, obj, p ->
         if (!p.isNullOrBlank()) p.format(obj.buildScore)
         else obj.buildScore
-    })
-    registerChild("breakBlock", "破坏方块数", DynamicVar { obj, _ -> obj.breakBlock })
+    }
+    registerChild("breakBlock", "破坏方块数", DynamicVar.obj { it.breakBlock })
 }
 registerVarForType<Player>().apply {
-    registerChild("statistics", "游戏统计数据", DynamicVar { p, _ -> p.data })
+    registerChild("statistics", "游戏统计数据", DynamicVar.obj { it.data })
 }
 onDisable {
     PlaceHoldString.bindTypes.remove(StatisticsData::class.java)//局部类，防止泄漏
@@ -82,7 +82,7 @@ onEnable {
     launch {
         while (true) {
             delay(1000)
-            playerGroup.forEach {
+            Groups.player.forEach {
                 it.data.playedTime++
                 if (!it.active)
                     it.data.idleTime++
@@ -104,13 +104,14 @@ listen<EventType.GameOverEvent> { event ->
 }
 
 fun onGameOver(winner: Team) {
-    val startTime by PlaceHold.reference<Date>("state.startTime")
-    val gameTime = Duration.between(startTime.toInstant(), Instant.now())
-    if (state.rules.mode() in arrayOf(Gamemode.editor, Gamemode.sandbox)) {
-        return broadcast("""
+    val gameTime by PlaceHold.reference<Duration>("state.gameTime")
+    if (state.rules.infiniteResources || state.rules.editor) {
+        return broadcast(
+            """
             [yellow]本局游戏时长: {gameTime:分钟}
             [yellow]沙盒或编辑器模式,不计算贡献
-        """.trimIndent().with("gameTime" to gameTime))
+        """.trimIndent().with("gameTime" to gameTime)
+        )
     }
 
     StatisticsData.teamWin = if (state.rules.mode() != Gamemode.survival) winner else Team.sharded
@@ -121,8 +122,8 @@ fun onGameOver(winner: Team) {
             .sortedByDescending { it.second.score }
     val list = sortedData.map { (player, data) ->
         totalTime += data.playedTime - data.idleTime
-        "[white]{pvpState}{player.name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f}),".with(
-                "player" to player, "statistics" to data, "pvpState" to if (data.win) "[green][胜][]" else ""
+        "[white]{pvpState}{player.name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f})".with(
+            "player" to player, "statistics" to data, "pvpState" to if (data.win) "[green][胜][]" else ""
         )
     }
     broadcast("""

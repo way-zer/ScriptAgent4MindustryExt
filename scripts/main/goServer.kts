@@ -18,17 +18,23 @@ val infos: Map<String, Info>
     }
 
 
-command("go", "传送到其他服务器", {
-    usage = "[名字,为空列出]";
+command("go", "传送到其他服务器") {
+    usage = "[名字,为空列出]"
     type = CommandType.Client
     aliases = listOf("前往")
-}) {
-    val info = arg.firstOrNull()
-            ?.let { infos[it] ?: return@command reply("[red]错误的服务器名字".with()) }
+    body {
+        val info = arg.firstOrNull()
+            ?.let { infos[it] ?: returnReply("[red]错误的服务器名字".with()) }
             ?: let {
-                val list = infos.values.map { "[gold]{name}:[tan]{desc}\n".with("name" to it.name, "desc" to it.desc) }
-                return@command reply("[violet]可用服务器: \n{list}".with("list" to list))
+                val list = infos.values.map { "[gold]{name}:[tan]{desc}".with("name" to it.name, "desc" to it.desc) }
+                returnReply("[violet]可用服务器: \n{list:\n}".with("list" to list))
             }
-    Call.connect(player!!.con, info.address, info.port)
-    broadcast("[cyan][-][salmon]{player.name}[salmon]传送到了{name}服务器(/go {name})".with("player" to player!!, "name" to info.name))
+        Call.connect(player!!.con, info.address, info.port)
+        broadcast(
+            "[cyan][-][salmon]{player.name}[salmon]传送到了{name}服务器(/go {name})".with(
+                "player" to player!!,
+                "name" to info.name
+            )
+        )
+    }
 }
