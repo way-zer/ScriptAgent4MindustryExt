@@ -29,10 +29,15 @@ open class ConfigBuilder(private val path: String) {
     /**
      * @param desc only display the first line using command
      */
-    data class ConfigKey<T : Any>(val path: String, val cls: ClassContainer, val default: T, val desc: List<String>) {
+    data class ConfigKey<T : Any>(
+        val path: String,
+        val cls: ClassContainer,
+        val default: T,
+        val desc: List<String>,
+        private val onChange: ((T) -> Unit)?
+    ) {
         private lateinit var cache: T
         private var cacheTime = 0L
-        private var onChange: ((T) -> Unit)? = null
         private fun cache(v: T): T {
             val changed = cacheTime == 0L || cache != v
             cache = v
@@ -95,14 +100,6 @@ open class ConfigBuilder(private val path: String) {
             throw IllegalArgumentException("Parse \"$str\" fail: get $v")
         }
 
-        /**
-         * add hook when value change, and when first time.
-         */
-        fun onChange(body: (T) -> Unit): ConfigKey<T> {
-            onChange = body
-            return this
-        }
-
         operator fun getValue(thisRef: Any?, prop: KProperty<*>) = get()
         operator fun setValue(thisRef: Any?, prop: KProperty<*>, v: T) = set(v)
 
@@ -126,20 +123,27 @@ open class ConfigBuilder(private val path: String) {
     }
 
     fun child(sub: String) = ConfigBuilder("$path.$sub")
-    fun <T : Any> key(cls: ClassContainer, default: T, vararg desc: String) =
+
+    /**
+     * @param onChange hook when value change, and when first time.
+     */
+    fun <T : Any> key(cls: ClassContainer, default: T, vararg desc: String, onChange: ((T) -> Unit)? = null) =
         DSLBuilder.Companion.ProvideDelegate<IBaseScript, ConfigKey<T>> { script, name ->
-            val key = ConfigKey("$path.$name", cls, default, desc.toList())
+            val key = ConfigKey("$path.$name", cls, default, desc.toList(), onChange)
             script.configs.add(key)
             all[key.path] = key
             return@ProvideDelegate key
         }
 
+    /**
+     * @param onChange hook when value change, and when first time.
+     */
     inline fun <reified T : Any> key(
         default: T,
-        vararg desc: String
+        vararg desc: String,
+        noinline onChange: ((T) -> Unit)? = null
     ): DSLBuilder.Companion.ProvideDelegate<IBaseScript, ConfigKey<T>> {
-        val genericType = object : TypeReference<T>() {}.genericType()
-        return key(ClassContainer(T::class, genericType), default, *desc)
+        return key(ClassContainer<T>(), default, *desc, onChange = onChange)
     }
 
     companion object {
@@ -174,6 +178,11 @@ open class ConfigBuilder(private val path: String) {
 
         fun saveFile() {
             configFile.writeText(fileConfig.root().render(renderConfig))
+        }
+
+        inline fun <reified T : Any> ClassContainer(): ClassContainer {
+            val genericType = object : TypeReference<T>() {}.genericType()
+            return ClassContainer(T::class, genericType)
         }
     }
 }
