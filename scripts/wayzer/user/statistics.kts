@@ -1,3 +1,4 @@
+@file:Import("@wayzer/services/UserService.kt", sourceFile = true)
 package wayzer.user
 
 import cf.wayzer.placehold.DynamicVar
@@ -7,21 +8,20 @@ import mindustry.game.Team
 import mindustry.gen.Groups
 import mindustry.world.Block
 import mindustry.world.blocks.distribution.Conveyor
-import org.jetbrains.exposed.sql.transactions.transaction
+import wayzer.services.UserService
 import java.io.Serializable
 import java.time.Duration
-import java.time.Instant
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.min
 
 data class StatisticsData(
-        var playedTime: Int = 0,
-        var idleTime: Int = 0,
-        var buildScore: Float = 0f,
-        var breakBlock: Int = 0,
-        var lastActive: Long = 0,
-        @Transient var pvpTeam: Team = Team.sharded
+    var playedTime: Int = 0,
+    var idleTime: Int = 0,
+    var buildScore: Float = 0f,
+    var breakBlock: Int = 0,
+    var lastActive: Long = 0,
+    @Transient var pvpTeam: Team = Team.sharded
 ) : Serializable {
     val win get() = state.rules.pvp && pvpTeam == teamWin
 
@@ -51,10 +51,14 @@ val Player.active: Boolean
 fun active(p: Player) = p.active
 export(::active)
 
+val userService by ServiceRegistry<UserService>()
+
 @Savable
 val statisticsData = mutableMapOf<String, StatisticsData>()
 customLoad(::statisticsData) { statisticsData += it }
 val Player.data get() = statisticsData.getOrPut(uuid()) { StatisticsData() }
+
+
 registerVarForType<StatisticsData>().apply {
     registerChild("playedTime", "本局在线时间", DynamicVar.obj { Duration.ofSeconds(it.playedTime.toLong()) })
     registerChild("idleTime", "本局在线时间", DynamicVar.obj { Duration.ofSeconds(it.idleTime.toLong()) })
@@ -117,38 +121,31 @@ fun onGameOver(winner: Team) {
     StatisticsData.teamWin = if (state.rules.mode() != Gamemode.survival) winner else Team.sharded
     var totalTime = 0
     val sortedData = statisticsData.filterValues { it.playedTime > 60 }
-            .mapKeys { netServer.admins.getInfo(it.key) }
-            .toList()
-            .sortedByDescending { it.second.score }
+        .mapKeys { netServer.admins.getInfo(it.key) }
+        .toList()
+        .sortedByDescending { it.second.score }
     val list = sortedData.map { (player, data) ->
         totalTime += data.playedTime - data.idleTime
         "[white]{pvpState}{player.name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f})".with(
             "player" to player, "statistics" to data, "pvpState" to if (data.win) "[green][胜][]" else ""
         )
     }
-    broadcast("""
+    broadcast(
+        """
         [yellow]本局游戏时长: {gameTime:分钟}
         [yellow]有效总贡献时长: {totalTime:分钟}
         [yellow]贡献排行榜(时长/挂机/建筑): {list}
-    """.trimIndent().with("gameTime" to gameTime, "totalTime" to Duration.ofSeconds(totalTime.toLong()), "list" to list))
+    """.trimIndent().with("gameTime" to gameTime, "totalTime" to Duration.ofSeconds(totalTime.toLong()), "list" to list)
+    )
 
-    if (sortedData.isNotEmpty() && depends("wayzer/user/expReward") != null && gameTime > Duration.ofMinutes(15)) {
-        val updateExp = depends("wayzer/user/level")?.import<PlayerProfile.(Int) -> List<Player>>("updateExp")
-        if (updateExp != null) {
-            @OptIn(CacheEntity.NeedTransaction::class)
-            transaction {
-                val map = mutableMapOf<PlayerProfile, StatisticsData>()
-                sortedData.groupBy { PlayerData.find(it.first)?.profile }.forEach { (key, value) ->
-                    if (key == null || value.isEmpty()) return@forEach
-                    map[key] = value.maxByOrNull { it.second.score }!!.second
-                }
-                map.forEach { (profile, data) ->
-                    profile.updateExp(data.exp).forEach {
-                        it.sendMessage("[green]经验 +${data.exp}")
-                    }
-                    profile.save()
-                }
-            }
+    if (sortedData.isNotEmpty() && gameTime > Duration.ofMinutes(15)) {
+        val map = mutableMapOf<PlayerProfile, StatisticsData>()
+        sortedData.groupBy { PlayerData.findById(it.first.id)?.profile }.forEach { (key, value) ->
+            if (key == null || value.isEmpty()) return@forEach
+            map[key] = value.maxByOrNull { it.second.score }!!.second
+        }
+        map.forEach { (profile, data) ->
+            userService.updateExp(profile, data.exp)
         }
     }
     statisticsData.clear()

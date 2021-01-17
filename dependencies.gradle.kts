@@ -2,7 +2,7 @@ val libraryVersion = "1.4.2"
 val mindustryVersion = "v115"
 
 repositories {
-//    maven("http://maven.aliyun.com/nexus/content/groups/public/")
+    maven("http://maven.aliyun.com/nexus/content/groups/public/")
     mavenLocal()
     mavenCentral()
     jcenter()
@@ -18,6 +18,7 @@ dependencies {
     pluginCompile("com.github.Anuken.Mindustry:core:$mindustryVersion")
 
     val compile by configurations
+    val implementation by configurations
     compile(kotlin("script-runtime"))
     compile("cf.wayzer:ScriptAgent:$libraryVersion")
     //coreLibrary
@@ -35,4 +36,6 @@ dependencies {
     compile("org.jline:jline-reader:3.15.0")
     //mirai
     compile("net.mamoe:mirai-core-api-jvm:2.0-RC")
+    //wayzer
+    implementation("com.google.guava:guava:30.1-jre")
 }

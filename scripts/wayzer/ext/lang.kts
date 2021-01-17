@@ -18,10 +18,8 @@ var Player.lang
     set(v) {
         if (lang == v) return
         PlayerData[uuid()].profile?.apply {
-            @OptIn(CacheEntity.NeedTransaction::class)
             transaction {
                 lang = v
-                save()
             }
         } ?: let {
             tempLang[uuid()] = v

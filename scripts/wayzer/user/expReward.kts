@@ -1,15 +1,23 @@
+@file:Import("@wayzer/services/UserService.kt", sourceFile = true)
+
 package wayzer.user
 
-import mindustry.game.EventType
 import mindustry.gen.Groups
+import org.jetbrains.exposed.sql.transactions.transaction
+import wayzer.services.UserService
 import java.time.Duration
+
+val userService by ServiceRegistry<UserService>()
 
 onEnable {
     launch {
         while (true) {
             delay(5000)
-            Groups.player.mapNotNull { PlayerData.getOrNull(it.uuid())?.profile }.toSet().forEach {
-                it.totalTime += 5
+            transaction {
+                Groups.player
+                    .mapNotNull { p -> PlayerData.findOrCreate(p).profile }
+                    .filter { it.controlling }
+                    .toSet().forEach { it.totalTime += 5 }
             }
         }
     }
@@ -29,13 +37,8 @@ listen<EventType.ResetEvent> {
 }
 listen<EventType.PlayerChatEvent> {
     if (!endTime || !it.message.equals("gg", true)) return@listen
-    val updateExp = depends("wayzer/user/level")?.import<PlayerProfile.(Int) -> List<Player>>("updateExp")
-    if (updateExp != null) {
-        val profile = PlayerData[it.player.uuid()].profile
-        if (profile == null || finishProfile.contains(profile.id.value)) return@listen
-        finishProfile.add(profile.id.value)
-        profile.updateExp(3).forEach { p ->
-            p.sendMessage("[green]经验 +3")
-        }
-    }
+    val profile = PlayerData[it.player.uuid()].profile
+    if (profile == null || finishProfile.contains(profile.id.value)) return@listen
+    finishProfile.add(profile.id.value)
+    userService.updateExp(profile, 3)
 }

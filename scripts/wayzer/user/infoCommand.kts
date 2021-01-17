@@ -1,7 +1,5 @@
 package wayzer.user
 
-import org.jetbrains.exposed.sql.transactions.transaction
-
 val template by config.key(
     """
     | [#DEA82A] {player.name} [#DEA82A]个人信息[]
@@ -45,9 +43,7 @@ command("mInfo", "获取用户信息") {
         if (arg.isEmpty()) returnReply("[red]请输入玩家uuid".with())
         val player = netServer.admins.getInfo(arg[0]) ?: returnReply("[red]玩家未找到".with())
 
-        @Suppress("EXPERIMENTAL_API_USAGE")
-        val data = transaction { PlayerData.find(player) }
-            ?: returnReply("[red]玩家未找到".with())
+        val data = PlayerData.findById(player.id) ?: returnReply("[red]玩家未找到".with())
         val profileInfo = data.profile?.let {
             profileTemplate.with("profile" to it)
         } ?: """

@@ -1,9 +1,7 @@
 @file:DependsModule("coreMindustry")
+@file:Import("com.google.guava:guava:30.1-jre", mavenDepends = true)
 
-import mindustry.gen.Groups
-import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.lib.dao.Achievement
-import wayzer.lib.dao.CacheEntity
 import wayzer.lib.dao.PlayerData
 import wayzer.lib.dao.PlayerProfile
 import coreLibrary.lib.registerTable
@@ -47,19 +45,3 @@ addDefaultImport("wayzer.lib.*")
 addDefaultImport("wayzer.lib.dao.*")
 generateHelper()
 registerTable(PlayerProfile.T, PlayerData.T, Achievement.T)
-
-onEnable {
-    @OptIn(CacheEntity.NeedTransaction::class)
-    transaction {
-        Groups.player.forEach {
-            PlayerData.findOrCreate(it)
-        }
-    }
-}
-
-onDisable {
-    @OptIn(CacheEntity.NeedTransaction::class)
-    transaction {
-        PlayerData.allCached.forEach { it.save() }
-    }
-}
