@@ -4,7 +4,6 @@ package wayzer.user
 
 import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.lib.dao.Achievement
-import wayzer.lib.dao.util.NeedTransaction
 import wayzer.services.UserService
 
 val userService by ServiceRegistry<UserService>()
@@ -13,7 +12,7 @@ fun finishAchievement(profile: PlayerProfile, name: String, exp: Int, broadcast:
     transaction {
         if (!Achievement.newWithCheck(profile.id, name, exp)) return@transaction
         userService.updateExp(profile, exp)
-        userService.notice(
+        userService.notify(
             profile,
             "[gold][成就]恭喜{player.name}[gold]完成成就[scarlet]{name},[gold]获得[violet]{exp}[gold]经验",
             mapOf("name" to name, "exp" to exp.toString(), if (broadcast) ("_" to "") else "player.name" to "你"),

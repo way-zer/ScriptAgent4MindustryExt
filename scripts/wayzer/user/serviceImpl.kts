@@ -30,8 +30,14 @@ object Impl : UserService {
         impl(profile, name, exp, broadcast)
     }
 
-    override fun notice(profile: PlayerProfile, message: String, params: Map<String, String>, broadcast: Boolean) {
-        TODO("通知系统")
+    override fun notify(profile: PlayerProfile, message: String, params: Map<String, String>, broadcast: Boolean) {
+        val impl = script.depends("wayzer/user/notification")
+            ?.import<(PlayerProfile, String, Map<String, String>, Boolean) -> Unit>("notify")
+        if (impl == null) {
+            println("finishAchievement(${profile.qq},$name,$params,$broadcast)")
+            error("通知系统不可用,请联系管理员")
+        }
+        impl(profile, name, params, broadcast)
     }
 }
 Impl.script = this

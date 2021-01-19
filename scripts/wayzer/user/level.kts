@@ -33,10 +33,13 @@ registerVarForType<PlayerProfile>().apply {
  * @return 所有在线用户
  */
 fun updateExp(p: PlayerProfile, dot: Int) {
-    userService.notice(p, "[green]经验+{dot}", mapOf("dot" to dot.toString()))
-    transaction { p.totalExp += dot }
+    userService.notify(p, "[green]经验+{dot}", mapOf("dot" to dot.toString()))
+    transaction {
+        p.refresh()
+        p.totalExp += dot
+    }
     if (level(p.totalExp) != level(p.totalExp - dot)) {
-        userService.notice(p, "[gold]恭喜你成功升级到{level}级", mapOf("level" to level(p.totalExp).toString()))
+        userService.notify(p, "[gold]恭喜你成功升级到{level}级", mapOf("level" to level(p.totalExp).toString()))
     }
 }
 export(::updateExp)

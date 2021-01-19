@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.`java-time`.CurrentTimestamp
 import org.jetbrains.exposed.sql.`java-time`.timestamp
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
+import wayzer.lib.dao.util.NeedTransaction
 
 class Achievement(id: EntityID<Int>) : IntEntity(id) {
     var userId by T.profile
@@ -23,6 +24,7 @@ class Achievement(id: EntityID<Int>) : IntEntity(id) {
     }
 
     companion object : IntEntityClass<Achievement>(T) {
+        @NeedTransaction
         fun newWithCheck(profile: EntityID<Int>, name: String, exp: Int): Boolean {
             return if (T.select { (T.profile eq profile) and (T.name eq name) }.empty()) {
                 new {
