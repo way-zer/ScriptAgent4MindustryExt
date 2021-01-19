@@ -1,4 +1,4 @@
-package wayzer.ext.reGrief
+package wayzer.reGrief
 
 import arc.graphics.Color
 import cf.wayzer.placehold.PlaceHoldApi.with

@@ -1,5 +1,5 @@
 @file:Import("@wayzer/services/UserService.kt", sourceFile = true)
-package wayzer.user
+package wayzer.user.ext
 
 import cf.wayzer.placehold.PlaceHoldApi.with
 import org.jetbrains.exposed.sql.transactions.transaction

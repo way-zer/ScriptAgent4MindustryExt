@@ -1,4 +1,4 @@
-package wayzer.user
+package wayzer.user.ext
 
 val template by config.key(
     """

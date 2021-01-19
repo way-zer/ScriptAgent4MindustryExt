@@ -1,4 +1,4 @@
-package wayzer.ext
+package wayzer.map
 
 import mindustry.core.NetServer
 import mindustry.game.Team
