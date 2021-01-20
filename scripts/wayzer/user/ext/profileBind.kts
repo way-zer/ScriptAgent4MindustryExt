@@ -88,7 +88,7 @@ command("bind", "绑定用户") {
         val qq = arg.firstOrNull()?.toIntOrNull()?.let(::check)
             ?: returnReply("[red]请输入正确的6位绑定码,如没有，可找群内机器人获取".with())
         PlayerData[player!!.uuid()].apply {
-            if (profile != null || profile!!.qq != qq)
+            if (profile != null && profile!!.qq != qq)
                 returnReply("[red]你已经绑定用户，如需解绑，请联系管理员".with())
             transaction {
                 bind(player!!, PlayerProfile.findOrCreate(qq).apply {

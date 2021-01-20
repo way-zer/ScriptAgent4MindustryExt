@@ -4,6 +4,7 @@ package wayzer.user
 
 import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.PlaceHoldApi.with
+import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.services.UserService
 import kotlin.math.floor
@@ -33,13 +34,18 @@ registerVarForType<PlayerProfile>().apply {
  * @return 所有在线用户
  */
 fun updateExp(p: PlayerProfile, dot: Int) {
-    userService.notify(p, "[green]经验+{dot}", mapOf("dot" to dot.toString()))
-    transaction {
-        p.refresh()
-        p.totalExp += dot
+    if (dot != 0) {
+        userService.notify(p, "[green]经验+{dotExp}", mapOf("dotExp" to dot.toString()))
+        transaction {
+            p.refresh()
+            p.totalExp += dot
+        }
+        if (level(p.totalExp) != level(p.totalExp - dot)) {
+            userService.notify(p, "[gold]恭喜你成功升级到{level}级", mapOf("level" to level(p.totalExp).toString()))
+        }
     }
-    if (level(p.totalExp) != level(p.totalExp - dot)) {
-        userService.notify(p, "[gold]恭喜你成功升级到{level}级", mapOf("level" to level(p.totalExp).toString()))
+    Groups.player.filter { PlayerData[it.uuid()].profileId == p.id }.forEach {
+        it.name = it.name.replace(Regex("<.>"), "<${getIcon(level(p.totalExp))}>")
     }
 }
 export(::updateExp)

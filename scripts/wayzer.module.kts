@@ -3,8 +3,8 @@
 
 import wayzer.lib.dao.Achievement
 import wayzer.lib.dao.PlayerData
+import wayzer.lib.dao.PlayerNotification
 import wayzer.lib.dao.PlayerProfile
-import coreLibrary.lib.registerTable
 
 name = "WayZer Mindustry Plugin"
 /**
@@ -44,4 +44,6 @@ name = "WayZer Mindustry Plugin"
 addDefaultImport("wayzer.lib.*")
 addDefaultImport("wayzer.lib.dao.*")
 generateHelper()
-registerTable(PlayerProfile.T, PlayerData.T, Achievement.T)
+registerTable(PlayerProfile.T, PlayerData.T, Achievement.T, PlayerNotification.T)
+
+PlayerProfile//ensure init

@@ -1,6 +1,6 @@
 @file:Import("@wayzer/services/UserService.kt", sourceFile = true)
 
-package wayzer.user
+package wayzer.user.ext
 
 import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction

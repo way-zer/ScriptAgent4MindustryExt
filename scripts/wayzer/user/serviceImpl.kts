@@ -12,7 +12,7 @@ object Impl : UserService {
     }
 
     override fun updateExp(profile: PlayerProfile, exp: Int) {
-        val impl = script.depends("wayzer/user/expReward")?.import<(PlayerProfile, Int) -> Unit>("updateExp")
+        val impl = script.depends("wayzer/user/level")?.import<(PlayerProfile, Int) -> Unit>("updateExp")
         if (impl == null) {
             println("updateExp(${profile.qq},$exp)")
             error("经验等级系统不可用,请联系管理员")
@@ -34,10 +34,10 @@ object Impl : UserService {
         val impl = script.depends("wayzer/user/notification")
             ?.import<(PlayerProfile, String, Map<String, String>, Boolean) -> Unit>("notify")
         if (impl == null) {
-            println("finishAchievement(${profile.qq},$name,$params,$broadcast)")
+            println("finishAchievement(${profile.qq},$message,$params,$broadcast)")
             error("通知系统不可用,请联系管理员")
         }
-        impl(profile, name, params, broadcast)
+        impl(profile, message, params, broadcast)
     }
 }
 Impl.script = this

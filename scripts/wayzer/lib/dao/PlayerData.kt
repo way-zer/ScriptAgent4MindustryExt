@@ -31,7 +31,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
         lastName = player.name
         lastIp = player.con.address
         lastTime = Instant.now()
-        if (!secure(player)) player.sendMessage("[red]检测到账号不安全,请重新绑定进行验证. 否则无法使用该账号的权限".with())
+        if (profileId != null && !secure(player)) player.sendMessage("[red]检测到账号不安全,请重新绑定进行验证. 否则无法使用该账号的权限".with())
         profile?.onJoin(player)
     }
 
@@ -57,7 +57,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
         val lastTime = timestamp("lastTime").defaultExpression(CurrentTimestamp())
         val firstTime = timestamp("firstTime").defaultExpression(CurrentTimestamp())
         val profile = optReference("profile", PlayerProfile.T)
-        val sid = varchar("sid", 12)
+        val sid = varchar("sid", 12).default("fallback")
     }
 
     companion object : EntityClass<String, PlayerData>(T) {

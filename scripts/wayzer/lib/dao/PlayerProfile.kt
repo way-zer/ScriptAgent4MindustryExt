@@ -98,8 +98,10 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
         lateinit var serverName: String
 
         init {
-            PlayerProfile::class.java.getContextModule()!!.config.key("default", "服务器标识,用于多服务器群组情况") {
-                serverName = it
+            PlayerProfile::class.java.getContextModule()!!.apply {
+                config.key("default", "服务器标识,用于多服务器群组情况") {
+                    serverName = it
+                }.provideDelegate(this, ::serverName).get()
             }
         }
     }
