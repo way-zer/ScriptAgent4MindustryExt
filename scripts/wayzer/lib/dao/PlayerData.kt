@@ -73,7 +73,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     object Usid : IntIdTable("PlayerUsid") {
         val user = reference("user", T)
         val server = varchar("server", 16)
-        val usid = T.varchar("sid", 12)
+        val usid = varchar("sid", 12)
 
         private val cache = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofMinutes(10))

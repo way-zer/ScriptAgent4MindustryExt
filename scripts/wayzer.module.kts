@@ -41,6 +41,6 @@ name = "WayZer Mindustry Plugin"
 addDefaultImport("wayzer.lib.*")
 addDefaultImport("wayzer.lib.dao.*")
 generateHelper()
-registerTable(PlayerProfile.T, PlayerData.T, Achievement.T, PlayerNotification.T)
+registerTable(PlayerProfile.T, PlayerData.T, PlayerData.Usid, Achievement.T, PlayerNotification.T)
 
 Setting//ensure init
