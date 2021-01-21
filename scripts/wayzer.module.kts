@@ -1,10 +1,7 @@
 @file:DependsModule("coreMindustry")
 @file:Import("com.google.guava:guava:30.1-jre", mavenDepends = true)
 
-import wayzer.lib.dao.Achievement
-import wayzer.lib.dao.PlayerData
-import wayzer.lib.dao.PlayerNotification
-import wayzer.lib.dao.PlayerProfile
+import wayzer.lib.dao.*
 
 name = "WayZer Mindustry Plugin"
 /**
@@ -46,4 +43,4 @@ addDefaultImport("wayzer.lib.dao.*")
 generateHelper()
 registerTable(PlayerProfile.T, PlayerData.T, Achievement.T, PlayerNotification.T)
 
-PlayerProfile//ensure init
+Setting//ensure init

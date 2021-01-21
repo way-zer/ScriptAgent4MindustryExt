@@ -50,7 +50,7 @@ listenTo<PermissionRequestEvent> {
         check { checkGroup(permission, "@default") }
         val uuid = context.player!!.uuid()
         check { checkGroup(permission, uuid) }
-        val profile = PlayerData[uuid].takeIf { it.secure(context.player!!) }?.profile ?: return@listenTo
+        val profile = PlayerData[uuid].secureProfile(context.player!!) ?: return@listenTo
         check { checkGroup(permission, "qq${profile.qq}") }
         val level = (PlaceHoldApi.GlobalContext.typeResolve(profile, "level") ?: return@listenTo) as Int
         for (lvl in level downTo 0) {

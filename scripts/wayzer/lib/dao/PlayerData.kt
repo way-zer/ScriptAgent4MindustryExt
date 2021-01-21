@@ -8,7 +8,8 @@ import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
-import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.`java-time`.CurrentTimestamp
 import org.jetbrains.exposed.sql.`java-time`.timestamp
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -22,31 +23,40 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     var lastIp by T.lastIp
     var firstTime by T.firstTime
     var lastTime by T.lastTime
-    var profileId by T.profile
+    private var profileId by T.profile
     val profile: PlayerProfile? get() = profileId?.let { PlayerProfile[it] }
-    var sid by T.sid
 
     @NeedTransaction
     fun onJoin(player: Player) {
-        lastName = player.name
-        lastIp = player.con.address
-        lastTime = Instant.now()
-        if (profileId != null && !secure(player)) player.sendMessage("[red]检测到账号不安全,请重新绑定进行验证. 否则无法使用该账号的权限".with())
-        profile?.onJoin(player)
+        if (secure(player)) {
+            lastName = player.name
+            lastTime = Instant.now()
+            lastIp = player.con.address
+            profile?.onJoin(player)
+        } else player.sendMessage("[red]检测到账号不安全,请重新绑定进行验证".with())
     }
 
     @NeedTransaction
     fun onQuit(player: Player) {
-        profile?.onQuit(player)
+        if (secure(player)) {
+            lastTime = Instant.now()
+            lastIp = player.con.address
+        }
+        secureProfile(player)?.onQuit(player)
     }
 
     @NeedTransaction
     fun bind(player: Player, profile: PlayerProfile) {
         this.profileId = profile.id
-        sid = player.usid()
+        Usid.put(this, player.usid())
     }
 
-    fun secure(player: Player) = player.usid() == sid
+    fun secure(player: Player): Boolean {
+        if (!Setting.checkUsid || profileId == null) return true
+        return Usid.get(this, player) == player.usid()
+    }
+
+    fun secureProfile(player: Player) = if (secure(player)) profile else null
 
     object T : IdTable<String>("PlayerData") {
         override val id: Column<EntityID<String>> = varchar("UID", 24).entityId()
@@ -57,7 +67,48 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
         val lastTime = timestamp("lastTime").defaultExpression(CurrentTimestamp())
         val firstTime = timestamp("firstTime").defaultExpression(CurrentTimestamp())
         val profile = optReference("profile", PlayerProfile.T)
-        val sid = varchar("sid", 12).default("fallback")
+    }
+
+    @Suppress("RemoveRedundantQualifierName", "MemberVisibilityCanBePrivate")
+    object Usid : IntIdTable("PlayerUsid") {
+        val user = reference("user", T)
+        val server = varchar("server", 16)
+        val usid = T.varchar("sid", 12)
+
+        private val cache = CacheBuilder.newBuilder()
+            .expireAfterAccess(Duration.ofMinutes(10))
+            .build<String, String>()//uuid -> usid
+
+        @NeedTransaction
+        fun put(user: PlayerData, usid: String) {
+            if (!Setting.tempServer) {
+                val found = Usid.update({ (Usid.user eq user.id) and (Usid.server eq Setting.serverId) }) {
+                    it[Usid.usid] = usid
+                }
+                if (found == 0) Usid.insert {
+                    it[Usid.user] = user.id
+                    it[Usid.server] = Setting.serverId
+                    it[Usid.usid] = usid
+                }
+            }
+            cache.put(user.id.value, usid)
+        }
+
+        fun get(user: PlayerData, player: Player): String? {
+            return cache.get(user.id.value) {
+                when {
+                    Setting.quickLogin && player.con.address == user.lastIp -> transaction {
+                        put(user, player.usid())
+                        player.usid()
+                    }
+                    Setting.tempServer -> null
+                    else -> transaction {
+                        Usid.select { (Usid.user eq user.id) and (Usid.server eq Setting.serverId) }.singleOrNull()
+                            ?.get(Usid.usid)
+                    }
+                }
+            }
+        }
     }
 
     companion object : EntityClass<String, PlayerData>(T) {
@@ -70,7 +121,6 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
                 firstIP = p.con.address
                 lastIp = p.con.address
                 lastName = p.name
-                sid = p.usid()
             }
         }.also { cache.put(p.uuid(), it) }
 

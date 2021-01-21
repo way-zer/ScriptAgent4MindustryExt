@@ -44,7 +44,7 @@ fun updateExp(p: PlayerProfile, dot: Int) {
             userService.notify(p, "[gold]恭喜你成功升级到{level}级", mapOf("level" to level(p.totalExp).toString()))
         }
     }
-    Groups.player.filter { PlayerData[it.uuid()].profileId == p.id }.forEach {
+    Groups.player.filter { PlayerData[it.uuid()].secureProfile(it) == p }.forEach {
         it.name = it.name.replace(Regex("<.>"), "<${getIcon(level(p.totalExp))}>")
     }
 }
@@ -53,7 +53,13 @@ export(::updateExp)
 listen<EventType.PlayerConnect> {
     Core.app.post {
         it.player.apply {
-            name = "[white]<${getIcon(level(PlayerData.findById(uuid())?.profile?.totalExp ?: 0))}>[#$color]$name"
+            name = "[white]<${
+                getIcon(
+                    level(
+                        PlayerData.findById(uuid())?.secureProfile(this)?.totalExp ?: 0
+                    )
+                )
+            }>[#$color]$name"
         }
     }
 }

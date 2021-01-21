@@ -1,8 +1,6 @@
 package wayzer.lib.dao
 
-import cf.wayzer.script_agent.getContextModule
 import com.google.common.cache.CacheBuilder
-import coreLibrary.lib.config
 import mindustry.gen.Player
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -24,12 +22,15 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
     var lang by T.lang
     var online by T.online
 
-    val controlling get() = online == serverName
+    val controlling get() = online == Setting.serverId
 
     @NeedTransaction
     fun onJoin(player: Player) {
-        if (online == null) online = serverName
-        if (!controlling) player.sendMessage("[yellow]你已经在其他服务器登录，不重复累计在线时长")
+        if (online == null) online = Setting.serverId
+        if (!controlling) {
+            if (Setting.limitOne) player.kick("[red]你已经在其他服务器登录,禁止再在该服登录")
+            else player.sendMessage("[yellow]你已经在其他服务器登录，不重复累计在线时长")
+        }
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -93,16 +94,6 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
         }.also {
             cache.put(it.id.value, it)
             idCache.put(it.qq, it.id.value)
-        }
-
-        lateinit var serverName: String
-
-        init {
-            PlayerProfile::class.java.getContextModule()!!.apply {
-                config.key("default", "服务器标识,用于多服务器群组情况") {
-                    serverName = it
-                }.provideDelegate(this, ::serverName).get()
-            }
         }
     }
 }
