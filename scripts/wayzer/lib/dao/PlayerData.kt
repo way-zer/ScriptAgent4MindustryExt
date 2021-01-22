@@ -95,17 +95,16 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
         }
 
         fun get(user: PlayerData, player: Player): String? {
-            return cache.get(user.id.value) {
-                when {
-                    Setting.quickLogin && player.con.address == user.lastIp -> transaction {
-                        put(user, player.usid())
-                        player.usid()
-                    }
-                    Setting.tempServer -> null
-                    else -> transaction {
-                        Usid.select { (Usid.user eq user.id) and (Usid.server eq Setting.serverId) }.singleOrNull()
-                            ?.get(Usid.usid)
-                    }
+            return cache.getIfPresent(user.id.value) ?: when {
+                Setting.quickLogin && player.con.address == user.lastIp -> transaction {
+                    put(user, player.usid())
+                    player.usid()
+                }
+                Setting.tempServer -> null
+                else -> transaction {
+                    Usid.select { (Usid.user eq user.id) and (Usid.server eq Setting.serverId) }.singleOrNull()
+                        ?.get(Usid.usid)
+                        ?.also { cache.put(user.id.value, it) }
                 }
             }
         }
@@ -117,17 +116,15 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
             .build<String, PlayerData>()
 
         fun findOrCreate(p: Player) = findById(p.uuid()) ?: transaction {
-            new {
+            new(p.uuid()) {
                 firstIP = p.con.address
                 lastIp = p.con.address
                 lastName = p.name
             }
         }.also { cache.put(p.uuid(), it) }
 
-        override fun findById(id: EntityID<String>): PlayerData? = cache.get(id.value) {
-            transaction {
-                super.findById(id)
-            }
-        }
+        override fun findById(id: EntityID<String>): PlayerData? = cache.getIfPresent(id.value) ?: transaction {
+            super.findById(id)
+        }?.also { cache.put(id.value, it) }
     }
 }

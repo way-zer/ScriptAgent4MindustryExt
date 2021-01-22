@@ -69,11 +69,9 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
             .build<Long, Int>()//qq to id
 
         override fun findById(id: EntityID<Int>): PlayerProfile? {
-            return cache.get(id.value) {
-                transaction {
-                    super.findById(id)
-                }
-            }
+            return cache.getIfPresent(id.value) ?: transaction {
+                super.findById(id)
+            }?.also { cache.put(id.value, it) }
         }
 
         fun findByQQ(qq: Long): PlayerProfile? {
