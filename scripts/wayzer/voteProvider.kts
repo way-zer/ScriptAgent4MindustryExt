@@ -119,7 +119,7 @@ inner class VoteHandler : VoteService {
     private fun reset() {
         requireNum = { max(ceil(allCanVote().size * 2.0 / 3).toInt(), 2) }
         canVote = {
-            val active = depends("wayzer/user/statistics")?.import<(Player) -> Boolean>("active") ?: { true }
+            val active = depends("wayzer/user/ext/statistics")?.import<(Player) -> Boolean>("active") ?: { true }
             !it.dead() && active(it)
         }
         voted.clear()

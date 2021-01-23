@@ -69,7 +69,7 @@ fun VoteService.register() {
             ) {
                 if (!SaveIO.isSaveValid(map.file))
                     return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
-                depends("wayzer/user/statistics")?.import<(Team) -> Unit>("onGameOver")?.invoke(Team.derelict)
+                depends("wayzer/user/ext/statistics")?.import<(Team) -> Unit>("onGameOver")?.invoke(Team.derelict)
                 mapService.loadMap(map)
                 Core.app.post { // 推后,确保地图成功加载
                     broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
@@ -119,7 +119,7 @@ fun VoteService.register() {
         val map = mapService.getSlot(arg[0].toInt())
             ?: returnReply("[red]存档不存在或存档损坏".with())
         start(player!!, "回档".with(), supportSingle = true) {
-            depends("wayzer/user/statistics")?.import<(Team) -> Unit>("onGameOver")?.invoke(Team.derelict)
+            depends("wayzer/user/ext/statistics")?.import<(Team) -> Unit>("onGameOver")?.invoke(Team.derelict)
             mapService.loadSave(map)
             broadcast("[green]回档成功".with(), quite = true)
         }
