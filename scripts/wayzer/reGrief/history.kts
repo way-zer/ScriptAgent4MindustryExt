@@ -69,7 +69,15 @@ fun Player.showLog(xf: Float, yf: Float) {
     if (x < 0 || x >= world.width()) return
     if (y < 0 || y >= world.height()) return
     val logs = logs[x][y]
-    if (logs.isEmpty()) Call.label(con, "[yellow]位置($x,$y)无记录", 5f, xf, yf)
+    if (logs.isEmpty()) Call.label(
+        con,
+        "[yellow]位置({x},{y})无记录".with(
+            "x" to x, "y" to y, "receiver" to this
+        ).toString(),
+        5f,
+        xf,
+        yf
+    )
     else {
         val list = logs.map { log ->
             "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}".with(
@@ -83,7 +91,9 @@ fun Player.showLog(xf: Float, yf: Float) {
         }
         Call.label(
             con,
-            "====[gold]操作记录($x,$y)[]====\n{list:\n}".with("list" to list, "receiver" to this).toString(),
+            "====[gold]操作记录({x},{y})[]====\n{list:\n}"
+                .with("x" to x, "y" to y, "list" to list, "receiver" to this)
+                .toString(),
             15f,
             xf,
             yf

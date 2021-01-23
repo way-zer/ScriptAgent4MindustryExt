@@ -99,6 +99,6 @@ command("bind", "绑定用户") {
             userService.finishAchievement(profile!!, "绑定账号", 100, false)
             userService.updateExp(profile!!, 0)
         }
-        reply("[green]绑定账号[yellow]$qq[green]成功.".with())
+        reply("[green]绑定账号[yellow]{qq}[green]成功.".with("qq" to qq))
     }
 }
