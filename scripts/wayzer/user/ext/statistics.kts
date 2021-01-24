@@ -145,7 +145,7 @@ fun onGameOver(winner: Team) {
             map[key] = value.maxByOrNull { it.second.score }!!.second
         }
         map.forEach { (profile, data) ->
-            userService.updateExp(profile, data.exp)
+            userService.updateExp(profile, data.exp, "游戏结算")
         }
     }
     statisticsData.clear()

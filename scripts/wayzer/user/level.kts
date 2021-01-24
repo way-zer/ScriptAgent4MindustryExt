@@ -33,9 +33,13 @@ registerVarForType<PlayerProfile>().apply {
 /**
  * @return 所有在线用户
  */
-fun updateExp(p: PlayerProfile, dot: Int) {
+fun updateExp(p: PlayerProfile, desc: String, dot: Int) {
     if (dot != 0) {
-        userService.notify(p, "[green]经验+{dotExp}", mapOf("dotExp" to dot.toString()))
+        userService.notify(
+            p, "[green]经验+{dotExp}{desc}", mapOf(
+                "dotExp" to dot.toString(), "desc" to if (desc.isEmpty()) "" else "([cyan]$desc[])"
+            )
+        )
         transaction {
             p.refresh()
             p.totalExp += dot

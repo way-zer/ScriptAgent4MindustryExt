@@ -40,5 +40,5 @@ listen<EventType.PlayerChatEvent> {
     val profile = PlayerData[it.player.uuid()].profile
     if (profile == null || finishProfile.contains(profile.id.value)) return@listen
     finishProfile.add(profile.id.value)
-    userService.updateExp(profile, 3)
+    userService.updateExp(profile, 3, "GoodGame")
 }

@@ -11,7 +11,7 @@ val userService by ServiceRegistry<UserService>()
 fun finishAchievement(profile: PlayerProfile, name: String, exp: Int, broadcast: Boolean = false) {
     transaction {
         if (!Achievement.newWithCheck(profile.id, name, exp)) return@transaction
-        userService.updateExp(profile, exp)
+        userService.updateExp(profile, exp, "完成成就")
         userService.notify(
             profile,
             "[gold][成就]恭喜{player.name}[gold]完成成就[scarlet]{name},[gold]获得[violet]{exp}[gold]经验",

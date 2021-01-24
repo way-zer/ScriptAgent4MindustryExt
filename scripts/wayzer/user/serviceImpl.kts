@@ -11,13 +11,13 @@ object Impl : UserService {
         return PlaceHoldApi.GlobalContext.typeResolve(this, "level") as Int
     }
 
-    override fun updateExp(profile: PlayerProfile, exp: Int) {
-        val impl = script.depends("wayzer/user/level")?.import<(PlayerProfile, Int) -> Unit>("updateExp")
+    override fun updateExp(profile: PlayerProfile, exp: Int, desc: String) {
+        val impl = script.depends("wayzer/user/level")?.import<(PlayerProfile, String, Int) -> Unit>("updateExp")
         if (impl == null) {
             println("updateExp(${profile.qq},$exp)")
             error("经验等级系统不可用,请联系管理员")
         }
-        impl(profile, exp)
+        impl(profile, desc, exp)
     }
 
     override fun finishAchievement(profile: PlayerProfile, name: String, exp: Int, broadcast: Boolean) {

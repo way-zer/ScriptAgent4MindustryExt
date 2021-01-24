@@ -6,7 +6,7 @@ import wayzer.lib.dao.PlayerProfile
 @ServiceDefine
 interface UserService {
     fun getLevel(profile: PlayerProfile): Int
-    fun updateExp(profile: PlayerProfile, exp: Int)
+    fun updateExp(profile: PlayerProfile, exp: Int, desc: String = "")
 
     /**
      * @param message 字符串模板
