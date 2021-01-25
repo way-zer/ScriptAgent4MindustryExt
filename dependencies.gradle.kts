@@ -1,11 +1,12 @@
 val libraryVersion = "1.4.2"
 val mindustryVersion = "v115"
+val exposedVersionn = "0.29.1"
 
 repositories {
-    maven("http://maven.aliyun.com/nexus/content/groups/public/")
     mavenLocal()
-    mavenCentral()
+    //maven("https://maven.aliyun.com/repository/public")
     jcenter()
+    mavenCentral()
     maven(url = "https://www.jitpack.io")
     maven("https://dl.bintray.com/way-zer/maven")
 }
@@ -24,9 +25,9 @@ dependencies {
     //coreLibrary
     compile("cf.wayzer:PlaceHoldLib:3.1")
     compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1")
-    compile("org.jetbrains.exposed:exposed-core:0.27.1")
-    compile("org.jetbrains.exposed:exposed-dao:0.27.1")
-    compile("org.jetbrains.exposed:exposed-java-time:0.27.1")
+    compile("org.jetbrains.exposed:exposed-core:$exposedVersionn")
+    compile("org.jetbrains.exposed:exposed-dao:$exposedVersionn")
+    compile("org.jetbrains.exposed:exposed-java-time:$exposedVersionn")
     compile("io.github.config4k:config4k:0.4.1")
     //coreMindustry
     compile("com.github.Anuken.Mindustry:core:$mindustryVersion")
