@@ -7,11 +7,18 @@ import coreLibrary.lib.util.Provider
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object DataBaseApi {
     val IModuleScript.registeredTable by DSLBuilder.dataKeyWithDefault { mutableSetOf<Table>() }
     val db = Provider<Database>()
+
+    init {
+        db.every {
+            TransactionManager.defaultDatabase = it
+        }
+    }
 }
 
 /**
