@@ -1,4 +1,4 @@
-@file:Depends("wayzer/user/statistics", "玩家活跃判定", soft = true)
+@file:Depends("wayzer/user/ext/statistics", "玩家活跃判定", soft = true)
 @file:Import("@wayzer/services/VoteService.kt", sourceFile = true)
 
 package wayzer
