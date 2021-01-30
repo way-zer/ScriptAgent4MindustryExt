@@ -56,7 +56,7 @@ listen<EventType.BlockBuildEndEvent> {
 }
 listen<EventType.ConfigEvent> {
     val player = it.player ?: return@listen
-    log(it.tile.tileX(), it.tile.tileY(), Log.Config(player.uuid(), Instant.now(), it.value.toString()))
+    log(it.tile.tileX(), it.tile.tileY(), Log.Config(player.uuid(), Instant.now(), it.value?.toString() ?: "null"))
 }
 listen<EventType.DepositEvent> {
     val player = it.player ?: return@listen
