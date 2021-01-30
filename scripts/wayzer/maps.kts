@@ -46,14 +46,12 @@ inner class MapManager : MapService {
                     tags.put(it.groupValues[1], value.removePrefix("="))
                 }
             }
-            logic.play()
         }
     }
 
     override fun loadSave(file: Fi) {
         resetAndLoad {
             SaveIO.load(file)
-            logic.play()
         }
     }
 
@@ -95,13 +93,18 @@ inner class MapManager : MapService {
             val players = Groups.player.toList()
             players.forEach { it.clearUnit() }
             callBack()
+            logic.play()
             Call.worldDataBegin()
             players.forEach {
                 if (it.con == null) return@forEach
-                it.reset()
+                it.admin.let { was ->
+                    it.reset()
+                    it.admin = was
+                }
                 it.team(netServer.assignTeam(it, players))
                 netServer.sendWorldData(it)
             }
+            players.forEach { it.add() }
         }
     }
 
