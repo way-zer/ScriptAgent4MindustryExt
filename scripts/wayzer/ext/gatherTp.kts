@@ -12,6 +12,7 @@ command("gather", "发出集合请求") {
     usage = "[可选说明]"
     type = CommandType.Client
     aliases = listOf("集合")
+    permission = "wayzer.ext.gather"
     body {
         if (Duration.between(lastTime, Instant.now()) < Duration.ofSeconds(30)) {
             returnReply("[red]刚刚有人发起请求,请稍等30s再试".with())

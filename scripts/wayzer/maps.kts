@@ -12,6 +12,7 @@ import mindustry.gen.Call
 import mindustry.gen.Groups
 import mindustry.io.SaveIO
 import mindustry.maps.Map
+import wayzer.lib.event.MapChange
 import wayzer.services.MapService
 import java.time.Duration
 
@@ -39,13 +40,14 @@ inner class MapManager : MapService {
 
     override fun loadMap(map: Map, mode: Gamemode) {
         resetAndLoad {
-            world.loadMap(map, map.applyRules(mode))
-            state.rules = state.map.applyRules(mode).apply {
-                Regex("\\[(@[a-zA-Z0-9]+)(=[0-9a-z]+)?]").findAll(map.description()).forEach {
-                    val value = it.groupValues[2].takeIf(String::isNotEmpty) ?: "true"
-                    tags.put(it.groupValues[1], value.removePrefix("="))
+            MapChange(map, mode) { newMode ->
+                map.applyRules(newMode).apply {
+                    Regex("\\[(@[a-zA-Z0-9]+)(=[0-9a-z]+)?]").findAll(map.description()).forEach {
+                        val value = it.groupValues[2].takeIf(String::isNotEmpty) ?: "true"
+                        tags.put(it.groupValues[1], value.removePrefix("="))
+                    }
                 }
-            }
+            }.emit()
         }
     }
 
@@ -118,6 +120,11 @@ inner class MapManager : MapService {
     }
 }
 provide<MapService>(MapManager)
+
+listenTo<MapChange>(3) {
+    world.loadMap(map, rules)
+    state.rules = rules
+}
 
 PlaceHold.registerForType<Map>(this).apply {
     registerChild("id", "在/maps中的id", DynamicVar.obj { obj ->

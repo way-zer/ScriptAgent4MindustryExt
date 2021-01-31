@@ -149,6 +149,8 @@ inner class VoteHandler : VoteService {
             this.usage = usage
             this.aliases = aliases.toList()
             body(body)
+            if (permission.isEmpty())
+                permission = "wayzer.vote." + aliases.first().toLowerCase()
         }
         voteCommands.autoRemove(this)
     }

@@ -5,6 +5,7 @@ import mindustry.gen.Groups
 import mindustry.net.Administration
 import mindustry.net.Packets
 import org.jetbrains.exposed.sql.transactions.transaction
+import wayzer.lib.event.PlayerJoin
 import java.time.Duration
 import java.util.*
 
@@ -42,7 +43,11 @@ registerVarForType<PlayerProfile>().apply {
 listen<EventType.PlayerConnect> {
     val p = it.player
     if (Groups.player.any { pp -> pp.uuid() == p.uuid() }) return@listen p.con.kick(Packets.KickReason.idInUse)
-    transaction { PlayerData.findOrCreate(p).onJoin(p) }
+    val data = PlayerData.findById(p.uuid())
+    val event = PlayerJoin(p, data).apply { emit() }
+    if (event.cancelled)
+        p.kick("[red]拒绝入服: ${event.reason}")
+    else transaction { PlayerData.findOrCreate(p).onJoin(p) }
 }
 
 listen<EventType.PlayerLeave> { event ->
