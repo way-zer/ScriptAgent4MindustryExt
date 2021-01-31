@@ -7,7 +7,7 @@ name = "权限管理系统"
 
 var groups by config.key(
     mapOf(
-        "@default" to listOf("wayzer.ext.observer", "wayzer.ext.history"),
+        "@default" to listOf("wayzer.ext.observer", "wayzer.ext.history", "wayzer.ext.gather", "wayzer.vote.*"),
         "@admin" to listOf(
             "wayzer.admin.ban", "wayzer.info.other", "wayzer.vote.ban",
             "wayzer.maps.host", "wayzer.maps.load", "wayzer.ext.team.change",
