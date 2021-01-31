@@ -1,4 +1,4 @@
-package wayzer.ext.reGrief
+package wayzer.reGrief
 
 import arc.util.Interval
 import mindustry.game.EventType

@@ -9,7 +9,7 @@ globalEventChannel().subscribeMessages {
             return@case
         }
         val qq = sender.id
-        val generate = depends("wayzer/user/profileBind")?.import<(Long) -> Int>("generate")
+        val generate = depends("wayzer/user/ext/profileBind")?.import<(Long) -> Int>("generate")
         if (generate == null) {
             subject.sendMessage("绑定服务暂不可用，请联系管理")
             return@case

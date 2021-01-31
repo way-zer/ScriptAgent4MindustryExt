@@ -1,9 +1,11 @@
-package wayzer.user
+@file:Import("@wayzer/services/UserService.kt", sourceFile = true)
+
+package wayzer.user.ext
 
 import cf.wayzer.placehold.PlaceHoldApi.with
 import org.jetbrains.exposed.sql.transactions.transaction
+import wayzer.services.UserService
 import java.time.Duration
-import java.time.Instant
 import java.util.*
 import kotlin.random.Random
 
@@ -48,6 +50,7 @@ class ExpireMutableMap<K, V> {
 
 val expireTime: Duration by config.key(Duration.ofMinutes(10), "随机绑定码到期时间")
 val map = ExpireMutableMap<Int, Long>()
+val userService by ServiceRegistry<UserService>()
 
 fun generate(qq: Long): Int {
     map.removeValue(qq)
@@ -86,19 +89,16 @@ command("bind", "绑定用户") {
         val qq = arg.firstOrNull()?.toIntOrNull()?.let(::check)
             ?: returnReply("[red]请输入正确的6位绑定码,如没有，可找群内机器人获取".with())
         PlayerData[player!!.uuid()].apply {
-            if (profile != null)
+            if (profile != null && (profile!!.qq != qq || secure(player!!)))
                 returnReply("[red]你已经绑定用户，如需解绑，请联系管理员".with())
-            @Suppress("EXPERIMENTAL_API_USAGE")
             transaction {
-                profile = PlayerProfile.getOrCreate(qq, true).apply {
-                    lastTime = Instant.now()
-                }
-                save()
+                bind(player!!, PlayerProfile.findOrCreate(qq).apply {
+                    this.onJoin(player!!)
+                })
             }
-            val finishAchievement =
-                depends("wayzer/user/achievement")?.import<(PlayerProfile, String, Int, Boolean) -> Unit>("finishAchievement")
-            finishAchievement?.invoke(profile!!, "绑定账号", 100, false)
+            userService.finishAchievement(profile!!, "绑定账号", 100, false)
+            userService.updateExp(profile!!, 0)
         }
-        reply("[green]绑定账号[yellow]$qq[green]成功.".with())
+        reply("[green]绑定账号[yellow]{qq}[green]成功.".with("qq" to qq))
     }
 }

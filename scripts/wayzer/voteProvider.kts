@@ -1,4 +1,4 @@
-@file:Depends("wayzer/user/statistics", "玩家活跃判定", soft = true)
+@file:Depends("wayzer/user/ext/statistics", "玩家活跃判定", soft = true)
 @file:Import("@wayzer/services/VoteService.kt", sourceFile = true)
 
 package wayzer
@@ -119,7 +119,7 @@ inner class VoteHandler : VoteService {
     private fun reset() {
         requireNum = { max(ceil(allCanVote().size * 2.0 / 3).toInt(), 2) }
         canVote = {
-            val active = depends("wayzer/user/statistics")?.import<(Player) -> Boolean>("active") ?: { true }
+            val active = depends("wayzer/user/ext/statistics")?.import<(Player) -> Boolean>("active") ?: { true }
             !it.dead() && active(it)
         }
         voted.clear()

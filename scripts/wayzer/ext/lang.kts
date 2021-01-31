@@ -14,18 +14,16 @@ var console by config.key("default.console", "控制台语言(不发给玩家的
 val tempLang = mutableMapOf<String, String>()//uuid -> lang
 
 var Player.lang
-    get() = PlayerData[uuid()].profile?.lang ?: tempLang[uuid()] ?: default
+    get() = tempLang[uuid()] ?: PlayerData[uuid()].profile?.lang ?: default
     set(v) {
         if (lang == v) return
-        PlayerData[uuid()].profile?.apply {
-            @OptIn(CacheEntity.NeedTransaction::class)
+        PlayerData[uuid()].secureProfile(this)?.apply {
             transaction {
                 lang = v
-                save()
             }
         } ?: let {
             tempLang[uuid()] = v
-            sendMessage("[yellow]当前未绑定账号,语言设置将在退出游戏后重置".with())
+            sendMessage("[yellow]当前未绑定账,语言设置将在退出游戏后重置".with())
         }
     }
 

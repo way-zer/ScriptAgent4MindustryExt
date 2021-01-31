@@ -1,4 +1,4 @@
-package wayzer.ext
+package wayzer.map
 
 import arc.math.geom.Geometry
 import mindustry.game.EventType

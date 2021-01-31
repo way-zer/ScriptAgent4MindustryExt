@@ -1,15 +1,19 @@
+@file:Import("@wayzer/services/UserService.kt", sourceFile = true)
+
 package wayzer.user
 
 import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.PlaceHoldApi.with
-import mindustry.game.EventType
 import mindustry.gen.Groups
+import org.jetbrains.exposed.sql.transactions.transaction
+import wayzer.services.UserService
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
 val customWelcome by config.key(false, "是否开启自定义进服信息(中文)")
+val userService by ServiceRegistry<UserService>()
 
 fun getIcon(level: Int): Char {
     if (level <= 0) return (63611).toChar()
@@ -29,25 +33,37 @@ registerVarForType<PlayerProfile>().apply {
 /**
  * @return 所有在线用户
  */
-fun updateExp(p: PlayerProfile, dot: Int): List<Player> {
-    val players = Groups.player.filter { PlayerData.getOrNull(it.uuid())?.profile == p }
-    p.apply {
-        totalExp += dot
-        if (level(totalExp) != level(totalExp - dot)) {
-            players.forEach {
-                it.sendMessage("[gold]恭喜你成功升级到{level}级".with("level" to level(totalExp)))
-                it.name = it.name.replaceFirst(Regex("<.>"), "<${getIcon(level(totalExp))}>")
-            }
+fun updateExp(p: PlayerProfile, desc: String, dot: Int) {
+    if (dot != 0) {
+        userService.notify(
+            p, "[green]经验+{dotExp}{desc}", mapOf(
+                "dotExp" to dot.toString(), "desc" to if (desc.isEmpty()) "" else "([cyan]$desc[])"
+            )
+        )
+        transaction {
+            p.refresh()
+            p.totalExp += dot
+        }
+        if (level(p.totalExp) != level(p.totalExp - dot)) {
+            userService.notify(p, "[gold]恭喜你成功升级到{level}级", mapOf("level" to level(p.totalExp).toString()))
         }
     }
-    return players
+    Groups.player.filter { PlayerData[it.uuid()].secureProfile(it) == p }.forEach {
+        it.name = it.name.replace(Regex("<.>"), "<${getIcon(level(p.totalExp))}>")
+    }
 }
 export(::updateExp)
 
 listen<EventType.PlayerConnect> {
     Core.app.post {
         it.player.apply {
-            name = "[white]<${getIcon(level(PlayerData.getOrNull(uuid())?.profile?.totalExp ?: 0))}>[#$color]$name"
+            name = "[white]<${
+                getIcon(
+                    level(
+                        PlayerData.findById(uuid())?.secureProfile(this)?.totalExp ?: 0
+                    )
+                )
+            }>[#$color]$name"
         }
     }
 }

@@ -1,4 +1,4 @@
-package wayzer.user
+package wayzer.user.ext
 
 import mindustry.game.EventType
 import mindustry.game.Gamemode
