@@ -33,8 +33,9 @@ dependencies {
     compile("com.github.Anuken.Mindustry:core:$mindustryVersion")
     //coreMindustry/console
     compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.2.1")
-    compile("org.jline:jline-terminal:3.15.0")
-    compile("org.jline:jline-reader:3.15.0")
+    compile("org.jline:jline-terminal:3.19.0")
+//    compile("org.jline:jline-terminal-jansi:3.19.0")
+    compile("org.jline:jline-reader:3.19.0")
     //mirai
     compile("net.mamoe:mirai-core-api-jvm:2.0-RC")
     //wayzer

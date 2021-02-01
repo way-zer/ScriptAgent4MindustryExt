@@ -31,7 +31,7 @@ object RootCommands : Commands() {
                         }
                     }
                 }
-        }
+            }
         return origin.filterValues { if (context.player != null) it.type.client() else it.type.server() } + subCommands.filterValues { if (context.player != null) it.type.client() else it.type.server() }
     }
 
@@ -110,19 +110,56 @@ object RootCommands : Commands() {
             }
         }
     }
+
+    fun trimInput(text: String) = buildString {
+        var start = 0
+        var end = text.length - 1
+        while (start < text.length && text[start] == ' ') start++
+        while (end >= 0 && text[end] == ' ') end--
+        var lastBlank = false
+        for (i in start..end) {
+            val nowBlank = text[i] == ' '
+            if (!lastBlank || !nowBlank)
+                append(text[i])
+            lastBlank = nowBlank
+        }
+    }
+
+    /**
+     * @param text 输入字符串，应当经过trimInput处理
+     * @param player 控制台为null
+     * @param prefix 指令前缀,例如'/'
+     */
+    fun handleInput(text: String, player: Player?, prefix: String = "") {
+        if (text.isEmpty()) return
+        RootCommands.invoke(CommandContext().apply {
+            this.player = player
+            if (player == null)
+                hasPermission = { true }
+            reply = { reply(it, MsgType.Message) }
+            this.prefix = if (prefix.isEmpty()) "* " else prefix
+            this.arg = text.removePrefix(prefix).split(' ')
+        })
+    }
 }
 
-// TODO 覆盖原版接口
 class MyCommandHandler(private var prefix: String, val origin: CommandHandler) : CommandHandler("") {
     override fun setPrefix(prefix: String) {
         this.prefix = prefix
     }
 
-    override fun <T : Any?> register(text: String, params: String, description: String, runner: CommandRunner<T>): Command {
+    override fun <T : Any?> register(
+        text: String,
+        params: String,
+        description: String,
+        runner: CommandRunner<T>
+    ): Command {
         return origin.register(text, params, description, runner)
     }
 
-    override fun <T : Any?> register(text: String, description: String, runner: CommandRunner<T>): Command = register(text, "", description, runner)
+    override fun <T : Any?> register(text: String, description: String, runner: CommandRunner<T>): Command =
+        register(text, "", description, runner)
+
     override fun removeCommand(text: String) {
         return origin.removeCommand(text)
     }
@@ -132,28 +169,11 @@ class MyCommandHandler(private var prefix: String, val origin: CommandHandler) :
     }
 
     override fun handleMessage(raw: String?, params: Any?): CommandResponse {
-        fun myTrim(text: String) = buildString {
-            var start = 0
-            var end = text.length - 1
-            while (start < text.length && text[start] == ' ') start++
-            while (end >= 0 && text[end] == ' ') end--
-            var lastBlank = false
-            for (i in start..end) {
-                val nowBlank = text[i] == ' '
-                if (!lastBlank || !nowBlank)
-                    append(text[i])
-                lastBlank = nowBlank
-            }
-        }
-
-        val message = raw?.let(::myTrim)
-        if (message?.startsWith(prefix) != true || message.isBlank()) return CommandResponse(ResponseType.noCommand, null, null)
-        RootCommands.invoke(CommandContext().apply {
-            player = params as? Player
-            reply = { reply(it, MsgType.Message) }
-            prefix = this@MyCommandHandler.prefix.let { if (it.isEmpty()) "* " else it }
-            this.arg = message.removePrefix(prefix).split(' ')
-        })
+        val message = raw?.let(RootCommands::trimInput)
+        if (message?.startsWith(prefix) != true || message.isEmpty())
+            return CommandResponse(ResponseType.noCommand, null, null)
+        assert(params is Player?)
+        RootCommands.handleInput(raw, params as Player?, prefix)
         return CommandResponse(ResponseType.valid, null, message)
     }
 }
@@ -172,9 +192,5 @@ var CommandInfo.type by DSLBuilder.dataKeyWithDefault { CommandType.Both }
  */
 var CommandContext.player by DSLBuilder.dataKey<Player>()
 fun CommandContext.reply(text: PlaceHoldString, type: MsgType = MsgType.Message, time: Float = 10f) {
-    if (player == null) {
-        println(ColorApi.handle("$text[RESET]", ColorApi::consoleColorHandler))
-    } else {
-        player.sendMessage("{msg}".with("msg" to text, "player" to player!!), type, time)
-    }
+    player.sendMessage(text, type, time)
 }
