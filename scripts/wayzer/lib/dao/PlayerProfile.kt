@@ -88,7 +88,7 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
         fun findOrCreate(qq: Long) = findByQQ(qq) ?: transaction {
             new {
                 this.qq = qq
-            }
+            }.also { it.flush() }
         }.also {
             cache.put(it.id.value, it)
             idCache.put(it.qq, it.id.value)

@@ -120,7 +120,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
                 firstIP = p.con.address
                 lastIp = p.con.address
                 lastName = p.name
-            }
+            }.also { it.flush() }
         }.also { cache.put(p.uuid(), it) }
 
         override fun findById(id: EntityID<String>): PlayerData? = cache.getIfPresent(id.value) ?: transaction {
