@@ -1,8 +1,8 @@
 @file:Import("@wayzer/services/UserService.kt", sourceFile = true)
+
 package wayzer.user.ext
 
 import cf.wayzer.placehold.DynamicVar
-import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.game.Team
 import mindustry.gen.Groups
@@ -26,7 +26,10 @@ data class StatisticsData(
     val win get() = state.rules.pvp && pvpTeam == teamWin
 
     //加权比分
-    val score get() = playedTime - 0.8 * idleTime + 0.6 * buildScore + if (win) 1200 * (1 - idleTime / playedTime) else 0
+    val score
+        get() = playedTime - 0.8 * idleTime +
+                0.6 * min(buildScore, 0.75f * playedTime) +
+                if (win) 1200 * (1 - idleTime / playedTime) else 0
 
     //结算经验计算
     val exp get() = min(ceil(score * 15 / 3600).toInt(), 40)//3600点积分为15,40封顶
@@ -80,6 +83,14 @@ listen<EventType.ResetEvent> {
 }
 listen<EventType.PlayerJoin> {
     it.player.data.pvpTeam = it.player.team()
+}
+listen<EventType.PlayEvent> {
+    launch {
+        delay(5000)
+        Groups.player.forEach { p ->
+            p.data.pvpTeam = p.team()
+        }
+    }
 }
 
 onEnable {
