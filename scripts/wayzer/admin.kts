@@ -1,8 +1,11 @@
 package wayzer
 
 import arc.util.Time
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import mindustry.gen.Groups
 import mindustry.net.Packets
+import java.time.Duration
 import java.util.*
 
 name = "基础: 禁封管理"
@@ -14,17 +17,30 @@ fun secureLog(tag: String, text: String) {
     pluginLog.appendText("[$tag][${Date()}] $text\n")
 }
 
-fun ban(player: Player, uuid: String) {
+/**
+ * @param player null if is console
+ */
+fun ban(player: Player?, uuid: String) {
     val target = netServer.admins.getInfoOptional(uuid) ?: return
     netServer.admins.banPlayerID(uuid)
     broadcast("[red] 管理员禁封了{target.name}".with("target" to target))
-    secureLog("Ban", "${player.name} Ban ${target.lastName}(${uuid})")
+    secureLog("Ban", "${player?.name ?: "Console"} Ban ${target.lastName}(${uuid})")
 }
 export(::secureLog, ::ban)
 
 listen<EventType.PlayerBanEvent> {
     it.player?.info?.lastKicked = Time.millis()
     it.player?.con?.kick(Packets.KickReason.banned)
+}
+
+val shortIDs: Cache<String, String> = CacheBuilder.newBuilder()
+    .expireAfterWrite(Duration.ofMinutes(60)).build()
+listen<EventType.PlayerLeave> {
+    it.player.uuid().let { u -> shortIDs.put(u.substring(0, 3), u) }
+}
+fun getUUIDbyShort(id: String): String? {
+    return Groups.player.find { it.uuid().startsWith(id) }?.uuid()
+        ?: shortIDs.getIfPresent(id)
 }
 
 command("list", "列出当前玩家") {
@@ -53,15 +69,10 @@ command("ban", "管理指令: 列出已ban用户，ban或解ban") {
                 secureLog("UnBan", "${player!!.name} unBan ${it.lastName}(${it.id})")
                 returnReply("[green]解Ban成功 {info.name}".with("info" to it))
             }
-            (netServer.admins.getInfoOptional(uuid))?.let {
-                netServer.admins.banPlayerID(uuid)
-                returnReply("[green]Ban成功 {player.name}".with("player" to it))
-            }
-            if (player != null) Groups.player.find { it.uuid().startsWith(uuid) }?.let {
-                ban(player!!, it.uuid())
-                returnReply("[green]Ban成功 {player.name}".with("player" to it))
-            }
-            reply("[red]找不到该用户,请确定三位字母id输入正确! /list 或 /ban 查看".with())
+            val target = netServer.admins.getInfoOptional(uuid)?.id
+                ?: getUUIDbyShort(uuid)
+                ?: returnReply("[red]找不到该用户,请确定三位字母id输入正确! /list 或 /ban 查看".with())
+            ban(player, target)
         }
     }
 }
