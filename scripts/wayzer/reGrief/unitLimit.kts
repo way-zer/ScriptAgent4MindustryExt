@@ -8,7 +8,7 @@ val unitToWarn by config.key(190, "开始警告的单位数")
 val unitToKill by config.key(220, "单位数上限，禁止产生新的")
 
 val interval = Interval(1)
-listen<EventType.UnitCreateEvent> { e ->
+listen<EventType.UnitUnloadEvent> { e ->
     if (e.unit.team == state.rules.waveTeam) return@listen
     fun alert(text: PlaceHoldString) {
         if (interval[0, 2 * 60f]) {//2s cooldown
