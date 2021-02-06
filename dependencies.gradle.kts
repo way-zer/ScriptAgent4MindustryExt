@@ -1,5 +1,5 @@
 val libraryVersion = "1.4.2"
-val mindustryVersion = "v115"
+val mindustryVersion = "v123"
 val exposedVersionn = "0.29.1"
 
 repositories {
