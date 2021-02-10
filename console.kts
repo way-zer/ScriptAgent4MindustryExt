@@ -24,14 +24,13 @@ onEnable {
         val arr = arrayOfNulls<Thread>(Thread.activeCount())
         Thread.enumerate(arr)
         arr.filter { (it?.name == "Server Controls" || it?.name == "Console Reader") && it != thisT }.forEach {
-            it?.interrupt()
-            while (it?.isAlive == true) {
-                Thread.sleep(500)
-                println(it)
+            it!!.interrupt()
+            if (it.name == "Server Controls") {
                 //Thread "Server Controls" don't have any point to interrupt. Only stop
                 @Suppress("DEPRECATION")
                 it.stop()
             }
+            it.join()
         }
         val reader = LineReaderBuilder.builder()
             .completer(MyCompleter).build() as LineReader
