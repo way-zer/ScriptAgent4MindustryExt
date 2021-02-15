@@ -2,6 +2,7 @@ package wayzer.map
 
 import mindustry.core.NetServer
 import mindustry.game.Team
+import mindustry.gen.Call
 import mindustry.gen.Groups
 
 name = "更好的队伍"
@@ -50,12 +51,18 @@ command("ob", "切换为观察者") {
         if (player!!.team() == spectateTeam) {
             val team = netServer.assignTeam(player!!)
             changeTeam(player!!, team)
+            if (state.rules.enemyLights.not())
+                Call.setRules(player!!.con, state.rules)
             broadcast(
                 "[yellow]玩家[green]{player.name}[yellow]重新投胎到{team.colorizeName}"
                     .with("player" to player!!, "team" to team), quite = true
             )
         } else {
             changeTeam(player!!, spectateTeam)
+            if (state.rules.enemyLights.not())
+                Call.setRules(player!!.con, state.rules.copy().apply {
+                    enemyLights = true
+                })
             broadcast("[yellow]玩家[green]{player.name}[yellow]选择成为观察者".with("player" to player!!), quite = true)
             player!!.sendMessage("[green]再次输入指令可以重新投胎")
         }
