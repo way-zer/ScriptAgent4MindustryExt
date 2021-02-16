@@ -1,4 +1,4 @@
-val libraryVersion = "1.4.2"
+val libraryVersion = "1.4.5"
 val mindustryVersion = "v123"
 val exposedVersionn = "0.29.1"
 
@@ -14,7 +14,7 @@ repositories {
 dependencies {
     val pluginCompile by configurations
     pluginCompile("cf.wayzer:ScriptAgent:$libraryVersion")
-    pluginCompile("cf.wayzer:LibraryManager:1.4")
+    pluginCompile("cf.wayzer:LibraryManager:1.4.1")
     pluginCompile(kotlin("stdlib-jdk8"))
     pluginCompile("com.github.Anuken.Mindustry:core:$mindustryVersion")
 
