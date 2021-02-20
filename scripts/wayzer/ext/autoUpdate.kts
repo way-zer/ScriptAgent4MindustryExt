@@ -5,7 +5,6 @@ import arc.util.Log
 import arc.util.async.Threads
 import arc.util.serialization.Jval
 import mindustry.core.Version
-import mindustry.game.EventType
 import mindustry.gen.Groups
 import mindustry.io.SaveIO
 import mindustry.net.BeControl
@@ -26,8 +25,9 @@ onEnable {
                 Core.net.httpGet("https://api.github.com/repos/Anuken/Mindustry/releases", { res ->
                     if (res.status == Net.HttpStatus.OK) {
                         val json = Jval.read(res.resultAsString).asArray().first()
-                        val newBuild = json.getString("tag_name", "").removePrefix("v").split(".")[0].toInt()
-                        if (newBuild > Version.build) {
+                        var newBuild = json.getString("tag_name", "")
+                        if (!newBuild.contains('.')) newBuild += ".0"
+                        if (newBuild > ("v${Version.build}.${Version.revision}")) {
                             val asset = json.get("assets").asArray().find {
                                 it.getString("name", "").startsWith("server-release")
                             }
@@ -35,21 +35,30 @@ onEnable {
                             update(newBuild, "https://gh.api.99988866.xyz/$url")
                         }
                     }
-                }, { it.printStackTrace() })
+                }, {
+                    /*ignore error*/
+                    logger.warning("获取更新数据失败:" + it.message)
+                })
             delay(5 * 60_000)//延时5分钟
         }
     }
 }
 
-fun update(version: Int, url: String) {
+fun update(version: String, url: String) {
     launch(Dispatchers.IO) {
         Log.info("发现新版本可用 $version 正在从 $url 下载")
         val con = URL(url).openConnection()
         val dest = File(BeControl::class.java.protectionDomain.codeSource.location.toURI().path)
         val tmp = dest.resolveSibling("server-be-$version.jar")
-        val size = con.getInputStream().use { input ->
-            tmp.outputStream().use { output ->
-                input.copyTo(output)
+        val size = suspendCancellableCoroutine<Long> { cont ->
+            val steam = con.getInputStream()
+            @OptIn(ExperimentalCoroutinesApi::class)
+            cont.resume(steam.use { input ->
+                tmp.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }) {
+                steam.close()
             }
         }
         Log.info("新版本 $version 下载完成: ${size / 1024 / 1024}MB")
