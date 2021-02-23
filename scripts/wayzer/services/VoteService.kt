@@ -1,13 +1,14 @@
 package wayzer.services
 
 import cf.wayzer.placehold.PlaceHoldContext
-import cf.wayzer.script_agent.define.annotations.ServiceDefine
+import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.define.annotations.ServiceDefine
 
 @ServiceDefine
 @Suppress("RemoveRedundantQualifierName", "unused")
 interface VoteService {
     val voteCommands: coreLibrary.lib.Commands
-    fun cf.wayzer.script_agent.ISubScript.addSubVote(
+    fun ISubScript.addSubVote(
         desc: String,
         usage: String,
         vararg aliases: String,

@@ -2,14 +2,14 @@ package cf.wayzer
 
 import arc.ApplicationListener
 import arc.Core
-import arc.util.ColorCodes
 import arc.util.CommandHandler
 import arc.util.Log
 import cf.wayzer.ConfigExt.clientCommands
 import cf.wayzer.ConfigExt.serverCommands
-import cf.wayzer.script_agent.Config
-import cf.wayzer.script_agent.ScriptAgent
-import cf.wayzer.script_agent.ScriptManager
+import cf.wayzer.scriptAgent.Config
+import cf.wayzer.scriptAgent.ScriptAgent
+import cf.wayzer.scriptAgent.ScriptManager
+import cf.wayzer.scriptAgent.define.LoaderApi
 import mindustry.Vars
 import mindustry.plugin.Plugin
 
@@ -17,6 +17,7 @@ class ScriptAgent4Mindustry: Plugin() {
     init {
         if(System.getProperty("java.util.logging.SimpleFormatter.format")==null)
             System.setProperty("java.util.logging.SimpleFormatter.format","[%1\$tF | %1\$tT | %4\$s] [%3\$s] %5\$s%6\$s%n")
+        @OptIn(LoaderApi::class)
         ScriptAgent.load()
     }
     override fun registerClientCommands(handler: CommandHandler) {
@@ -29,6 +30,7 @@ class ScriptAgent4Mindustry: Plugin() {
 
     override fun init() {
         val dir = Vars.dataDirectory.child("scripts").file()
+        @OptIn(LoaderApi::class)
         ScriptManager.loadDir(dir)
         Core.app.addListener(object : ApplicationListener {
             override fun pause() {

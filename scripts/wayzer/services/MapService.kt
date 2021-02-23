@@ -1,7 +1,7 @@
 package wayzer.services
 
 import arc.files.Fi
-import cf.wayzer.script_agent.define.annotations.ServiceDefine
+import cf.wayzer.scriptAgent.define.annotations.ServiceDefine
 import mindustry.game.Gamemode
 import mindustry.maps.Map
 

@@ -1,8 +1,8 @@
 package cf.wayzer
 
 import arc.util.CommandHandler
-import cf.wayzer.script_agent.Config
-import cf.wayzer.script_agent.util.DSLBuilder
+import cf.wayzer.scriptAgent.Config
+import cf.wayzer.scriptAgent.util.DSLBuilder
 
 object ConfigExt {
     var Config.clientCommands by DSLBuilder.dataKey<CommandHandler>()

@@ -1,6 +1,6 @@
 package wayzer.lib.event
 
-import cf.wayzer.script_agent.Event
+import cf.wayzer.scriptAgent.Event
 import mindustry.game.Gamemode
 import mindustry.game.Rules
 import mindustry.maps.Map

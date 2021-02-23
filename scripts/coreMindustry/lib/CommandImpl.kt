@@ -4,10 +4,10 @@ package coreMindustry.lib
 
 import arc.struct.Seq
 import arc.util.CommandHandler
-import cf.wayzer.script_agent.Config
-import cf.wayzer.script_agent.getContextModule
-import cf.wayzer.script_agent.listenTo
-import cf.wayzer.script_agent.util.DSLBuilder
+import cf.wayzer.scriptAgent.Config
+import cf.wayzer.scriptAgent.getContextModule
+import cf.wayzer.scriptAgent.listenTo
+import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.*
 import coreLibrary.lib.event.PermissionRequestEvent
 import coreMindustry.lib.util.sendMenuPhone
@@ -32,7 +32,7 @@ object RootCommands : Commands() {
                     }
                 }
             }
-        return origin.filterValues { if (context.player != null) it.type.client() else it.type.server() } + subCommands.filterValues { if (context.player != null) it.type.client() else it.type.server() }
+        return origin + subCommands.filterValues { if (context.player != null) it.type.client() else it.type.server() }
     }
 
     override fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {

@@ -4,7 +4,7 @@
 package wayzer
 
 import cf.wayzer.placehold.PlaceHoldContext
-import cf.wayzer.script_agent.util.ServiceRegistry
+import cf.wayzer.scriptAgent.util.ServiceRegistry
 import coreMindustry.lib.util.sendMenuPhone
 import mindustry.game.EventType
 import mindustry.gen.Call

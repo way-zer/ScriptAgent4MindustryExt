@@ -3,8 +3,8 @@ package coreMindustry.lib
 import arc.util.CommandHandler
 import arc.util.Log
 import cf.wayzer.placehold.PlaceHoldContext
-import cf.wayzer.script_agent.Config
-import cf.wayzer.script_agent.util.DSLBuilder
+import cf.wayzer.scriptAgent.Config
+import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.ColorApi
 import coreLibrary.lib.ConsoleColor
 import coreLibrary.lib.with

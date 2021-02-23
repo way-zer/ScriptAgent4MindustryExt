@@ -1,6 +1,6 @@
 package wayzer.services
 
-import cf.wayzer.script_agent.define.annotations.ServiceDefine
+import cf.wayzer.scriptAgent.define.annotations.ServiceDefine
 import wayzer.lib.dao.PlayerProfile
 
 @ServiceDefine

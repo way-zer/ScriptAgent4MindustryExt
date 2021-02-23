@@ -14,14 +14,16 @@ onEnable {
             }
             body {
                 if (arg.isEmpty() || arg[0].equals("help", true))
-                    returnReply("""
+                    returnReply(
+                        """
                         [yellow]可用操作
                         [purple]config reload [light_purple]重载配置文件
                         [purple]config <配置项> [light_purple]查看配置项介绍及当前值
                         [purple]config <配置项> set <value> [light_purple]设置配置值
                         [purple]config <配置项> write [light_purple]写入默认值到配置文件
                         [purple]config <配置项> reset [light_purple]恢复默认值（从配置文件移除默认值）
-                    """.trimIndent().with())
+                    """.trimIndent().with()
+                    )
                 if (arg[0].equals("reload", true)) {
                     ConfigBuilder.reloadFile()
                     returnReply("[green]重载成功".with())
@@ -29,13 +31,17 @@ onEnable {
                 val config = arg.firstOrNull()?.let { ConfigBuilder.all[it] } ?: returnReply("[red]找不到配置项".with())
                 when (arg.getOrNull(1)?.toLowerCase()) {
                     null -> {
-                        returnReply("""
+                        returnReply(
+                            """
                         [yellow]==== [light_yellow]配置项: {name}[yellow] ====
                         {desc}
                         [cyan]当前值: [yellow]{value}
                         [yellow]使用/sa config help查看可用操作
-                    """.trimIndent().with("name" to config.path, "desc" to config.desc.map { "[purple]$it\n" },
-                                "value" to config.getString()))
+                    """.trimIndent().with(
+                                "name" to config.path, "desc" to config.desc.map { "[purple]$it\n" },
+                                "value" to config.getString()
+                            )
+                        )
                     }
                     "reset" -> {
                         config.reset()

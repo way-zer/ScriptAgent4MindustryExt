@@ -5,7 +5,7 @@ package wayzer.ext
 
 import arc.files.Fi
 import arc.util.Time
-import cf.wayzer.script_agent.util.ServiceRegistry
+import cf.wayzer.scriptAgent.util.ServiceRegistry
 import mindustry.game.Team
 import mindustry.gen.Groups
 import mindustry.gen.Player

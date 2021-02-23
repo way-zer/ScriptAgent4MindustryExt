@@ -1,7 +1,7 @@
 package coreLibrary.lib
 
-import cf.wayzer.script_agent.Config
-import cf.wayzer.script_agent.ISubScript
+import cf.wayzer.scriptAgent.Config
+import cf.wayzer.scriptAgent.define.ISubScript
 import java.util.logging.Logger
 
 val Config.dataDirectory
