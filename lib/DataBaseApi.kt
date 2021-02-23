@@ -1,7 +1,7 @@
 package coreLibrary.lib
 
-import cf.wayzer.script_agent.IModuleScript
-import cf.wayzer.script_agent.util.DSLBuilder
+import cf.wayzer.scriptAgent.define.IModuleScript
+import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.DataBaseApi.registeredTable
 import coreLibrary.lib.util.Provider
 import org.jetbrains.exposed.sql.Database

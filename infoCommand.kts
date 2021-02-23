@@ -11,14 +11,13 @@ onEnable {
             permission = "scriptAgent.info"
             onComplete {
                 onComplete(0) {
-                    (arg[0].split('/')[0].let(ScriptManager::getScript)?.let { it as IModuleScript }?.children
-                        ?: ScriptManager.loadedInitScripts.values).map { it.id }
+                    ScriptManager.allScripts.keys.toList()
                 }
             }
             body {
                 if (arg.isEmpty()) replyUsage()
-                val script = ScriptManager.getScript(arg[0]) ?: returnReply("[red]找不到脚本,请确定加载成功,并输入正确".with())
-
+                val script = ScriptManager.getScriptNullable(arg[0]) ?: returnReply("[red]找不到脚本,请确定加载成功,并输入正确".with())
+                if (script !is ISubScript) returnReply("[red]目标脚本未开启".with())
                 val configs = script.configs.map {
                     "[purple]{key} [blue]{desc}\n".with("key" to it.path, "desc" to (it.desc.firstOrNull() ?: ""))
                 }

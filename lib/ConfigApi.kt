@@ -10,11 +10,11 @@ package coreLibrary.lib
  * val welcomeMsg by config.key("Hello Steve","The message show when player join")
  * println(welcomeMsg)
  */
-import cf.wayzer.script_agent.IBaseScript
-import cf.wayzer.script_agent.events.ScriptDisableEvent
-import cf.wayzer.script_agent.getContextModule
-import cf.wayzer.script_agent.listenTo
-import cf.wayzer.script_agent.util.DSLBuilder
+import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.events.ScriptDisableEvent
+import cf.wayzer.scriptAgent.getContextScript
+import cf.wayzer.scriptAgent.listenTo
+import cf.wayzer.scriptAgent.util.DSLBuilder
 import com.typesafe.config.*
 import io.github.config4k.ClassContainer
 import io.github.config4k.TypeReference
@@ -25,7 +25,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.reflect.KProperty
 
-open class ConfigBuilder(private val path: String, val script: IBaseScript?) {
+open class ConfigBuilder(private val path: String, val script: ISubScript?) {
     /**
      * @param desc only display the first line using command
      */
@@ -126,7 +126,7 @@ open class ConfigBuilder(private val path: String, val script: IBaseScript?) {
 
     //internal
     fun <T : Any> key(
-        script: IBaseScript, name: String,
+        script: ISubScript, name: String,
         cls: ClassContainer, default: T, vararg desc: String,
         onChange: ((T) -> Unit)?
     ): ConfigKey<T> {
@@ -144,8 +144,8 @@ open class ConfigBuilder(private val path: String, val script: IBaseScript?) {
      */
     inline fun <reified T : Any> key(default: T, vararg desc: String) =
         DSLBuilder.Companion.ProvideDelegate<Any?, ConfigKey<T>> { obj, name ->
-            val script: IBaseScript = when {
-                obj is IBaseScript -> obj
+            val script: ISubScript = when {
+                obj is ISubScript -> obj
                 this.script != null -> this.script
                 else -> error("Can't get script in context")
             }
@@ -169,14 +169,14 @@ open class ConfigBuilder(private val path: String, val script: IBaseScript?) {
     companion object {
         private val renderConfig = ConfigRenderOptions.defaults().setOriginComments(false)
         private val key_configs = DSLBuilder.DataKeyWithDefault("configs") { mutableSetOf<ConfigKey<*>>() }
-        val IBaseScript.configs by key_configs
+        val ISubScript.configs by key_configs
         val all = mutableMapOf<String, ConfigKey<*>>()
-        var configFile: File = cf.wayzer.script_agent.Config.dataDirectory.resolve("config.conf")
+        var configFile: File = cf.wayzer.scriptAgent.Config.dataDirectory.resolve("config.conf")
         private lateinit var fileConfig: Config
         private var lastLoad: Long = -1
 
         init {
-            ConfigBuilder::class.java.getContextModule()!!.listenTo<ScriptDisableEvent>(2) {
+            ConfigBuilder::class.java.getContextScript().listenTo<ScriptDisableEvent>(2) {
                 key_configs.apply {
                     script.get()?.forEach { all.remove(it.path) }
                 }
@@ -208,4 +208,4 @@ open class ConfigBuilder(private val path: String, val script: IBaseScript?) {
 }
 
 val globalConfig = ConfigBuilder("global", null)
-val IBaseScript.config get() = ConfigBuilder(id.replace('/', '.'), this)
+val ISubScript.config get() = ConfigBuilder(id.replace('/', '.'), this)

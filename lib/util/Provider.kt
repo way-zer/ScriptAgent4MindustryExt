@@ -1,6 +1,6 @@
 package coreLibrary.lib.util
 
-import cf.wayzer.script_agent.IBaseScript
+import cf.wayzer.scriptAgent.define.ISubScript
 
 class Provider<T> {
     private var _data: T? = null
@@ -14,7 +14,7 @@ class Provider<T> {
         }
     }
 
-    fun listenWithAutoCancel(script: IBaseScript, body: (T) -> Unit) {
+    fun listenWithAutoCancel(script: ISubScript, body: (T) -> Unit) {
         every(body)
         script.onDisable {
             cancel(body)

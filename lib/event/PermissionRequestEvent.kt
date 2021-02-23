@@ -1,6 +1,6 @@
 package coreLibrary.lib.event
 
-import cf.wayzer.script_agent.Event
+import cf.wayzer.scriptAgent.Event
 import coreLibrary.lib.CommandContext
 
 class PermissionRequestEvent(val permission: String, val context: CommandContext) : Event, Event.Cancellable {

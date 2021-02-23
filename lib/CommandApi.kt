@@ -2,11 +2,11 @@
 
 package coreLibrary.lib
 
-import cf.wayzer.script_agent.ISubScript
-import cf.wayzer.script_agent.events.ScriptDisableEvent
-import cf.wayzer.script_agent.getContextModule
-import cf.wayzer.script_agent.listenTo
-import cf.wayzer.script_agent.util.DSLBuilder
+import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.events.ScriptDisableEvent
+import cf.wayzer.scriptAgent.getContextScript
+import cf.wayzer.scriptAgent.listenTo
+import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.event.PermissionRequestEvent
 import coreLibrary.lib.util.Provider
 import coreLibrary.lib.util.menu
@@ -155,7 +155,7 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
     }
 
     protected open fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
-        val existed = subCommands[name.toLowerCase()]?.takeIf { it.script?.cancelled != true } ?: let {
+        val existed = subCommands[name.toLowerCase()]?.takeIf { it.script?.enabled == true } ?: let {
             subCommands[name.toLowerCase()] = command
             return
         }
@@ -224,7 +224,7 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
                     body(controlCommand)
                 }
             }
-            Commands::class.java.getContextModule()!!.listenTo<ScriptDisableEvent> {
+            Commands::class.java.getContextScript().listenTo<ScriptDisableEvent> {
                 rootProvider.get()?.removeAll(script)
             }
         }
