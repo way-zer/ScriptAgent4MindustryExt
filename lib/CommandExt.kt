@@ -1,10 +1,9 @@
 package coreMindustry.lib
 
-import cf.wayzer.script_agent.ISubScript
+import cf.wayzer.scriptAgent.define.ISubScript
 import coreLibrary.lib.CommandContext
 import coreLibrary.lib.CommandHandler
 import coreLibrary.lib.CommandInfo
-import coreLibrary.lib.event.PermissionRequestEvent
 import mindustry.gen.Player
 
 fun ISubScript.command(name: String, description: String, init: CommandInfo.() -> Unit) {

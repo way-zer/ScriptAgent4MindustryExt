@@ -5,12 +5,12 @@ import arc.func.Cons
 import arc.struct.ObjectMap
 import arc.struct.Seq
 import arc.util.Log
-import cf.wayzer.script_agent.ISubScript
-import cf.wayzer.script_agent.events.ScriptDisableEvent
-import cf.wayzer.script_agent.events.ScriptEnableEvent
-import cf.wayzer.script_agent.getContextModule
-import cf.wayzer.script_agent.listenTo
-import cf.wayzer.script_agent.util.DSLBuilder
+import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.events.ScriptDisableEvent
+import cf.wayzer.scriptAgent.events.ScriptEnableEvent
+import cf.wayzer.scriptAgent.getContextModule
+import cf.wayzer.scriptAgent.listenTo
+import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreMindustry.lib.Listener.Companion.listener
 
 sealed class Listener<T : Any> : Cons<T> {
