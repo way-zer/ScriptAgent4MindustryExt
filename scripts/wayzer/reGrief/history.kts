@@ -8,14 +8,51 @@ import mindustry.gen.Call
 import mindustry.type.Item
 import mindustry.world.Block
 import mindustry.world.blocks.storage.CoreBlock
-import java.time.Instant
 import java.util.*
 
-sealed class Log(val uid: String, val time: Instant) {
-    class Place(uid: String, time: Instant, val type: Block) : Log(uid, time)
-    class Break(uid: String, time: Instant) : Log(uid, time)
-    class Config(uid: String, time: Instant, val value: String) : Log(uid, time)
-    class Deposit(uid: String, time: Instant, val item: Item, val amount: Int) : Log(uid, time)
+@Suppress("MemberVisibilityCanBePrivate")
+sealed class Log(val uid: String?, private val desc: () -> String) {
+    val time = Date()
+
+    class Place(uid: String?, val type: Block) : Log(uid, {
+        "放置了方块${type.name}"
+    })
+
+    class Break(uid: String?) : Log(uid, {
+        "拆除了方块"
+    })
+
+    class Config(uid: String?, val value: String) : Log(uid, {
+        "修改了属性: $value"
+    })
+
+    class Deposit(uid: String?, val item: Item, val amount: Int) : Log(uid, {
+        "往里面丢了${amount}个${item.name}"
+    })
+
+    class Destroy : Log(null, {
+        "拆毁了方块"
+    })
+
+    class PickUp(uid: String?) : Log(uid, {
+        "拾起了方块"
+    })
+
+    //TODO no event
+//    class PickDown(uid: String?, val type: Block) : Log(uid, {
+//        "放下了方块: ${type.name}"
+//    })
+
+    fun descLog(descPrefix: String = ""): PlaceHoldString {
+        val desc = descPrefix + desc()
+        return if (uid == null) {
+            "[red]{time:HH:mm:ss}[]-[yellow]未知单位[white]{desc}".with("time" to time, "desc" to desc)
+        } else {
+            val info = netServer.admins.getInfo(uid)
+            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}"
+                .with("time" to time, "desc" to desc, "info" to info)
+        }
+    }
 }
 
 val historyLimit by config.key(10, "单格最长日记记录")
@@ -48,19 +85,24 @@ fun log(x: Int, y: Int, log: Log) {
     }
 }
 listen<EventType.BlockBuildEndEvent> {
-    val player = it.unit.player ?: return@listen
+    val player = it.unit.player
     if (it.breaking)
-        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Break(player.uuid(), Instant.now()))
+        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Break(player?.uuid()))
     else
-        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Place(player.uuid(), Instant.now(), it.tile.block()))
+        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Place(player?.uuid(), it.tile.block()))
 }
 listen<EventType.ConfigEvent> {
-    val player = it.player ?: return@listen
-    log(it.tile.tileX(), it.tile.tileY(), Log.Config(player.uuid(), Instant.now(), it.value?.toString() ?: "null"))
+    log(it.tile.tileX(), it.tile.tileY(), Log.Config(it.player?.uuid(), it.value?.toString() ?: "null"))
 }
 listen<EventType.DepositEvent> {
-    val player = it.player ?: return@listen
-    log(it.tile.tileX(), it.tile.tileY(), Log.Deposit(player.uuid(), Instant.now(), it.item, it.amount))
+    log(it.tile.tileX(), it.tile.tileY(), Log.Deposit(it.player?.uuid(), it.item, it.amount))
+}
+listen<EventType.BlockDestroyEvent> {
+    log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Destroy())
+}
+listen<EventType.PickupEvent> {
+    val build = it.build ?: return@listen
+    log(build.tileX(), build.tileY(), Log.PickUp(it.carrier.player?.uuid()))
 }
 
 fun Player.showLog(xf: Float, yf: Float) {
@@ -74,29 +116,16 @@ fun Player.showLog(xf: Float, yf: Float) {
         "[yellow]位置({x},{y})无记录".with(
             "x" to x, "y" to y, "receiver" to this
         ).toString(),
-        5f,
-        xf,
-        yf
+        3f, xf, yf
     )
     else {
-        val list = logs.map { log ->
-            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}".with(
-                "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid), "desc" to when (log) {
-                    is Log.Place -> "放置了方块${log.type.name}"
-                    is Log.Break -> "拆除了方块"
-                    is Log.Config -> "修改了属性: ${log.value}"
-                    is Log.Deposit -> "往里面丢了${log.amount}个${log.item.name}"
-                }
-            )
-        }
+        val list = logs.map { log -> log.descLog() }
         Call.label(
             con,
             "====[gold]操作记录({x},{y})[]====\n{list:\n}"
                 .with("x" to x, "y" to y, "list" to list, "receiver" to this)
                 .toString(),
-            15f,
-            xf,
-            yf
+            10f, xf, yf
         )
     }
 }
@@ -145,14 +174,7 @@ listen<EventType.BlockDestroyEvent> { event ->
                 for (y in event.tile.y.let { it - 10..it + 10 })
                     logs.getOrNull(x)?.getOrNull(y)?.lastOrNull { it is Log.Place }?.let { log ->
                         if (log is Log.Place && log.type in dangerBlock)
-                            list.add(
-                                "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}".with(
-                                    "time" to Date.from(log.time), "info" to netServer.admins.getInfo(log.uid),
-                                    "desc" to "在距离核心({x},{})的位置放置了{type}".with(
-                                        "x" to (x - event.tile.x), "y" to (y - event.tile.y), "type" to log.type.name
-                                    )
-                                )
-                            )
+                            list.add(log.descLog("在距离核心(${x - event.tile.x},${y - event.tile.y})的位置"))
                     }
             lastCoreLog = list
         }
