@@ -78,6 +78,8 @@ fun VoteService.register() {
         }
     }
     addSubVote("投降或结束该局游戏，进行结算", "", "gameOver", "投降", "结算") {
+        if (!state.rules.canGameOver)
+            returnReply("[red]当前地图不允许投降".with())
         if (state.rules.pvp) {
             val team = player!!.team()
             if (!state.teams.isActive(team) || state.teams.get(team)!!.cores.isEmpty)
