@@ -1,4 +1,4 @@
-val libraryVersion = "1.5.1"
+val libraryVersion = "1.5.2"
 val mindustryVersion = "v123"
 val exposedVersionn = "0.29.1"
 
