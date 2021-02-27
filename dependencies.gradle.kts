@@ -37,7 +37,7 @@ dependencies {
 //    compile("org.jline:jline-terminal-jansi:3.19.0")
     compile("org.jline:jline-reader:3.19.0")
     //mirai
-    compile("net.mamoe:mirai-core-api-jvm:2.0-RC")
+    compile("net.mamoe:mirai-core-api-jvm:2.4.0")
     //wayzer
     implementation("com.google.guava:guava:30.1-jre")
 }

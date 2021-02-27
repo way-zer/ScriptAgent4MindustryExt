@@ -1,5 +1,5 @@
 @file:DependsModule("coreLibrary")
-@file:MavenDepends("net.mamoe:mirai-core-jvm:2.0-RC", single = false)
+@file:MavenDepends("net.mamoe:mirai-core-jvm:2.4.0", single = false)
 
 import arc.util.Log
 import kotlinx.coroutines.channels.Channel
