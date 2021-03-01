@@ -7,7 +7,6 @@ import cf.wayzer.scriptAgent.events.ScriptDisableEvent
 import cf.wayzer.scriptAgent.getContextScript
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
-import coreLibrary.lib.event.PermissionRequestEvent
 import coreLibrary.lib.util.Provider
 import coreLibrary.lib.util.menu
 import java.util.logging.Logger
@@ -25,12 +24,9 @@ class CommandContext : DSLBuilder(), Cloneable {
 
     // Should not null if do TabComplete
     var replyTabComplete: ((list: List<String>) -> Nothing)? = null
-    var hasPermission: (node: String) -> Boolean = {
-        PermissionRequestEvent(it, this).run {
-            emit()
-            result == true
-        }
-    }
+
+    // Should init in RootCommand
+    var hasPermission: (node: String) -> Boolean = { false }
 
     fun getSub(): CommandContext {
         return (clone() as CommandContext).apply {
