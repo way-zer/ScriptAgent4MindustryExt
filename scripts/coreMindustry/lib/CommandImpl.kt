@@ -5,12 +5,8 @@ package coreMindustry.lib
 import arc.struct.Seq
 import arc.util.CommandHandler
 import cf.wayzer.scriptAgent.Config
-import cf.wayzer.scriptAgent.getContextModule
-import cf.wayzer.scriptAgent.getContextScript
-import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.*
-import coreLibrary.lib.event.PermissionRequestEvent
 import coreMindustry.lib.util.sendMenuPhone
 import mindustry.gen.Player
 
@@ -104,12 +100,6 @@ object RootCommands : Commands() {
         if (overwrite) arrayOf(Config.clientCommands, Config.serverCommands).forEach {
             it.removeCommand("help")
         }
-        RootCommands::class.java.getContextScript().apply {
-            listenTo<PermissionRequestEvent> {
-                if (context.player?.admin == true)
-                    result = true
-            }
-        }
     }
 
     fun trimInput(text: String) = buildString {
@@ -135,8 +125,9 @@ object RootCommands : Commands() {
         if (text.isEmpty()) return
         RootCommands.invoke(CommandContext().apply {
             this.player = player
-            if (player == null)
-                hasPermission = { true }
+            hasPermission = {
+                player == null || player.admin || player.hasPermission(it)
+            }
             reply = { reply(it, MsgType.Message) }
             this.prefix = if (prefix.isEmpty()) "* " else prefix
             this.arg = text.removePrefix(prefix).split(' ')
