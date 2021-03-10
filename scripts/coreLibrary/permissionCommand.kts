@@ -13,6 +13,7 @@ var groups by config.key(
 val handler = PermissionApi.StringPermissionHandler()
 
 Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置") {
+    aliases = listOf("pm")
     usage = "<group> <add/list/remove/delGroup> [permission]"
     onComplete {
         onComplete(0) { PermissionApi.allKnownGroup.toList() }
