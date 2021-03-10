@@ -55,8 +55,8 @@ interface PermissionApi {
         }
 
 
-        fun registerDefault(subject: String = "@default", vararg permission: String) {
-            default.registerPermission(subject, permission.asIterable())
+        fun registerDefault(vararg permission: String, group: String = "@default") {
+            default.registerPermission(group, permission.asIterable())
         }
 
         fun <T : Any> handleThoughEvent(
