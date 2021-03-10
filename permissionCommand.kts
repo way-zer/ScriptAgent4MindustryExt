@@ -15,11 +15,11 @@ val handler = PermissionApi.StringPermissionHandler()
 Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置") {
     usage = "<group> <add/list/remove/delGroup> [permission]"
     onComplete {
-        onComplete(0) { groups.keys.toList() }
+        onComplete(0) { PermissionApi.allKnownGroup.toList() }
         onComplete(1) { listOf("add", "list", "remove", "delGroup") }
     }
     body {
-        if (arg.isEmpty()) returnReply("当前已有组: {list}".with("list" to groups.keys))
+        if (arg.isEmpty()) returnReply("当前已有组: {list}".with("list" to PermissionApi.allKnownGroup))
         if (arg.size < 2) replyUsage()
         val group = arg[0]
         when (arg[1].toLowerCase()) {
@@ -48,9 +48,16 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
             }
             "list" -> {
                 val now = groups[group].orEmpty()
-                returnReply(
-                    "[green]组{group}当前拥有权限:[]\n{list}".with(
-                        "group" to group, "list" to now.toString()
+                val defaults = PermissionApi.default.allPermission[group].orEmpty()
+                reply(
+                    """
+                        [green]组{group}当前拥有权限:[]
+                        {list}
+                        [green]默认定义权限:[]
+                        {defaults}
+                        [yellow]默认组权限仅可通过添加负权限修改
+                    """.trimIndent().with(
+                        "group" to group, "list" to now.toString(), "defaults" to defaults
                     )
                 )
             }

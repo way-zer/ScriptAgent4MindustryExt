@@ -39,7 +39,7 @@ interface PermissionApi {
      * fallback 组"@default"
      */
     companion object Global : PermissionHandler<List<String>> {
-        private val default = StringPermissionHandler()
+        val default = StringPermissionHandler()
         var impl: StringPermissionHandler? = null
         val allKnownGroup: Set<String> get() = default.allKnownGroup + impl?.allKnownGroup.orEmpty()
 
@@ -78,9 +78,9 @@ interface PermissionApi {
      * 针对string主体的权限处理器实现
      * 支持查询“@group”或者其他用string表示的权限节点
      */
-    class StringPermissionHandler() : PermissionHandler<String> {
-        private val allGroup = mutableSetOf<String>()
-        val allKnownGroup get() = allGroup as Set<String>
+    class StringPermissionHandler : PermissionHandler<String> {
+        val allPermission = mutableMapOf<String, MutableSet<String>>()
+        val allKnownGroup get() = allPermission.keys
         private val tree = StringPermissionTree(::hasGroup)
         override fun String.invoke(permission: String): Result {
             return tree.hasPermission(this, convertToInternal(permission))
@@ -99,7 +99,7 @@ interface PermissionApi {
         }
 
         fun registerPermission(subject: String, permission: Iterable<String>) {
-            allGroup.add(subject)
+            allPermission.getOrPut(subject, ::mutableSetOf).addAll(permission)
             permission.forEach {
                 val pp = convertToInternal(it)
                 if (pp.startsWith("-"))
@@ -110,7 +110,7 @@ interface PermissionApi {
         }
 
         fun clear() {
-            allGroup.clear()
+            allPermission.clear()
             tree.clear()
         }
     }
