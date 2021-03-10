@@ -105,3 +105,5 @@ command("madmin", "列出或添加删除管理") {
         }
     }
 }
+
+PermissionApi.registerDefault("wayzer.admin.*", group = "@admin")

@@ -55,6 +55,7 @@ sealed class Log(val uid: String?, private val desc: () -> String) {
     }
 }
 
+PermissionApi.registerDefault("wayzer.ext.history")
 val historyLimit by config.key(10, "单格最长日记记录")
 lateinit var logs: Array<Array<List<Log>>>
 

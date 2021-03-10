@@ -87,3 +87,6 @@ command("team", "管理指令: 修改自己或他人队伍(PVP模式)") {
         broadcast("[green]管理员更改了{player.name}[green]为{team.colorizeName}".with("player" to player, "team" to team))
     }
 }
+
+PermissionApi.registerDefault("wayzer.ext.observer")
+PermissionApi.registerDefault("wayzer.ext.team.change", group = "@admin")
