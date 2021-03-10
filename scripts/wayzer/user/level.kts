@@ -4,6 +4,7 @@ package wayzer.user
 
 import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.PlaceHoldApi.with
+import coreLibrary.lib.event.RequestPermissionEvent
 import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.services.UserService
@@ -72,4 +73,16 @@ listen<EventType.PlayerJoin> {
     if (!customWelcome) return@listen
     it.player.sendMessage("[cyan][+]{player.name} [gold]加入了服务器".with("player" to it.player))
     broadcast("[cyan][+]{player.name} [goldenrod]加入了服务器".with("player" to it.player))
+}
+
+listenTo<RequestPermissionEvent> {
+    val profile = when (subject) {
+        is PlayerProfile -> subject
+        is Player -> PlayerData[subject.uuid()].secureProfile(subject) ?: return@listenTo
+        else -> return@listenTo
+    }
+    val index = group.indexOfLast { !it.startsWith("@") }
+    val newGroup = group.toMutableList()
+    newGroup.addAll(index + 1, (level(profile.totalExp) downTo 0).map { "@lvl$it" })
+    group = newGroup
 }

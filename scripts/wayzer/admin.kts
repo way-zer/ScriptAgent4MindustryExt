@@ -82,13 +82,13 @@ command("madmin", "列出或添加删除管理") {
     body {
         val uuid = arg.getOrNull(0)
         if (uuid == null) {
-            val list = PermissionApi.allKnownGroup.filter { PermissionApi.handle(it, "@admin").has }
+            val list = PermissionApi.allKnownGroup.filter { PermissionApi.handleGroup(it, "@admin").has }
             returnReply("Admins: {list:,}".with("list" to list))
         } else {
             reply("[yellow]建议使用/sa permission管理用户与@admin组".with())
             val isQQ = uuid.length > 5 && uuid.toLongOrNull() != null
             val key = if (isQQ) "qq$uuid" else uuid
-            if (PermissionApi.handle(key, "@admin").has) {
+            if (PermissionApi.handleGroup(key, "@admin").has) {
                 RootCommands.handleInput("sa permission $key remove @admin", null)
                 returnReply("[red]{uuid} [green] has been removed from Admins[]".with("uuid" to uuid))
             } else {

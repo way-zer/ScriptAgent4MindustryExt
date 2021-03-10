@@ -2,13 +2,17 @@
 
 package coreLibrary.lib
 
+import coreLibrary.lib.PermissionApi.Global
+import coreLibrary.lib.PermissionApi.PermissionHandler
+import coreLibrary.lib.event.RequestPermissionEvent
+
 /**
  * 权限系统Api
  * 架构:
- *   coreLib: 抽象接口[PermissionHandler] -> 基础实现[HandlerWithFallback] -> 全局String权限解析[Global]
+ *   coreLib: 抽象接口[PermissionHandler] -> 全局String权限解析[Global]
+ *          工具类 [StringPermissionHandler] [StringPermissionTree]
  *   coreLib/permissionCommand: 指令及持久化实现[Global.impl]
- *   各子模块针对不同subject的实现,代理至[Global]解析，并提供```fun T.hasPermission(permission:String)```实现
- * 提供fallback接口的目的: 便于其他模块扩充处理器的功能,例如wayzer/lib/PermissionExt
+ *   各子模块针对不同subject,代理至[Global.handleThoughEvent]解析
  */
 interface PermissionApi {
     enum class Result {
@@ -25,40 +29,68 @@ interface PermissionApi {
     /**
      * 权限处理器抽象接口
      * 本接口主要用于支持lambda
-     * 最好继承[HandlerWithFallback]
      */
     fun interface PermissionHandler<T> {
         fun T.invoke(permission: String): Result
     }
 
     /**
-     * [fallback]用于没有其他结果时调用
-     * should overwrite [handle]
+     * 全局权限处理器
+     * fallback 组"@default"
      */
-    abstract class HandlerWithFallback<T> : PermissionHandler<T> {
-        var fallback = PermissionHandler<T> { Result.Default }
-        abstract fun handle(subject: T, permission: String): Result
-        override fun T.invoke(permission: String) = handle(this, permission)
-            .fallback { fallback.handle(this, permission) }
+    companion object Global : PermissionHandler<List<String>> {
+        private val default = StringPermissionHandler()
+        var impl: StringPermissionHandler? = null
+        val allKnownGroup: Set<String> get() = default.allKnownGroup + impl?.allKnownGroup.orEmpty()
+
+        fun handleGroup(group: String, permission: String): Result {
+            return (impl?.handle(group, permission) ?: Result.Default).fallback {
+                default.handle(group, permission)
+            }
+        }
+
+        override fun List<String>.invoke(permission: String): Result {
+            return fold(Result.Default) { r, g -> r.fallback { handleGroup(g, permission) } }
+                .fallback { handleGroup("@default", permission) }
+        }
+
+
+        fun registerDefault(subject: String = "@default", vararg permission: String) {
+            default.registerPermission(subject, permission.asIterable())
+        }
+
+        fun <T : Any> handleThoughEvent(
+            subject: T, permission: String,
+            defaultGroup: List<String> = emptyList()
+        ): Result {
+            val event = RequestPermissionEvent(subject, permission, defaultGroup).apply { emit() }
+            event.directReturn?.let { return it }
+            return handle(event.group, permission)
+        }
+
+        fun <T> PermissionHandler<T>.handle(subject: T, permission: String): Result {
+            return subject.invoke(permission)
+        }
     }
+
     /**Use for implementing delegate and Global*/
     /**
      * 针对string主体的权限处理器实现
      * 支持查询“@group”或者其他用string表示的权限节点
      */
-    open class StringPermissionHandler : HandlerWithFallback<String>() {
-        protected val allGroup = mutableSetOf<String>()
-        open val allKnownGroup get() = allGroup as Set<String>
-        protected val tree = StringPermissionTree(::hasGroup)
-        override fun handle(subject: String, permission: String): Result {
-            return tree.hasPermission(subject, convertToInternal(permission))
+    class StringPermissionHandler() : PermissionHandler<String> {
+        private val allGroup = mutableSetOf<String>()
+        val allKnownGroup get() = allGroup as Set<String>
+        private val tree = StringPermissionTree(::hasGroup)
+        override fun String.invoke(permission: String): Result {
+            return tree.hasPermission(this, convertToInternal(permission))
         }
 
-        open fun hasGroup(subject: String, group: String): Boolean {
-            return handle(subject, group).has
+        private fun hasGroup(subject: String, group: String): Boolean {
+            return Global.handleGroup(subject, group).has
         }
 
-        protected fun convertToInternal(permission: String): String {
+        private fun convertToInternal(permission: String): String {
             return when {
                 permission.startsWith("@") -> permission
                 permission.endsWith(".*") -> permission.removeSuffix(".*")
@@ -66,7 +98,7 @@ interface PermissionApi {
             }
         }
 
-        protected fun registerPermission(subject: String, permission: Iterable<String>) {
+        fun registerPermission(subject: String, permission: Iterable<String>) {
             allGroup.add(subject)
             permission.forEach {
                 val pp = convertToInternal(it)
@@ -77,32 +109,9 @@ interface PermissionApi {
             }
         }
 
-        protected fun clear() {
+        fun clear() {
             allGroup.clear()
             tree.clear()
-        }
-    }
-
-    /**
-     * 全局权限处理器
-     * fallback 组"@default"
-     */
-    companion object Global : StringPermissionHandler() {
-        var impl: StringPermissionHandler? = null
-        override val allKnownGroup: Set<String> get() = super.allKnownGroup + impl?.allKnownGroup.orEmpty()
-        override fun handle(subject: String, permission: String): Result {
-            val result = (impl?.handle(subject, permission) ?: Result.Default)
-                .fallback { super.handle(subject, permission) }
-            return if (subject == "@default") result
-            else result.fallback { handle("@default", permission) }
-        }
-
-        fun registerDefault(subject: String = "@default", vararg permission: String) {
-            registerPermission(subject, permission.asIterable())
-        }
-
-        fun <T> PermissionHandler<T>.handle(subject: T, permission: String): Result {
-            return subject.invoke(permission)
         }
     }
 
