@@ -6,6 +6,7 @@ import arc.struct.Seq
 import arc.util.CommandHandler
 import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.getContextModule
+import cf.wayzer.scriptAgent.getContextScript
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.*
@@ -103,7 +104,7 @@ object RootCommands : Commands() {
         if (overwrite) arrayOf(Config.clientCommands, Config.serverCommands).forEach {
             it.removeCommand("help")
         }
-        RootCommands::class.java.getContextModule()!!.apply {
+        RootCommands::class.java.getContextScript().apply {
             listenTo<PermissionRequestEvent> {
                 if (context.player?.admin == true)
                     result = true

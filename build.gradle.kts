@@ -42,8 +42,8 @@ tasks {
     withType<ProcessResources> {
         inputs.property("version", rootProject.version)
         filter(
-                filterType = org.apache.tools.ant.filters.ReplaceTokens::class,
-                properties = mapOf("tokens" to mapOf("version" to rootProject.version))
+            filterType = org.apache.tools.ant.filters.ReplaceTokens::class,
+            properties = mapOf("tokens" to mapOf("version" to rootProject.version))
         )
     }
     named<Delete>("clean") {
