@@ -154,15 +154,13 @@ interface PermissionApi {
         }
 
         fun hasPermission(subject: String, permission: String): Result {
-            return if (permission.isEmpty()) {
-                when {
-                    reject.match(subject) -> Result.Reject
-                    allow.match(subject) -> Result.Has
-                    else -> Result.Default
+            return when {
+                reject.match(subject) -> Result.Reject
+                allow.match(subject) -> Result.Has
+                else -> {
+                    val sp = permission.split('.', limit = 2)
+                    map[sp[0]]?.hasPermission(subject, sp.getOrNull(1) ?: "") ?: Result.Default
                 }
-            } else {
-                val sp = permission.split('.', limit = 2)
-                map[sp[0]]?.hasPermission(subject, sp.getOrNull(1) ?: "") ?: Result.Default
             }
         }
 
