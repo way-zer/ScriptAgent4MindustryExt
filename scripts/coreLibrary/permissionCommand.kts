@@ -1,5 +1,8 @@
 package coreLibrary
 
+val handler = PermissionApi.StringPermissionHandler()
+PermissionApi.impl = handler
+
 var groups by config.key(
     "groups", mapOf("@default" to emptyList<String>()),
     "权限设置", "值为权限，@开头为组,支持末尾通配符.*"
@@ -9,8 +12,6 @@ var groups by config.key(
         handler.registerPermission(g, list)
     }
 }
-
-val handler = PermissionApi.StringPermissionHandler()
 
 Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置") {
     aliases = listOf("pm")

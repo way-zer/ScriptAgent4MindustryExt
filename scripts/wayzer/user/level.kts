@@ -76,9 +76,9 @@ listen<EventType.PlayerJoin> {
 }
 
 listenTo<RequestPermissionEvent> {
-    val profile = when (subject) {
-        is PlayerProfile -> subject
-        is Player -> PlayerData[subject.uuid()].secureProfile(subject) ?: return@listenTo
+    val profile = when (val p = subject) {
+        is PlayerProfile -> p
+        is Player -> PlayerData[p.uuid()].secureProfile(p) ?: return@listenTo
         else -> return@listenTo
     }
     val index = group.indexOfLast { !it.startsWith("@") }

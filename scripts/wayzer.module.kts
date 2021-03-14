@@ -6,6 +6,7 @@
 
 import wayzer.lib.dao.*
 import coreLibrary.DBApi.DB.registerTable
+import wayzer.lib.PermissionExt
 
 name = "WayZer Mindustry Plugin"
 /**
@@ -46,3 +47,4 @@ generateHelper()
 registerTable(PlayerProfile.T, PlayerData.T, PlayerData.Usid, Achievement.T, PlayerNotification.T)
 
 Setting//ensure init
+PermissionExt//ensure init

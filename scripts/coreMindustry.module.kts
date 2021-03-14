@@ -9,6 +9,7 @@
 import arc.Core
 import coreMindustry.lib.*
 import mindustry.Vars
+import wayzer.lib.PermissionExt
 
 name = "Mindustry 核心脚本模块"
 
@@ -30,6 +31,7 @@ fun updateOriginCommandHandler(client: arc.util.CommandHandler, server: arc.util
 }
 
 Listener//ensure init
+PermissionExt//ensure init
 
 onEnable {
     Commands.rootProvider.set(RootCommands)
