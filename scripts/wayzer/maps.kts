@@ -7,6 +7,7 @@ import arc.util.Log
 import cf.wayzer.placehold.DynamicVar
 import coreMindustry.lib.util.sendMenuPhone
 import mindustry.Vars
+import mindustry.core.GameState
 import mindustry.game.Gamemode
 import mindustry.gen.Call
 import mindustry.gen.Groups
@@ -48,12 +49,14 @@ inner class MapManager : MapService {
                     }
                 }
             }.emit()
+            logic.play()
         }
     }
 
     override fun loadSave(file: Fi) {
         resetAndLoad {
             SaveIO.load(file)
+            state.set(GameState.State.playing)
         }
     }
 
@@ -95,7 +98,6 @@ inner class MapManager : MapService {
             val players = Groups.player.toList()
             players.forEach { it.clearUnit() }
             callBack()
-            logic.play()
             Call.worldDataBegin()
             players.forEach {
                 if (it.con == null) return@forEach
