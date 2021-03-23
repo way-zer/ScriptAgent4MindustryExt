@@ -1,4 +1,4 @@
-@file:DependsModule("coreMindustry")
+@file:Depends("coreMindustry")
 
 name = "Main Module"
 /**

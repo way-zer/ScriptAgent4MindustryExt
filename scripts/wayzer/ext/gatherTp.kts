@@ -5,6 +5,8 @@ import mindustry.gen.Call
 import java.time.Duration
 import java.time.Instant
 
+PermissionApi.registerDefault("wayzer.ext.gather")
+
 var lastPos: Vec2 = Vec2.ZERO
 var lastTime: Instant = Instant.MIN
 

@@ -1,6 +1,7 @@
+@file:Depends("coreLibrary/DBApi")
 //1. 不同数据库的驱动Maven,根据选择注释
-@file:MavenDepends("com.h2database:h2:1.4.200", single = false)
-//@file:MavenDepends("org.postgresql:postgresql:42.2.15", single = false)
+@file:Import("com.h2database:h2:1.4.200", mavenDepends = true)
+//@file:Import("org.postgresql:postgresql:42.2.15", mavenDepends = true)
 @file:Suppress("unused")
 
 package coreLibrary
@@ -11,19 +12,19 @@ import java.sql.DriverManager
 
 //2. 修改对应类型中需要配置的项(地址，用户名，密码)
 fun h2(): () -> Connection {
-    sourceFile.parentFile.listFiles{_,n->n.startsWith("h2DB.db")}?.takeIf { it.isNotEmpty() }?.forEach {
+    sourceFile.parentFile.listFiles { _, n -> n.startsWith("h2DB.db") }?.takeIf { it.isNotEmpty() }?.forEach {
         println("检测到旧数据库文件,自动迁移到新目录")
         val new = Config.dataDirectory.resolve(it.name)
-        if(new.exists()){
+        if (new.exists()) {
             println("目标文件$new 存在,不进行覆盖，请自行处理")
-        }else {
+        } else {
             it.copyTo(new)
             it.delete()
         }
     }
     val file = Config.dataDirectory.resolve("h2DB.db")
     Class.forName("org.h2.Driver")
-    return {DriverManager.getConnection("jdbc:h2:${file.absolutePath}")}
+    return { DriverManager.getConnection("jdbc:h2:${file.absolutePath}") }
 }
 
 fun postgre(): () -> Connection {
@@ -34,6 +35,6 @@ fun postgre(): () -> Connection {
 
 onEnable {
     //3. 请重新注释此处
-    DataBaseApi.db.set(Database.connect(h2()))
-//    DataBaseApi.db.set(Database.connect(postgre()))
+    DBApi.DB.db.set(Database.connect(h2()))
+//    DBApi.DB.db.set(Database.connect(postgre()))
 }

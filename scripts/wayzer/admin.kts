@@ -76,3 +76,34 @@ command("ban", "管理指令: 列出已ban用户，ban或解ban") {
         }
     }
 }
+command("madmin", "列出或添加删除管理") {
+    this.usage = "[uuid/qq]"
+    this.permission = "wayzer.permission.admin"
+    body {
+        val uuid = arg.getOrNull(0)
+        if (uuid == null) {
+            val list = PermissionApi.allKnownGroup.filter { PermissionApi.handleGroup(it, "@admin").has }
+            returnReply("Admins: {list:,}".with("list" to list))
+        } else {
+            reply("[yellow]建议使用/sa permission管理用户与@admin组".with())
+            val isQQ = uuid.length > 5 && uuid.toLongOrNull() != null
+            val key = if (isQQ) "qq$uuid" else uuid
+            if (PermissionApi.handleGroup(key, "@admin").has) {
+                RootCommands.handleInput("sa permission $key remove @admin", null)
+                returnReply("[red]{uuid} [green] has been removed from Admins[]".with("uuid" to uuid))
+            } else {
+                if (isQQ) {
+                    RootCommands.handleInput("sa permission $key add @admin", null)
+                    reply("[green]QQ [red]{qq}[] has been added to Admins".with("qq" to uuid))
+                } else {
+                    val info = netServer.admins.getInfoOptional(uuid)
+                        ?: returnReply("[red]Can't found player".with())
+                    RootCommands.handleInput("sa permission $key add @admin", null)
+                    reply("[green]Player [red]{info.name}({info.uuid})[] has been added to Admins".with("info" to info))
+                }
+            }
+        }
+    }
+}
+
+PermissionApi.registerDefault("wayzer.admin.*", group = "@admin")

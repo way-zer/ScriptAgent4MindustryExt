@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("jvm") version "1.4.30"
     id("me.qoomon.git-versioning") version "2.1.1"
@@ -32,7 +34,7 @@ apply {
 }
 
 tasks {
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.freeCompilerArgs = listOf(
             "-Xinline-classes",
@@ -42,8 +44,8 @@ tasks {
     withType<ProcessResources> {
         inputs.property("version", rootProject.version)
         filter(
-                filterType = org.apache.tools.ant.filters.ReplaceTokens::class,
-                properties = mapOf("tokens" to mapOf("version" to rootProject.version))
+            filterType = org.apache.tools.ant.filters.ReplaceTokens::class,
+            properties = mapOf("tokens" to mapOf("version" to rootProject.version))
         )
     }
     named<Delete>("clean") {

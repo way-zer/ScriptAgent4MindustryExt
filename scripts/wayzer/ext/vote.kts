@@ -5,10 +5,8 @@ package wayzer.ext
 
 import arc.files.Fi
 import arc.util.Time
-import cf.wayzer.scriptAgent.util.ServiceRegistry
 import mindustry.game.Team
 import mindustry.gen.Groups
-import mindustry.gen.Player
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
 import wayzer.services.MapService
@@ -130,7 +128,7 @@ fun VoteService.register() {
         val target = Groups.player.find { it.name == arg.joinToString(" ") }
             ?: returnReply("[red]请输入正确的玩家名，或者到列表点击投票".with())
         start(player!!, "踢人(踢出[red]{target.name}[yellow])".with("target" to target)) {
-            if (target.hasPermission("wayzer.vote.skipKick"))
+            if (target.hasPermission("wayzer.admin.skipKick"))
                 return@start broadcast("[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target))
             target.info.lastKicked = Time.millis() + (15 * 60 * 1000) //Kick for 15 Minutes
             target.con?.kick("[yellow]你被投票踢出15分钟")
@@ -159,3 +157,5 @@ fun VoteService.register() {
 onEnable {
     voteService.register()
 }
+
+PermissionApi.registerDefault("wayzer.vote.*")

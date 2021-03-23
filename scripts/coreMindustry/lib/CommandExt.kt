@@ -10,13 +10,6 @@ fun ISubScript.command(name: String, description: String, init: CommandInfo.() -
     RootCommands += CommandInfo(this, name, description, init)
 }
 
-@Suppress("unused")
-fun Player.hasPermission(permission: String): Boolean {
-    return CommandContext().also {
-        it.player = this
-    }.hasPermission(permission)
-}
-
 @Deprecated("use new command api", ReplaceWith("command(name,description){init\nbody(handler)}"))
 fun ISubScript.command(name: String, description: String, init: CommandInfo.() -> Unit, handler: CommandHandler) {
     RootCommands += CommandInfo(this, name, description) {
@@ -28,5 +21,5 @@ fun ISubScript.command(name: String, description: String, init: CommandInfo.() -
 //常见拼写错误，但不报错
 @Suppress("unused")
 @Deprecated("请检查变量是否使用正确, Vars.player 为null", ReplaceWith("error(\"服务器中不允许使用该变量\")"), DeprecationLevel.ERROR)
-val ISubScript.player: Player?
+val ISubScript.player: Player
     get() = error("服务器中不允许使用该变量")

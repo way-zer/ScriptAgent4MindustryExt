@@ -219,3 +219,5 @@ command("load", "管理指令: 加载存档") {
         broadcast("[green]强制加载存档{slot}".with("slot" to arg[0]))
     }
 }
+
+PermissionApi.registerDefault("wayzer.maps.host", "wayzer.maps.load", group = "@admin")

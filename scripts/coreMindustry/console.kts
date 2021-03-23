@@ -1,7 +1,7 @@
-@file:MavenDepends("org.jline:jline-terminal-jansi:3.19.0")
-@file:MavenDepends("org.jline:jline-terminal:3.19.0")
-@file:MavenDepends("org.fusesource.jansi:jansi:2.1.0")
-@file:MavenDepends("org.jline:jline-reader:3.19.0")
+@file:Import("org.jline:jline-terminal-jansi:3.19.0", mavenDependsSingle = true)
+@file:Import("org.jline:jline-terminal:3.19.0", mavenDependsSingle = true)
+@file:Import("org.fusesource.jansi:jansi:2.1.0", mavenDependsSingle = true)
+@file:Import("org.jline:jline-reader:3.19.0", mavenDependsSingle = true)
 
 package coreMindustry
 
