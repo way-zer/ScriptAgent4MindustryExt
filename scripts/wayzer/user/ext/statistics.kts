@@ -69,6 +69,7 @@ registerVarForType<StatisticsData>().apply {
         if (!p.isNullOrBlank()) p.format(obj.buildScore)
         else obj.buildScore
     }
+    registerChild("score", "综合得分", DynamicVar.obj { it.score })
     registerChild("breakBlock", "破坏方块数", DynamicVar.obj { it.breakBlock })
 }
 registerVarForType<Player>().apply {
