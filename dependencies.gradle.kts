@@ -26,7 +26,7 @@ dependencies {
     compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     compile("io.github.config4k:config4k:0.4.1")
     //coreLib/DBApi
-    val exposedVersionn = "0.29.1"
+    val exposedVersionn = "0.30.1"
     compile("org.jetbrains.exposed:exposed-core:$exposedVersionn")
     compile("org.jetbrains.exposed:exposed-dao:$exposedVersionn")
     compile("org.jetbrains.exposed:exposed-java-time:$exposedVersionn")
