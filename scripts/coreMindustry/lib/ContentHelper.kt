@@ -13,13 +13,14 @@ import mindustry.gen.Call
 import mindustry.gen.Groups
 import mindustry.gen.Player
 
-object ContentHelper{
-    fun logToConsole(text:String){
-        Log.info(ColorApi.handle(text,ColorApi::consoleColorHandler))
+object ContentHelper {
+    fun logToConsole(text: String) {
+        Log.info(ColorApi.handle(text, ColorApi::consoleColorHandler))
     }
-    fun mindustryColorHandler(color:ColorApi.Color):String{
-        if(color is ConsoleColor) {
-            return when(color){
+
+    fun mindustryColorHandler(color: ColorApi.Color): String {
+        if (color is ConsoleColor) {
+            return when (color) {
                 ConsoleColor.LIGHT_YELLOW -> "[gold]"
                 ConsoleColor.LIGHT_PURPLE -> "[magenta]"
                 ConsoleColor.LIGHT_RED -> "[scarlet]"
@@ -64,7 +65,13 @@ fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message,
     }
 }
 
-fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) = sendMessage(text.with(), type, time)
+fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) =
+    sendMessage(text.with(), type, time)
 
-val Config.clientCommands by DSLBuilder.dataKeyWithDefault<CommandHandler> { netServer.clientCommands }
-val Config.serverCommands by DSLBuilder.dataKeyWithDefault<CommandHandler> { error("Can't find serverCommands") }
+val Config.clientCommands by DSLBuilder.dataKeyWithDefault {
+    netServer?.clientCommands ?: CommandHandler("/")
+}
+val Config.serverCommands by DSLBuilder.dataKeyWithDefault {
+    println("serverCommands Not exists")
+    CommandHandler("")
+}

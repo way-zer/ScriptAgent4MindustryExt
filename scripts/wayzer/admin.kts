@@ -4,13 +4,14 @@ import arc.util.Time
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import mindustry.gen.Groups
+import mindustry.maps.Maps
 import mindustry.net.Packets
 import java.time.Duration
 import java.util.*
 
 name = "基础: 禁封管理"
 
-val pluginLog by config.key(dataDirectory.child("logs").child("secureLog.log").file()!!, "安全日记文件")
+val pluginLog by config.key(Config.dataDirectory.resolve("secureLog.log"), "安全日记文件")
 
 fun secureLog(tag: String, text: String) {
     ContentHelper.logToConsole("[red][$tag][yellow]$text")

@@ -22,6 +22,7 @@ gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPlugin
 sourceSets {
     main {
         java.srcDir("scripts")
+        java.exclude("cache")
     }
     create("plugin") {
         java.srcDir("plugin/src")
@@ -55,19 +56,21 @@ tasks {
     create<Zip>("scriptsZip") {
         group = "plugin"
         from(sourceSets.main.get().allSource) {
-            exclude("*.ktc")
-            exclude("cache.jar")
+            exclude("cache")
             exclude(".metadata")
         }
         archiveClassifier.set("scripts")
     }
-    create<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildPlugin") {
-        dependsOn("scriptsZip")
+    val buildPlugin = create<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildPlugin") {
         group = "plugin"
+        dependsOn("scriptsZip")
         from(sourceSets.getByName("plugin").output)
         archiveClassifier.set("")
         archiveVersion.set(rootProject.version.toString().substringBeforeLast('.'))
         configurations = listOf(project.configurations.getByName("pluginCompileClasspath"))
+        manifest.attributes(
+            "Main-Class" to "cf.wayzer.scriptAgent.GenerateMain"
+        )
         dependencies {
             include(dependency("cf.wayzer:ScriptAgent"))
             include(dependency("cf.wayzer:LibraryManager"))

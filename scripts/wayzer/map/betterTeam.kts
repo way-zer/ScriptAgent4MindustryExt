@@ -2,14 +2,13 @@ package wayzer.map
 
 import mindustry.core.NetServer
 import mindustry.game.Team
-import mindustry.gen.Call
 import mindustry.gen.Groups
 
 name = "更好的队伍"
 
 val enableTeamLock by config.key(true, "PVP模式队伍锁定，单局不能更换队伍")
 val spectateTeam = Team.all[255]!!
-val backup = netServer.assigner!!
+val backup = netServer?.assigner //Can be null when generate ktc
 onDisable {
     netServer.assigner = backup
 }
@@ -18,7 +17,7 @@ val teams = mutableMapOf<String, Team>()
 onEnable {
     netServer.assigner = object : NetServer.TeamAssigner {
         override fun assign(player: Player, p1: MutableIterable<Player>): Team {
-            if (!enableTeamLock) return backup.assign(player, p1)
+            if (!enableTeamLock) return backup!!.assign(player, p1)
             if (!state.rules.pvp) return state.rules.defaultTeam
             if (teams[player.uuid()]?.active() == false)
                 teams.remove(player.uuid())
