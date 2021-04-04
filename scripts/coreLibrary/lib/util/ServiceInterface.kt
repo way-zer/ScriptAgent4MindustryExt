@@ -1,6 +1,7 @@
 package coreLibrary.lib.util
 
 import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.emit
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.event.ServiceProvidedEvent

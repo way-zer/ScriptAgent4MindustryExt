@@ -73,4 +73,23 @@ tasks {
             include(dependency("cf.wayzer:LibraryManager"))
         }
     }
+    create<JavaExec>("precompile") {
+        group = "plugin"
+        dependsOn("buildPlugin")
+        inputs.files(sourceSets.main.get().allSource)
+        classpath(buildPlugin.outputs.files)
+        mainClass.set("cf.wayzer.scriptAgent.GenerateMain")
+    }
+    create<Zip>("precompileZip") {
+        group = "plugin"
+        dependsOn("precompile")
+        from(file("scripts/cache")) {
+            include("**/*.ktc")
+        }
+        from(file("scripts")) {
+            include("data/*")
+            include("*/res/*")
+        }
+        archiveClassifier.set("precompile")
+    }
 }

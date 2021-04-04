@@ -1,6 +1,20 @@
 language: java
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $TRAVIS_BUILD_DIR/libs
+
+env:
+  - MAVEN_REPOSITORY=https://repo1.maven.org/maven2/
 install:
   - ./gradlew buildPlugin
+script:
+  - ./gradlew precompileZip
 deploy:
   provider: releases
   api_key: "$GITHUB_TOKEN"
