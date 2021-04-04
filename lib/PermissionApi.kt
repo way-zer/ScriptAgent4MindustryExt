@@ -2,6 +2,7 @@
 
 package coreLibrary.lib
 
+import cf.wayzer.scriptAgent.emit
 import coreLibrary.lib.PermissionApi.Global
 import coreLibrary.lib.PermissionApi.PermissionHandler
 import coreLibrary.lib.event.RequestPermissionEvent
@@ -63,7 +64,7 @@ interface PermissionApi {
             subject: T, permission: String,
             defaultGroup: List<String> = emptyList()
         ): Result {
-            val event = RequestPermissionEvent(subject, permission, defaultGroup).apply { emit() }
+            val event = RequestPermissionEvent(subject, permission, defaultGroup).emit()
             event.directReturn?.let { return it }
             return handle(event.group, permission)
         }
