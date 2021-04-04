@@ -50,8 +50,7 @@ tasks {
         )
     }
     named<Delete>("clean") {
-        this.delete += fileTree("scripts").filter { it.name.endsWith(".cache.jar") }
-        this.delete += fileTree("scripts/cache")
+        delete(files("scripts/cache"))
     }
     create<Zip>("scriptsZip") {
         group = "plugin"
