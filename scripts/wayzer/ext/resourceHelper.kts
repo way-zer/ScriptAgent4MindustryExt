@@ -1,18 +1,19 @@
-@file:Import("@wayzer/services/VoteService.kt", sourceFile = true)
-@file:Import("@wayzer/services/MapService.kt", sourceFile = true)
+@file:Depends("wayzer/maps")
 
 package wayzer.ext
 
 import arc.Net
 import arc.files.Fi
+import arc.struct.StringMap
 import arc.util.serialization.JsonReader
+import arc.util.serialization.JsonValue
+import arc.util.serialization.JsonWriter
 import cf.wayzer.placehold.PlaceHoldApi.with
 import mindustry.game.Gamemode
-import mindustry.game.Team
 import mindustry.gen.Groups
-import mindustry.io.MapIO
-import wayzer.services.MapService
-import wayzer.services.VoteService
+import wayzer.MapInfo
+import wayzer.MapProvider
+import wayzer.MapRegistry
 import java.net.HttpURLConnection
 import java.net.URL
 import mindustry.maps.Map as MdtMap
@@ -30,58 +31,57 @@ var MdtMap.resourceId: String?
         tags.put("resourceId", v)
     }
 
-fun <K, V> Map<K, V>.toJson(body: (V) -> String) = entries.joinToString(",", "{", "}") {
-    "\"${it.key}\":${body(it.value)}"
+fun JsonValue.toStringMap() = StringMap().apply {
+    var node = child()
+    do {
+        put(node.name, node.toJson(JsonWriter.OutputType.minimal))
+        node = node.next
+    } while (node != null)
 }
 
-//换图模块
-val voteService by ServiceRegistry<VoteService>()
-val mapService by ServiceRegistry<MapService>()
-fun VoteService.registerCommand() {
-    addSubVote("网络换图", "<地图识别码>", "web") {
-        if (!tokenOk) returnReply("[red]本服未开启网络换图，请联系服主开启".with())
-        if (arg.isEmpty() || !Regex("[0-9a-z]{32}").matches(arg[0]))
-            returnReply("[red]请输入地图识别码,识别码可到[yellow]{web}[]上查询".with("web" to webRoot))
-        reply("[green]加载网络地图中".with())
-        launch(Dispatchers.IO) {
-            val infoUrl = "$webRoot/api/maps/${arg[0]}/detail.json"
-            val downloadUrl = "$webRoot/api/maps/${arg[0]}/downloadServer?token=$token"
+MapRegistry.register(this, object : MapProvider() {
+    override fun getMaps(filter: String): Collection<MapInfo> {
+        return emptyList()
+    }
 
-            val infoCon = URL(infoUrl).openConnection() as HttpURLConnection
-            infoCon.connect()
-            if (infoCon.responseCode != HttpURLConnection.HTTP_OK) {
-                launch(Dispatchers.game) {
-                    reply("[red]网络地图加载失败,请稍后再试:{msg}".with("msg" to infoCon.responseMessage))
+    override suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)?): MapInfo? {
+        if (id !in 10000..99999) return null
+        if (!tokenOk) {
+            reply?.invoke("[red]本服未开启网络换图，请联系服主开启".with())
+            return null
+        }
+        return withContext(Dispatchers.IO) {
+            val info = let {
+                val infoUrl = "$webRoot/api/maps/thread/$id/latest"
+                val infoCon = URL(infoUrl).openConnection() as HttpURLConnection
+                infoCon.connect()
+                if (infoCon.responseCode != HttpURLConnection.HTTP_OK) {
+                    launch(Dispatchers.game) {
+                        reply?.invoke("[red]网络地图加载失败,请稍后再试:{msg}".with("msg" to infoCon.responseMessage))
+                    }
+                    return@withContext null
                 }
-                return@launch
+                infoCon.inputStream.use { JsonReader().parse(it.readBytes().decodeToString()) }
             }
-            val info = infoCon.inputStream.use {
-                JsonReader().parse(it.readBytes().decodeToString())
-            }
-            val tags = info.get("tags")
-            val name = tags.getString("name", "未知")
-            val mode = info.getString("mode", "").let { mode ->
+            val hash = info.getString("hash")
+            val tags = info.get("tags").toStringMap()
+            val mode = info.getString("mode", "unknown").let { mode ->
+                if (mode.equals("unknown", true)) return@let null
                 Gamemode.all.find { it.name.equals(mode, ignoreCase = true) } ?: Gamemode.survival
             }
-            start(
-                player!!, "网络换图[yellow]({name}[yellow]|[green]{mode}[])"
-                    .with("name" to name, "mode" to mode.name), true
-            ) {
-                depends("wayzer/user/ext/statistics")?.import<(Team) -> Unit>("onGameOver")?.invoke(Team.derelict)
-                val map = MapIO.createMap(object : Fi("$name.msav") {
-                    override fun read() = URL(downloadUrl).openStream()
-                }, true)
-                map.resourceId = arg[0]
-                mapService.loadMap(map, mode)
-                Core.app.post { // 推后,确保地图成功加载
-                    broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
-                }
-            }
+
+            val map = mindustry.maps.Map(object : Fi("file.msav") {
+                val downloadUrl = "$webRoot/api/maps/$hash/downloadServer?token=$token"
+                override fun read() = URL(downloadUrl).openStream()
+            }, tags.getInt("width", 0), tags.getInt("height"), tags, true)
+            map.resourceId = hash
+            MapInfo(id, map, mode ?: map.rules().mode())
         }
     }
-}
-onEnable {
-    voteService.registerCommand()
+})
+
+fun <K, V> Map<K, V>.toJson(body: (V) -> String) = entries.joinToString(",", "{", "}") {
+    "\"${it.key}\":${body(it.value)}"
 }
 
 //数据上报
@@ -137,8 +137,8 @@ onEnable {
 listen<EventType.GameOverEvent> {
     val id = state.map.resourceId ?: return@listen
     Groups.player.forEach(::tryUpdateStats)
-    val data =
-        mapOf("wave" to state.wave, "stats" to stats.filterValues { it > 15_000 }, "rate" to rate).toJson { map ->
+    val data = mapOf("wave" to state.wave, "stats" to stats.filterValues { it > 15_000 }, "rate" to rate)
+        .toJson { map ->
             if (map is Map<*, *>) map.toJson { it.toString() }
             else map.toString()
         }

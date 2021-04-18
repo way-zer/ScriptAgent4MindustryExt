@@ -1,3 +1,4 @@
+@file:Depends("wayzer/maps", "监测投票换图")
 @file:Import("@wayzer/services/UserService.kt", sourceFile = true)
 
 package wayzer.user.ext
@@ -7,6 +8,7 @@ import mindustry.game.Gamemode
 import mindustry.game.Team
 import mindustry.gen.Groups
 import mindustry.world.Block
+import wayzer.MapChangeEvent
 import mindustry.world.blocks.distribution.Conveyor
 import wayzer.services.UserService
 import java.io.Serializable
@@ -163,3 +165,6 @@ fun onGameOver(winner: Team) {
     statisticsData.clear()
 }
 export(::onGameOver)//Need in Dispatchers.game
+listenTo<MapChangeEvent>(1) {
+    onGameOver(Team.derelict)
+}

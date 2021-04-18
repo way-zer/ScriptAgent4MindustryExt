@@ -1,74 +1,37 @@
+@file:Depends("wayzer/maps", "地图管理")
 @file:Import("@wayzer/services/VoteService.kt", sourceFile = true)
 @file:Import("@wayzer/services/MapService.kt", sourceFile = true)
 
 package wayzer.ext
 
-import arc.files.Fi
 import arc.util.Time
-import mindustry.game.Team
 import mindustry.gen.Groups
-import mindustry.io.MapIO
 import mindustry.io.SaveIO
-import wayzer.services.MapService
+import wayzer.MapManager
+import wayzer.MapRegistry
 import wayzer.services.VoteService
-import java.io.InputStream
-import java.net.URL
 import java.time.Instant
 import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.random.Random
 
 val voteService by ServiceRegistry<VoteService>()
-val mapService by ServiceRegistry<MapService>()
-
-val enableWebMap by config.key(false, "是否允许网络地图", "来自mdt.wayzer.top")
-
-class NetFi(private val url: URL, file: String) : Fi(file) {
-    override fun read(): InputStream {
-        return url.openStream()
-    }
-}
 
 fun VoteService.register() {
     addSubVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图") {
         if (arg.isEmpty())
             returnReply("[red]请输入地图序号".with())
-        val maps = mapService.maps
         launch(Dispatchers.game) {
-            val map = when {
-                Regex("[0-9a-z]{32}.*").matches(arg[0]) -> {
-                    if (!enableWebMap) return@launch reply("[red]本服未开启网络地图的支持".with())
-                    val mode = arg.getOrElse(1) { "Q" }
-                    reply("[green]加载网络地图中".with())
-                    try {
-                        withContext(Dispatchers.IO) {
-                            @Suppress("BlockingMethodInNonBlockingContext")
-                            MapIO.createMap(
-                                NetFi(
-                                    URL("https://mdt.wayzer.top/api/maps/${arg[0]}/download.msav"),
-                                    mode + "download.msav"
-                                ), true
-                            )
-                        }
-                    } catch (e: Exception) {
-                        reply("[red]网络地图加载失败,请稍后再试".with())
-                        throw e
-                    }
-                }
-                arg[0].toIntOrNull() in 1..maps.size -> {
-                    maps[arg[0].toInt() - 1]
-                }
-                else -> return@launch reply("[red]错误参数".with())
-            }
+            val map = arg[0].toIntOrNull()?.let { MapRegistry.findById(it, reply) }
+                ?: return@launch reply("[red]地图序号错误,可以通过/maps查询".with())
             start(
                 player!!,
-                "换图({nextMap.id}: [yellow]{nextMap.name}[yellow])".with("nextMap" to map),
+                "换图([green]{nextMap.id}[]: [green]{nextMap.map.name}[yellow]|[green]{nextMap.mode}[])".with("nextMap" to map),
                 supportSingle = true
             ) {
-                if (!SaveIO.isSaveValid(map.file))
+                if (!SaveIO.isSaveValid(map.map.file))
                     return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
-                depends("wayzer/user/ext/statistics")?.import<(Team) -> Unit>("onGameOver")?.invoke(Team.derelict)
-                mapService.loadMap(map)
+                MapManager.loadMap(map)
                 Core.app.post { // 推后,确保地图成功加载
                     broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
                 }
@@ -116,11 +79,10 @@ fun VoteService.register() {
     addSubVote("回滚到某个存档(使用/slots查看)", "<存档ID>", "rollback", "load", "回档") {
         if (arg.firstOrNull()?.toIntOrNull() == null)
             returnReply("[red]请输入正确的存档编号".with())
-        val map = mapService.getSlot(arg[0].toInt())
+        val map = MapManager.getSlot(arg[0].toInt())
             ?: returnReply("[red]存档不存在或存档损坏".with())
         start(player!!, "回档".with(), supportSingle = true) {
-            depends("wayzer/user/ext/statistics")?.import<(Team) -> Unit>("onGameOver")?.invoke(Team.derelict)
-            mapService.loadSave(map)
+            MapManager.loadSave(map)
             broadcast("[green]回档成功".with(), quite = true)
         }
     }
