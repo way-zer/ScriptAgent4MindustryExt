@@ -1,13 +1,12 @@
-@file:Import("@wayzer/services/MapService.kt", sourceFile = true)
+@file:Depends("wayzer/maps", "地图管理")
+
 package wayzer.map
 
-import mindustry.game.EventType
-import wayzer.services.MapService
+import wayzer.MapManager
 import java.time.Duration
 
 name = "自动Host"
 
-val mapService by ServiceRegistry.nullable<MapService>()
 val autoHostTime by config.key(Duration.ofSeconds(5)!!, "自动Host的延迟时间,太短可能服务器未准备就绪")
 
 listen<EventType.ServerLoadEvent> {
@@ -18,7 +17,6 @@ listen<EventType.ServerLoadEvent> {
             ContentHelper.logToConsole("[AutoHost]Already host, pass!")
             return@launch
         }
-        mapService ?: ContentHelper.logToConsole("[AutoHost][red]Can't find MapService, pass!")
-        mapService?.loadMap()
+        MapManager.loadMap()
     }
 }
