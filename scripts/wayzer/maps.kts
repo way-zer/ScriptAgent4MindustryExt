@@ -8,7 +8,6 @@ import coreMindustry.lib.util.sendMenuPhone
 import mindustry.game.Gamemode
 import mindustry.gen.Groups
 import mindustry.io.SaveIO
-import mindustry.maps.MapException
 import java.time.Duration
 import mindustry.maps.Map as MdtMap
 
@@ -17,18 +16,6 @@ name = "基础: 地图控制与管理"
 val configEnableInternMaps by config.key(false, "是否开启原版内置地图")
 val configTempSaveSlot by config.key(111, "临时缓存的存档格位")
 val mapsPrePage by config.key(9, "/maps每页显示数")
-
-listenTo<MapChangeEvent>(3) {
-    try {
-        info.map.tags.put("id", info.id.toString())
-        world.loadMap(info.map, rules)
-        state.rules = rules
-    } catch (e: MapException) {
-        broadcast("[red]地图{info.map.name}无效:{reason}".with("info" to info, "reason" to (e.message ?: "")))
-        MapManager.loadMap()
-        return@listenTo
-    }
-}
 
 MapRegistry.register(this, object : MapProvider() {
     override val supportFilter = baseFilter + "internal"

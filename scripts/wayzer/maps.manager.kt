@@ -1,20 +1,29 @@
 package wayzer
 
 import arc.Core
+import arc.Events
 import arc.files.Fi
 import cf.wayzer.scriptAgent.Event
 import cf.wayzer.scriptAgent.contextScript
 import cf.wayzer.scriptAgent.emit
+import coreLibrary.lib.with
+import coreMindustry.lib.broadcast
 import mindustry.Vars
 import mindustry.core.GameState
+import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.game.Rules
 import mindustry.gen.Call
 import mindustry.gen.Groups
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
+import mindustry.maps.MapException
 
-class MapChangeEvent(val info: MapInfo, val applyMode: (Gamemode) -> Rules) : Event {
+/**
+ * @param isSave when true, only "info.map.file" is valid
+ */
+class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val applyMode: (Gamemode) -> Rules) : Event {
+    /** useless when [isSave]*/
     var rules = applyMode(info.mode)
 
     override val handler = Companion
@@ -26,7 +35,7 @@ object MapManager {
     private val script = contextScript<Maps>()
     fun loadMap(info: MapInfo = MapRegistry.nextMapInfo()) {
         resetAndLoad {
-            MapChangeEvent(info) { newMode ->
+            val event = MapChangeEvent(info, false) { newMode ->
                 info.map.applyRules(newMode).apply {
                     Regex("\\[(@[a-zA-Z0-9]+)(=[0-9a-z]+)?]").findAll(info.map.description()).forEach {
                         val value = it.groupValues[2].takeIf(String::isNotEmpty) ?: "true"
@@ -34,15 +43,25 @@ object MapManager {
                     }
                 }
             }.emit()
-            Vars.logic.play()
+            try {
+                info.map.tags.put("id", info.id.toString())
+                Vars.world.loadMap(info.map)
+                Vars.state.rules = event.rules
+                Vars.logic.play()
+            } catch (e: MapException) {
+                broadcast("[red]地图{info.map.name}无效:{reason}".with("info" to info, "reason" to (e.message ?: "")))
+                return@resetAndLoad loadMap()
+            }
         }
     }
 
     fun loadSave(file: Fi) {
         resetAndLoad {
             val map = MapIO.createMap(file, true)
-            MapChangeEvent(MapInfo(0, map, map.rules().mode())) { map.rules() }.emit()
+            MapChangeEvent(MapInfo(0, map, map.rules().mode()), true) { map.rules() }.emit()
+            SaveIO.load(file)
             Vars.state.set(GameState.State.playing)
+            Events.fire(EventType.PlayEvent())
         }
     }
 
