@@ -14,6 +14,7 @@ import mindustry.gen.Groups
 import wayzer.MapInfo
 import wayzer.MapProvider
 import wayzer.MapRegistry
+import java.io.ByteArrayInputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import mindustry.maps.Map as MdtMap
@@ -72,7 +73,8 @@ MapRegistry.register(this, object : MapProvider() {
 
             val map = mindustry.maps.Map(object : Fi("file.msav") {
                 val downloadUrl = "$webRoot/api/maps/$hash/downloadServer?token=$token"
-                override fun read() = URL(downloadUrl).openStream()
+                val bytes by lazy { URL(downloadUrl).readBytes() }
+                override fun read() = ByteArrayInputStream(bytes)
             }, tags.getInt("width", 0), tags.getInt("height"), tags, true)
             map.resourceId = hash
             MapInfo(id, map, mode ?: map.rules().mode())
