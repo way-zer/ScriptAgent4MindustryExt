@@ -14,7 +14,6 @@ import mindustry.maps.Map as MdtMap
 name = "基础: 地图控制与管理"
 
 val configEnableInternMaps by config.key(false, "是否开启原版内置地图")
-val configTempSaveSlot by config.key(111, "临时缓存的存档格位")
 val mapsPrePage by config.key(9, "/maps每页显示数")
 
 MapRegistry.register(this, object : MapProvider() {
@@ -51,10 +50,13 @@ registerVarForType<MapInfo>().apply {
 }
 
 registerVarForType<MdtMap>().apply {
-    registerChild("id", "在/maps中的id", DynamicVar.obj { MapRegistry.getId(it) })
-    registerChild("mode", "地图设定模式", DynamicVar.obj { obj ->
-        if (obj == state.map) state.rules.modeName ?: state.rules.mode().name
-        else MapRegistry.findByMap(obj)?.mode?.name ?: "Unknown"
+    registerChild("id", "在/maps中的id(仅支持当前地图)", DynamicVar.obj {
+        if (it == MapManager.current.map) MapManager.current.id
+        else -1
+    })
+    registerChild("mode", "地图设定模式(仅支持当前地图)", DynamicVar.obj {
+        if (it == MapManager.current.map) MapManager.current.mode.name
+        else "UnSupport"
     })
 }
 
@@ -93,7 +95,7 @@ listen<EventType.GameOverEvent> { event ->
         if (state.rules.pvp) "&lcGame over! Team &ly${event.winner.name}&lc is victorious with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
         else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
     )
-    val map = MapRegistry.nextMapInfo(MapRegistry.findByMap(state.map))
+    val map = MapRegistry.nextMapInfo(MapManager.current)
     val winnerMsg: Any = if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
     val msg = """
                 | [SCARLET]游戏结束![]"
@@ -115,7 +117,7 @@ command("host", "管理指令: 换图") {
     permission = "wayzer.maps.host"
     body {
         launch(Dispatchers.game) {
-            val map = if (arg.isEmpty()) MapRegistry.nextMapInfo(MapRegistry.findByMap(state.map))
+            val map = if (arg.isEmpty()) MapRegistry.nextMapInfo(MapManager.current)
             else arg[0].toIntOrNull()?.let { MapRegistry.findById(it, reply) }
                 ?: return@launch reply("[red]请输入正确的地图ID".with())
             MapManager.loadMap(map)

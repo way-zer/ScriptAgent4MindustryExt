@@ -6,6 +6,7 @@ import arc.files.Fi
 import cf.wayzer.scriptAgent.Event
 import cf.wayzer.scriptAgent.contextScript
 import cf.wayzer.scriptAgent.emit
+import coreLibrary.lib.config
 import coreLibrary.lib.with
 import coreMindustry.lib.broadcast
 import mindustry.Vars
@@ -17,6 +18,7 @@ import mindustry.gen.Call
 import mindustry.gen.Groups
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
+import mindustry.maps.Map
 import mindustry.maps.MapException
 
 /**
@@ -32,7 +34,11 @@ class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val applyMode: (Gam
 }
 
 object MapManager {
-    private val script = contextScript<Maps>()
+    var current: MapInfo = Vars.state.map?.let { //default may be useful, just for in case
+        MapInfo(it.idInTag, it, it.rules().mode())
+    } ?: MapInfo(0, Vars.maps.all().first(), Gamemode.survival)
+        private set
+
     fun loadMap(info: MapInfo = MapRegistry.nextMapInfo()) {
         resetAndLoad {
             val event = MapChangeEvent(info, false) { newMode ->
@@ -43,8 +49,9 @@ object MapManager {
                     }
                 }
             }.emit()
+            current = info
             try {
-                info.map.tags.put("id", info.id.toString())
+                info.map.idInTag = info.id
                 Vars.world.loadMap(info.map)
                 Vars.state.rules = event.rules
                 Vars.logic.play()
@@ -56,9 +63,11 @@ object MapManager {
     }
 
     fun loadSave(file: Fi) {
+        val map = MapIO.createMap(file, true)
+        val info = MapInfo(map.idInTag, map, map.rules().mode())
         resetAndLoad {
-            val map = MapIO.createMap(file, true)
-            MapChangeEvent(MapInfo(0, map, map.rules().mode()), true) { map.rules() }.emit()
+            MapChangeEvent(info, true) { map.rules() }.emit()
+            current = info
             SaveIO.load(file)
             Vars.state.set(GameState.State.playing)
             Events.fire(EventType.PlayEvent())
@@ -68,13 +77,22 @@ object MapManager {
     fun getSlot(id: Int): Fi? {
         val file = SaveIO.fileFor(id)
         if (!SaveIO.isSaveValid(file)) return null
-        val voteFile = SaveIO.fileFor(script.configTempSaveSlot)
+        val voteFile = SaveIO.fileFor(configTempSaveSlot)
         if (voteFile.exists()) voteFile.delete()
         file.copyTo(voteFile)
         return voteFile
     }
 
     //private
+    private val configTempSaveSlot by contextScript<Maps>().config.key(111, "临时缓存的存档格位")
+
+    /** Use for identity Save */
+    private var Map.idInTag: Int
+        get() = tags.getInt("id", 0)
+        set(value) {
+            tags.put("id", value.toString())
+        }
+
     private fun resetAndLoad(callBack: () -> Unit) {
         Core.app.post {
             if (!Vars.net.server()) Vars.netServer.openServer()

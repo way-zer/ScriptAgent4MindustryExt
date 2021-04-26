@@ -70,12 +70,6 @@ object MapRegistry : MapProvider() {
         return providers.asFlow().map { it.findById(id, reply) }.filterNotNull().firstOrNull()
     }
 
-    /**
-     * @return >=1 if Found, 0 if not found
-     */
-    fun getId(map: Map) = map.tags.getInt("id", 0)
-    fun findByMap(map: Map) = runBlocking { findById(getId(map))?.takeIf { map.name() == it.map.name() } }
-
     fun nextMapInfo(previous: MapInfo? = null, mode: Gamemode = Gamemode.survival, filter: String = "all"): MapInfo {
         val maps = getMaps(filter)
         val next = maps.filter { it.mode == mode && it != previous }.randomOrNull()
