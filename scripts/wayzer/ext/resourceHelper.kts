@@ -112,15 +112,21 @@ onEnable {
 //评分模块
 val rateLimit = 30 * 60 //约30分钟的贡献
 val stats = mutableMapOf<Long, Int>()
+
+@Savable(false)
 val rate = mutableMapOf<Long, Int>()
+customLoad(::rate) {
+    rate.putAll(it)
+}
 fun tryUpdateStats(p: Player) {
     val profile = PlayerData[p.uuid()].secureProfile(p)?.qq ?: return
-    val score = "{p.statistics.score}".with("p" to p).toString().toIntOrNull() ?: return
+    val score = "{p.statistics.score}".with("p" to p).toString().toFloatOrNull()?.toInt() ?: return
     val old = stats[profile] ?: 0
     stats[profile] = score
-    if (rateLimit in (old + 1)..score) {
+    arrayOf(30, 35, 40, 45, 50, 55, 60).find { it * 60 in (old + 1)..score }?.let { time ->
+        if (profile in rate) return
         launch(Dispatchers.game) {
-            p.sendMessage("[yellow]你已经游玩该图达到30分钟，有何感想? 输入/rate [red]1-10的整数[]评个分吧")
+            p.sendMessage("[yellow]你已经游玩该图达到${time}分钟，有何感想? 输入/rate [red]1-10的整数[]评个分吧")
         }
     }
 }
@@ -144,6 +150,8 @@ listen<EventType.GameOverEvent> {
             if (map is Map<*, *>) map.toJson { it.toString() }
             else map.toString()
         }
+    if (rate.isNotEmpty())
+        broadcast("[green]共用{num}人评分,平均分为{rate}".with("num" to rate.size, "rate" to rate.values.average()))
     stats.clear()
     rate.clear()
     postRecord(id, "End", data)
@@ -164,6 +172,6 @@ command("rate", "对地图进行评分") {
         if (stats[profile] ?: 0 < rateLimit)
             returnReply("[red]游玩该地图30分钟后再来评分".with())
         rate[profile] = score
-        reply("[green]评分成功".with())
+        reply("[green]评分成功(修改请重新评分)".with())
     }
 }
