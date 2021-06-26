@@ -15,6 +15,14 @@ object MindustryDispatcher : CoroutineDispatcher() {
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
+        runInMain(block)
+    }
+
+    /**
+     * run in mindustry main thread
+     * call [Core.app.post()] when need
+     */
+    fun runInMain(block: Runnable) {
         if (Thread.currentThread() == mainThread) block.run()
         else Core.app.post(block)
     }
