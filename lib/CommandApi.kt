@@ -19,7 +19,11 @@ class CommandContext : DSLBuilder(), Cloneable {
     // Should init if not empty
     var arg = emptyList<String>()
 
-    // Should init if need
+    /**
+     * message callback
+     * should support async, otherwise set to {} after use
+     * should support call from other thread, switch thread when need
+     */
     var reply: (msg: PlaceHoldString) -> Unit = {}
 
     // Should not null if do TabComplete
@@ -37,6 +41,7 @@ class CommandContext : DSLBuilder(), Cloneable {
     }
 
     //===util===
+    /**Can't be call in coroutine or other context, use [reply] instead*/
     @CommandInfo.CommandBuilder
     fun returnReply(msg: PlaceHoldString): Nothing {
         reply(msg)
