@@ -1,7 +1,6 @@
 package wayzer.ext
 
 import arc.math.geom.Vec2
-import mindustry.gen.Call
 import java.time.Duration
 import java.time.Instant
 
@@ -36,9 +35,16 @@ command("gather", "发出集合请求") {
 
 listen<EventType.PlayerChatEvent> {
     if (it.message.equals("go", true) && lastPos != Vec2.ZERO) {
-        it.player.unit().set(lastPos.x, lastPos.y)
-        it.player.set(lastPos.x, lastPos.y)
-        Call.setPosition(it.player.con, lastPos.x, lastPos.y)
+        val unit = it.player.unit()
+        var i = 0
+        launch(Dispatchers.game) {
+            while (!unit.within(lastPos, 8 * 5f) && i < 10) {
+                i++
+                unit.set(lastPos.x, lastPos.y)
+                delay(1)
+            }
+            println(i)
+        }
     }
 }
 
