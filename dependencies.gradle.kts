@@ -1,8 +1,8 @@
 repositories {
     mavenLocal()
-    //maven("https://maven.aliyun.com/repository/public")
+    if (System.getProperty("user.timezone") == "Asia/Shanghai")
+        maven(url = "https://maven.aliyun.com/repository/public")
     mavenCentral()
-    maven(url = "https://www.jitpack.io")
     maven { //ScriptAgent
         url = uri("https://packages.aliyun.com/maven/repository/2102713-release-0NVzQH/")
         credentials {
@@ -10,6 +10,7 @@ repositories {
             password = "h(7NRbbUWYrN"
         }
     }
+    maven(url = "https://www.jitpack.io")
 }
 
 dependencies {
