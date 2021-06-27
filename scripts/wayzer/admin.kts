@@ -4,7 +4,6 @@ import arc.util.Time
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import mindustry.gen.Groups
-import mindustry.maps.Maps
 import mindustry.net.Packets
 import java.time.Duration
 import java.util.*
@@ -43,6 +42,7 @@ fun getUUIDbyShort(id: String): String? {
     return Groups.player.find { it.uuid().startsWith(id) }?.uuid()
         ?: shortIDs.getIfPresent(id)
 }
+export(this::getUUIDbyShort)
 
 command("list", "列出当前玩家") {
     body {
@@ -70,10 +70,11 @@ command("ban", "管理指令: 列出已ban用户，ban或解ban") {
                 secureLog("UnBan", "${player!!.name} unBan ${it.lastName}(${it.id})")
                 returnReply("[green]解Ban成功 {info.name}".with("info" to it))
             }
-            val target = netServer.admins.getInfoOptional(uuid)?.id
-                ?: getUUIDbyShort(uuid)
-                ?: returnReply("[red]找不到该用户,请确定三位字母id输入正确! /list 或 /ban 查看".with())
-            ban(player, target)
+            returnReply("[red]封禁请使用banX指令".with())
+//            val target = netServer.admins.getInfoOptional(uuid)?.id
+//                ?: getUUIDbyShort(uuid)
+//                ?: returnReply("[red]找不到该用户,请确定三位字母id输入正确! /list 或 /ban 查看".with())
+//            ban(player, target)
         }
     }
 }
