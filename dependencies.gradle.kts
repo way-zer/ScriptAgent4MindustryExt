@@ -1,13 +1,18 @@
 repositories {
     mavenLocal()
-    if (System.getProperty("user.timezone") == "Asia/Shanghai")
+    if (System.getProperty("user.timezone") == "Asia/Shanghai") {
         maven(url = "https://maven.aliyun.com/repository/public")
+    }
     mavenCentral()
-    maven { //ScriptAgent
-        url = uri("https://packages.aliyun.com/maven/repository/2102713-release-0NVzQH/")
-        credentials {
-            username = "609f6fb4aa6381038e01fdee"
-            password = "h(7NRbbUWYrN"
+    if (System.getProperty("user.timezone") != "Asia/Shanghai")//ScriptAgent
+        maven("https://maven.wayzer.workers.dev/")
+    else {
+        maven {
+            url = uri("https://packages.aliyun.com/maven/repository/2102713-release-0NVzQH/")
+            credentials {
+                username = "609f6fb4aa6381038e01fdee"
+                password = "h(7NRbbUWYrN"
+            }
         }
     }
     maven(url = "https://www.jitpack.io")
