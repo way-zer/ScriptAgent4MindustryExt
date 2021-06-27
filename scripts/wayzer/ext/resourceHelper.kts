@@ -143,15 +143,22 @@ onEnable {
 }
 
 listen<EventType.GameOverEvent> {
-    val id = state.map.resourceId ?: return@listen
     Groups.player.forEach(::tryUpdateStats)
+}
+
+listen<EventType.PlayEvent> {
+    val id = state.map.resourceId ?: return@listen
     val data = mapOf("wave" to state.wave, "stats" to stats.filterValues { it > 15_000 }, "rate" to rate)
         .toJson { map ->
             if (map is Map<*, *>) map.toJson { it.toString() }
             else map.toString()
         }
-    if (rate.isNotEmpty())
-        broadcast("[green]共用{num}人评分,平均分为{rate}".with("num" to rate.size, "rate" to rate.values.average()))
+    if (rate.isNotEmpty()) {
+        val copy = rate.values.toList()
+        launch(Dispatchers.game) {
+            broadcast("[green]共用{num}人评分,平均分为{rate}".with("num" to copy.size, "rate" to copy.average()))
+        }
+    }
     stats.clear()
     rate.clear()
     postRecord(id, "End", data)
