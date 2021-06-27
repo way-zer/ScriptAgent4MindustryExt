@@ -1,15 +1,20 @@
 repositories {
     mavenLocal()
     //maven("https://maven.aliyun.com/repository/public")
-    jcenter()
     mavenCentral()
     maven(url = "https://www.jitpack.io")
-    maven("https://dl.bintray.com/way-zer/maven")
+    maven { //ScriptAgent
+        url = uri("https://packages.aliyun.com/maven/repository/2102713-release-0NVzQH/")
+        credentials {
+            username = "609f6fb4aa6381038e01fdee"
+            password = "h(7NRbbUWYrN"
+        }
+    }
 }
 
 dependencies {
     val libraryVersion = "1.7.1"
-    val mindustryVersion = "v123"
+    val mindustryVersion = "v126.2"
     val pluginCompile by configurations
     pluginCompile("cf.wayzer:ScriptAgent:$libraryVersion")
     pluginCompile("cf.wayzer:LibraryManager:1.4.1")
