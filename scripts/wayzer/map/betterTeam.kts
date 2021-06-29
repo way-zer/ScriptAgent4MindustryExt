@@ -1,13 +1,24 @@
 package wayzer.map
 
+import arc.Events
+import arc.struct.Seq
 import mindustry.core.NetServer
 import mindustry.game.Team
+import mindustry.game.Teams
 import mindustry.gen.Groups
+import mindustry.world.blocks.storage.CoreBlock
 
 name = "更好的队伍"
 
 val enableTeamLock by config.key(true, "PVP模式队伍锁定，单局不能更换队伍")
 val spectateTeam = Team.all[255]!!
+val allTeam: Seq<Teams.TeamData>
+    get() = state.teams.active.filter {
+        it.hasCore() && it.team !in arrayOf(
+            Team.derelict,
+            Team.crux
+        )
+    }
 val backup = netServer?.assigner //Can be null when generate ktc
 onDisable {
     netServer.assigner = backup
@@ -23,10 +34,20 @@ onEnable {
                 teams.remove(player.uuid())
             return teams.getOrPut(player.uuid()) {
                 //not use old,because it may assign to team without core
-                val teams = state.teams.active.filter { it.hasCore() }
-                teams.shuffled()
-                teams.minByOrNull { p1.count { p -> p.team() == it.team && player != p } }!!.team
+                allTeam.shuffled()
+                    .minByOrNull { p1.count { p -> p.team() == it.team && player != p } }
+                    ?.team ?: state.rules.defaultTeam
             }
+        }
+    }
+}
+//custom gameover
+listen<EventType.BlockDestroyEvent> {
+    if (state.gameOver || !state.rules.pvp) return@listen
+    if (it.tile.block() is CoreBlock) {
+        allTeam.singleOrNull()?.let {
+            state.gameOver = true
+            Events.fire(EventType.GameOverEvent(it.team))
         }
     }
 }
