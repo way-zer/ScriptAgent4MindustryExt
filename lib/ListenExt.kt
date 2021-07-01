@@ -5,10 +5,11 @@ import arc.func.Cons
 import arc.struct.ObjectMap
 import arc.struct.Seq
 import arc.util.Log
+import cf.wayzer.scriptAgent.Event
 import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.events.ScriptDisableEvent
 import cf.wayzer.scriptAgent.events.ScriptEnableEvent
-import cf.wayzer.scriptAgent.getContextModule
 import cf.wayzer.scriptAgent.getContextScript
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
@@ -66,10 +67,10 @@ sealed class Listener<T : Any> : Cons<T> {
 
         init {
             Listener::class.java.getContextScript().apply {
-                listenTo<ScriptEnableEvent>(4) { //after
+                listenTo<ScriptEnableEvent>(Event.Priority.After) {
                     key.run { script.get() }?.forEach { it.register() }
                 }
-                listenTo<ScriptDisableEvent>(2) { //before
+                listenTo<ScriptDisableEvent>(Event.Priority.Before) {
                     key.run { script.get() }?.forEach { it.unregister() }
                 }
             }
@@ -77,10 +78,12 @@ sealed class Listener<T : Any> : Cons<T> {
     }
 }
 
+@ScriptDsl
 inline fun <reified T : Any> ISubScript.listen(noinline handler: (T) -> Unit) {
     listener.add(Listener.OnClass(this, T::class.java, handler))
 }
 
+@ScriptDsl
 fun <T : Any> ISubScript.listen(v: T, handler: (T) -> Unit) {
     listener.add(Listener.OnTrigger(this, v, handler))
 }

@@ -43,9 +43,11 @@ fun broadcast(
     players: Iterable<Player> = Groups.player
 ) {
     if (!quite) ContentHelper.logToConsole(text.toString())
-    players.forEach {
-        if (it.con != null)
-            it.sendMessage(text, type, time)
+    MindustryDispatcher.runInMain {
+        players.forEach {
+            if (it.con != null)
+                it.sendMessage(text, type, time)
+        }
     }
 }
 
