@@ -1,11 +1,13 @@
 package coreMindustry.lib
 
 import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.define.ScriptDsl
 import coreLibrary.lib.CommandContext
 import coreLibrary.lib.CommandHandler
 import coreLibrary.lib.CommandInfo
 import mindustry.gen.Player
 
+@ScriptDsl
 fun ISubScript.command(name: String, description: String, init: CommandInfo.() -> Unit) {
     RootCommands += CommandInfo(this, name, description, init)
 }
