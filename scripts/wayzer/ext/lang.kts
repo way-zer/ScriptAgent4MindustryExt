@@ -48,8 +48,8 @@ class Lang(private val lang: String) : Properties() {
         }
     }
 
-    fun trans(origin: String): String = getProperty(origin.hashCode().toString()) ?: let {
-        put("HASH" + origin.hashCode().toString(), origin)
+    fun trans(origin: String): String = getProperty(origin.asKey) ?: let {
+        put(origin.asKey, origin)
         save()
         origin
     }
@@ -61,6 +61,7 @@ class Lang(private val lang: String) : Properties() {
                 |# backup before modify(修改前注意备份)
                 |
             """.trimMargin()
+        private val String.asKey get() = "HASH" + hashCode().toString()
     }
 }
 
