@@ -36,7 +36,13 @@ listen<EventType.PlayerBanEvent> {
 val shortIDs: Cache<String, String> = CacheBuilder.newBuilder()
     .expireAfterWrite(Duration.ofMinutes(60)).build()
 listen<EventType.PlayerLeave> {
-    it.player.uuid().let { u -> shortIDs.put(u.substring(0, 3), u) }
+    it.player.uuid().let { u ->
+        val new = u.substring(0, 3)
+        val old = shortIDs.getIfPresent(new)
+        shortIDs.put(new, u)
+        if (old != null && old != u)
+            logger.warning("3位ID碰撞: $u $old")
+    }
 }
 fun getUUIDbyShort(id: String): String? {
     return Groups.player.find { it.uuid().startsWith(id) }?.uuid()
