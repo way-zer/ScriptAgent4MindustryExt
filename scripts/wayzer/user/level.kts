@@ -14,6 +14,7 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 val customWelcome by config.key(false, "是否开启自定义进服信息(中文)")
+val showIcon by config.key(true, "是否显示等级图标")
 val userService by ServiceRegistry<UserService>()
 
 fun getIcon(level: Int): Char {
@@ -56,6 +57,7 @@ fun updateExp(p: PlayerProfile, desc: String, dot: Int) {
 export(::updateExp)
 
 listen<EventType.PlayerConnect> {
+    if (!showIcon) return@listen
     Core.app.post {
         it.player.apply {
             name = "[white]<${
