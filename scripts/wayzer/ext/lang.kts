@@ -4,6 +4,7 @@ import cf.wayzer.placehold.TemplateHandler
 import cf.wayzer.placehold.TemplateHandlerKey
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
+import java.io.StringWriter
 import java.util.*
 
 name = "国际化多语言"
@@ -65,7 +66,7 @@ class Lang(private val lang: String) : Properties() {
     }
 }
 
-private val cache = mutableMapOf<String, Lang>()
+val cache = mutableMapOf<String, Lang>()
 fun getLang(lang: String) = cache.getOrPut(lang) { Lang(lang) }
 
 registerVar(TemplateHandlerKey, "多语言处理", TemplateHandler.new {
