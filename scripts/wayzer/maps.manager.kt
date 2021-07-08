@@ -24,9 +24,13 @@ import mindustry.maps.MapException
 /**
  * @param isSave when true, only "info.map.file" is valid
  */
-class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val applyMode: (Gamemode) -> Rules) : Event {
+class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val applyMode: (Gamemode) -> Rules) : Event,
+    Event.Cancellable {
     /** useless when [isSave]*/
     var rules = applyMode(info.mode)
+
+    /** Should call other load*/
+    override var cancelled: Boolean = false
 
     override val handler = Companion
 
@@ -40,15 +44,16 @@ object MapManager {
         private set
 
     fun loadMap(info: MapInfo = MapRegistry.nextMapInfo()) {
-        resetAndLoad {
-            val event = MapChangeEvent(info, false) { newMode ->
-                info.map.applyRules(newMode).apply {
-                    Regex("\\[(@[a-zA-Z0-9]+)(=[0-9a-z]+)?]").findAll(info.map.description()).forEach {
-                        val value = it.groupValues[2].takeIf(String::isNotEmpty) ?: "true"
-                        tags.put(it.groupValues[1], value.removePrefix("="))
-                    }
+        val event = MapChangeEvent(info, false) { newMode ->
+            info.map.applyRules(newMode).apply {
+                Regex("\\[(@[a-zA-Z0-9]+)(=[^=\\]]+)?]").findAll(info.map.description()).forEach {
+                    val value = it.groupValues[2].takeIf(String::isNotEmpty) ?: "true"
+                    tags.put(it.groupValues[1], value.removePrefix("="))
                 }
-            }.emit()
+            }
+        }.emit()
+        if (event.cancelled) return
+        resetAndLoad {
             current = info
             try {
                 info.map.idInTag = info.id
@@ -65,8 +70,8 @@ object MapManager {
     fun loadSave(file: Fi) {
         val map = MapIO.createMap(file, true)
         val info = MapInfo(map.idInTag, map, map.rules().mode())
+        if (MapChangeEvent(info, true) { map.rules() }.emit().cancelled) return
         resetAndLoad {
-            MapChangeEvent(info, true) { map.rules() }.emit()
             current = info
             SaveIO.load(file)
             Vars.state.set(GameState.State.playing)
