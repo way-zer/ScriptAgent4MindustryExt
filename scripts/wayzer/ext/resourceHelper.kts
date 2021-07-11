@@ -17,6 +17,7 @@ import wayzer.MapRegistry
 import java.io.ByteArrayInputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.math.max
 import mindustry.maps.Map as MdtMap
 
 name = "资源站配套脚本"
@@ -87,6 +88,7 @@ fun <K, V> Map<K, V>.toJson(body: (V) -> String) = entries.joinToString(",", "{"
 }
 
 //数据上报
+var highestWave = 1
 fun postRecord(mapId: String, type: String, data: String) {
     if (!tokenOk) return
     Core.net.http(
@@ -104,7 +106,8 @@ onEnable {
         while (true) {
             delay(300_000)
             val id = state.map?.resourceId ?: continue
-            postRecord(id, "Gaming", mapOf("wave" to state.wave).toJson { it.toString() })
+            highestWave = state.wave
+            postRecord(id, "Gaming", mapOf("wave" to highestWave).toJson { it.toString() })
         }
     }
 }
@@ -141,14 +144,10 @@ onEnable {
         }
     }
 }
-
-listen<EventType.GameOverEvent> {
-    Groups.player.forEach(::tryUpdateStats)
-}
-
-listen<EventType.PlayEvent> {
-    val id = state.map.resourceId ?: return@listen
-    val data = mapOf("wave" to state.wave, "stats" to stats.filterValues { it > 15_000 }, "rate" to rate)
+var hasGameOver = false
+fun postEnd() {
+    val id = state.map.resourceId ?: return
+    val data = mapOf("wave" to highestWave, "stats" to stats.filterValues { it > 15_000 }, "rate" to rate)
         .toJson { map ->
             if (map is Map<*, *>) map.toJson { it.toString() }
             else map.toString()
@@ -163,6 +162,18 @@ listen<EventType.PlayEvent> {
     rate.clear()
     postRecord(id, "End", data)
 }
+listen<EventType.GameOverEvent> {
+    highestWave = max(highestWave, state.wave)
+    Groups.player.forEach(::tryUpdateStats)
+    postEnd()
+    hasGameOver = true
+}
+
+listen<EventType.ResetEvent> {
+    if (!hasGameOver)
+        postEnd()
+    hasGameOver = false
+}
 
 command("rate", "对地图进行评分") {
     type = CommandType.Client
@@ -172,6 +183,8 @@ command("rate", "对地图进行评分") {
     body {
         if (!tokenOk || state.map.resourceId == null)
             returnReply("[red]评分未开放(需要通过/vote web换图才能评分哦)".with())
+        if (hasGameOver)
+            returnReply("[yellow]评分已结束".with())
         val score = arg.getOrNull(0)?.toIntOrNull() ?: replyUsage()
         if (score !in 1..10) replyUsage()
         val profile = PlayerData[player!!.uuid()].secureProfile(player!!)?.qq
