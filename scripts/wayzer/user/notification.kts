@@ -1,13 +1,12 @@
-@file:Import("@wayzer/services/UserService.kt", sourceFile = true)
+@file:Depends("wayzer/user/userService")
 package wayzer.user
 
 import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction
-import wayzer.services.UserService
 import java.time.Instant
 
 name = "通知服务"
-val userService by ServiceRegistry<UserService>()
+val userService = contextScript<UserService>()
 
 fun notify(profile: PlayerProfile, message: String, params: Map<String, String>, broadcast: Boolean = false) {
     transaction {

@@ -1,4 +1,4 @@
-@file:Import("@wayzer/services/UserService.kt", sourceFile = true)
+@file:Depends("wayzer/user/userService")
 
 package wayzer.user
 
@@ -7,7 +7,6 @@ import cf.wayzer.placehold.PlaceHoldApi.with
 import coreLibrary.lib.event.RequestPermissionEvent
 import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction
-import wayzer.services.UserService
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -15,7 +14,7 @@ import kotlin.math.sqrt
 
 val customWelcome by config.key(false, "是否开启自定义进服信息(中文)")
 val showIcon by config.key(true, "是否显示等级图标")
-val userService by ServiceRegistry<UserService>()
+val userService = contextScript<UserService>()
 
 fun getIcon(level: Int): Char {
     if (level <= 0) return (63611).toChar()

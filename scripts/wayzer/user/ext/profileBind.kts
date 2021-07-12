@@ -4,7 +4,7 @@ package wayzer.user.ext
 
 import cf.wayzer.placehold.PlaceHoldApi.with
 import org.jetbrains.exposed.sql.transactions.transaction
-import wayzer.services.UserService
+import wayzer.user.UserService
 import java.time.Duration
 import java.util.*
 import kotlin.random.Random
@@ -50,7 +50,7 @@ class ExpireMutableMap<K, V> {
 
 val expireTime: Duration by config.key(Duration.ofMinutes(10), "随机绑定码到期时间")
 val map = ExpireMutableMap<Int, Long>()
-val userService by ServiceRegistry<UserService>()
+val userService = contextScript<UserService>()
 
 fun generate(qq: Long): Int {
     map.removeValue(qq)

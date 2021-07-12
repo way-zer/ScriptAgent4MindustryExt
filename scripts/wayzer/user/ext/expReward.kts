@@ -1,13 +1,13 @@
-@file:Import("@wayzer/services/UserService.kt", sourceFile = true)
+@file:Depends("wayzer/user/userService")
 
 package wayzer.user.ext
 
 import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction
-import wayzer.services.UserService
+import wayzer.user.UserService
 import java.time.Duration
 
-val userService by ServiceRegistry<UserService>()
+val userService = contextScript<UserService>()
 
 onEnable {
     launch {

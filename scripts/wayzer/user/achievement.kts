@@ -1,16 +1,15 @@
-@file:Import("@wayzer/services/UserService.kt", sourceFile = true)
+@file:Depends("wayzer/user/userService")
 
 package wayzer.user
 
 import org.jetbrains.exposed.sql.transactions.transaction
-import wayzer.lib.dao.Achievement
-import wayzer.services.UserService
+import wayzer.lib.dao.Achievement as DB
 
-val userService by ServiceRegistry<UserService>()
+val userService = contextScript<UserService>()
 
 fun finishAchievement(profile: PlayerProfile, name: String, exp: Int, broadcast: Boolean = false) {
     transaction {
-        if (!Achievement.newWithCheck(profile.id, name, exp)) return@transaction
+        if (!DB.newWithCheck(profile.id, name, exp)) return@transaction
         userService.updateExp(profile, exp, "完成成就")
         userService.notify(
             profile,
