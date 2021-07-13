@@ -153,6 +153,9 @@ fun onGameOver(winner: Team) {
         map.forEach { (profile, data) ->
             userService.updateExp(profile, data.exp, "游戏结算")
         }
+        depends("wayzer/user/ext/rank")
+            ?.import<(Map<PlayerProfile, Pair<Int, Boolean>>) -> Unit>("onGameOver")
+            ?.invoke(map.mapValues { it.value.playedTime to it.value.win })
     }
     statisticsData.clear()
 }
