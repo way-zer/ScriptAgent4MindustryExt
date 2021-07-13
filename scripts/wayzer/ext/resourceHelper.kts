@@ -2,9 +2,9 @@
 
 package wayzer.ext
 
-import arc.Net
 import arc.files.Fi
 import arc.struct.StringMap
+import arc.util.Http
 import arc.util.serialization.JsonReader
 import arc.util.serialization.JsonValue
 import arc.util.serialization.JsonWriter
@@ -91,9 +91,9 @@ fun <K, V> Map<K, V>.toJson(body: (V) -> String) = entries.joinToString(",", "{"
 var highestWave = 1
 fun postRecord(mapId: String, type: String, data: String) {
     if (!tokenOk) return
-    Core.net.http(
-        Net.HttpRequest(Net.HttpMethod.POST).url("$webRoot/api/maps/$mapId/record?token=$token&event=$type")
-            .header("content-type", "application/json").content(data), {}, {})
+    Http.post("$webRoot/api/maps/$mapId/record?token=$token&event=$type", data)
+        .header("content-type", "application/json")
+        .submit { }
 }
 
 listen<EventType.PlayEvent> {
@@ -155,7 +155,7 @@ fun postEnd() {
     if (rate.isNotEmpty()) {
         val copy = rate.values.toList()
         launch(Dispatchers.game) {
-            broadcast("[green]共用{num}人评分,平均分为{rate}".with("num" to copy.size, "rate" to copy.average()))
+            broadcast("[green]共有{num}人评分,平均分为{rate:%.1f}".with("num" to copy.size, "rate" to copy.average()))
         }
     }
     stats.clear()
