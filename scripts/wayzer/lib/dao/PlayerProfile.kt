@@ -1,5 +1,6 @@
 package wayzer.lib.dao
 
+import arc.util.Strings
 import com.google.common.cache.CacheBuilder
 import mindustry.gen.Player
 import org.jetbrains.exposed.dao.IntEntity
@@ -15,6 +16,7 @@ import java.time.Instant
 
 class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
     var qq by T.qq
+    var name by T.lastName
     var totalExp by T.totalExp
     var totalTime by T.totalTime //time in s
     var registerTime by T.registerTime
@@ -27,6 +29,9 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
     @NeedTransaction
     fun onJoin(player: Player) {
         if (online == null) online = Setting.serverId
+        if (controlling) {
+            name = Strings.stripColors(player.name)
+        }
         if (!controlling) {
             if (Setting.limitOne) player.kick("[red]你已经在其他服务器登录,禁止再在该服登录")
             else player.sendMessage("[yellow]你已经在其他服务器登录，不重复累计在线时长")
@@ -52,6 +57,7 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
 
     object T : IntIdTable("PlayerProfile") {
         val qq = long("qq").uniqueIndex()
+        val lastName = varchar("lastName", length = 32).nullable()
         val totalExp = integer("totalExp").default(0)
         val totalTime = integer("totalTime").default(0)
         val lang = varchar("lang", length = 16).nullable()
