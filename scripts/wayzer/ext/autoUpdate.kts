@@ -1,6 +1,6 @@
 package wayzer.ext
 
-import arc.Net
+import arc.util.Http
 import arc.util.Log
 import arc.util.async.Threads
 import arc.util.serialization.Jval
@@ -22,8 +22,8 @@ onEnable {
     launch {
         while (updateCallback == null) {
             if (enableUpdate)
-                Core.net.httpGet("https://api.github.com/repos/Anuken/Mindustry/releases", { res ->
-                    if (res.status == Net.HttpStatus.OK) {
+                Http.get("https://api.github.com/repos/Anuken/Mindustry/releases", { res ->
+                    if (res.status == Http.HttpStatus.OK) {
                         val json = Jval.read(res.resultAsString).asArray().first()
                         var newBuild = json.getString("tag_name", "")
                         if (!newBuild.contains('.')) newBuild += ".0"
