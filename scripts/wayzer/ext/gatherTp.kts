@@ -1,6 +1,9 @@
 package wayzer.ext
 
 import arc.math.geom.Vec2
+import mindustry.core.World
+import mindustry.entities.Units
+import mindustry.gen.Unit
 import java.time.Duration
 import java.time.Instant
 
@@ -33,6 +36,17 @@ command("gather", "发出集合请求") {
     }
 }
 
+fun check(unit: Unit, x: Float, y: Float): Boolean {
+    unit.solidity()?.let {
+        if (it.solid(World.toTile(x), World.toTile(y)))
+            return false
+    }
+    if (!unit.type.flying && Units.count(x, y, unit.physicSize()) {
+            it.isGrounded && it.type.allowLegStep == unit.type.allowLegStep
+        } > 0)
+        return false
+    return true
+}
 listen<EventType.PlayerChatEvent> {
     if (it.message.equals("go", true) && lastPos != Vec2.ZERO) {
         val unit = it.player.unit()
@@ -40,6 +54,10 @@ listen<EventType.PlayerChatEvent> {
         launch(Dispatchers.game) {
             while (!unit.within(lastPos, 8 * 5f) && i < 10) {
                 i++
+                if (!check(unit, lastPos.x, lastPos.y)) {
+                    it.player.sendMessage("[yellow]目标位置无法安全传送")
+                    return@launch
+                }
                 unit.set(lastPos.x, lastPos.y)
                 delay(1)
             }
