@@ -15,7 +15,18 @@ object MindustryDispatcher : CoroutineDispatcher() {
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        runInMain(block)
+        runInMainUnsafe(block)//Already has catcher in coroutine
+    }
+
+    /**
+     * run in mindustry main thread
+     * call [Core.app.post()] when need
+     * @see [runInMain] with catch to prevent close main thread
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun runInMainUnsafe(block: Runnable) {
+        if (Thread.currentThread() == mainThread) block.run()
+        else Core.app.post(block)
     }
 
     /**
@@ -23,8 +34,13 @@ object MindustryDispatcher : CoroutineDispatcher() {
      * call [Core.app.post()] when need
      */
     fun runInMain(block: Runnable) {
-        if (Thread.currentThread() == mainThread) block.run()
-        else Core.app.post(block)
+        runInMainUnsafe {
+            try {
+                block.run()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
+        }
     }
 }
 
