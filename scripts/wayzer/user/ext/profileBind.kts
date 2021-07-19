@@ -1,4 +1,4 @@
-@file:Import("@wayzer/services/UserService.kt", sourceFile = true)
+@file:Depends("wayzer/user/userService")
 
 package wayzer.user.ext
 
