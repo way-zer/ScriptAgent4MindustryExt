@@ -1,5 +1,5 @@
 @file:Depends("coreLibrary")
-@file:Import("net.mamoe:mirai-core-jvm:2.4.0", mavenDepends = true)
+@file:Import("net.mamoe:mirai-core-jvm:2.7-M2", mavenDepends = true)
 @file:Import("mirai.lib.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.events.*", defaultImport = true)
@@ -7,12 +7,15 @@
 @file:Import("net.mamoe.mirai.message.data.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.contact.*", defaultImport = true)
 
-import kotlinx.coroutines.channels.BufferOverflow
 import arc.util.Log
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
 import net.mamoe.mirai.BotFactory
-import net.mamoe.mirai.utils.*
+import net.mamoe.mirai.utils.BotConfiguration
+import net.mamoe.mirai.utils.MiraiLogger
+import net.mamoe.mirai.utils.SimpleLogger
+import net.mamoe.mirai.utils.StandardCharImageLoginSolver
 
 generateHelper()
 
@@ -20,7 +23,7 @@ val enable by config.key(false, "是否启动机器人(开启前先设置账号�
 val qq by config.key(1849301538L, "机器人qq号")
 val password by config.key("123456", "机器人qq密码")
 val qqProtocol by config.key(
-    BotConfiguration.MiraiProtocol.ANDROID_PAD,
+    BotConfiguration.MiraiProtocol.ANDROID_PHONE,
     "QQ登录类型，不同的类型可同时登录",
     "可用值: ANDROID_PHONE ANDROID_PAD ANDROID_WATCH"
 )

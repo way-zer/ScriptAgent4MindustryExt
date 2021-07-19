@@ -5,6 +5,8 @@ import coreLibrary.lib.PermissionApi.Global.handle
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.User
+import net.mamoe.mirai.event.events.GroupAwareMessageEvent
+import net.mamoe.mirai.event.events.MessageEvent
 
 
 /**
@@ -19,3 +21,8 @@ fun User.hasPermission(permission: String): Boolean {
 }
 
 fun Group.hasPermission(permission: String) = PermissionApi.handle(emptyList(), "$permission.group${id}").has
+
+fun MessageEvent.hasPermission(permission: String): Boolean {
+    return (this is GroupAwareMessageEvent && group.hasPermission(permission))
+            || sender.hasPermission(permission)
+}
