@@ -19,37 +19,37 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.7.1.1"
+    val libraryVersion = "1.7.2"
     val mindustryVersion = "v128"
-    val pluginCompile by configurations
-    pluginCompile("cf.wayzer:ScriptAgent:$libraryVersion")
-    pluginCompile("cf.wayzer:LibraryManager:1.4.1")
-    pluginCompile(kotlin("stdlib-jdk8"))
-    pluginCompile("com.github.Anuken.Mindustry:core:$mindustryVersion")
+    val pluginImplementation by configurations
+    pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
+    pluginImplementation("cf.wayzer:LibraryManager:1.4.1")
+    pluginImplementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
 
-    val compile by configurations
     val implementation by configurations
-    compile(kotlin("script-runtime"))
-    compile("cf.wayzer:ScriptAgent:$libraryVersion")
+    implementation(kotlin("script-runtime"))
+    implementation("cf.wayzer:ScriptAgent:$libraryVersion")
 
     //coreLibrary
-    compile("cf.wayzer:PlaceHoldLib:3.1")
-    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
-    compile("io.github.config4k:config4k:0.4.1")
+    implementation("cf.wayzer:PlaceHoldLib:3.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+    implementation("io.github.config4k:config4k:0.4.1")
     //coreLib/DBApi
-    val exposedVersionn = "0.30.1"
-    compile("org.jetbrains.exposed:exposed-core:$exposedVersionn")
-    compile("org.jetbrains.exposed:exposed-dao:$exposedVersionn")
-    compile("org.jetbrains.exposed:exposed-java-time:$exposedVersionn")
+    val exposedVersion = "0.30.1"
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     //coreMindustry
-    compile("com.github.Anuken.Mindustry:core:$mindustryVersion")
+    implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
     //coreMindustry/console
-    compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.2.1")
-    compile("org.jline:jline-terminal:3.19.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.2.1")
+    implementation("org.jline:jline-terminal:3.19.0")
 //    compile("org.jline:jline-terminal-jansi:3.19.0")
-    compile("org.jline:jline-reader:3.19.0")
+    implementation("org.jline:jline-reader:3.19.0")
     //mirai
-    compile("net.mamoe:mirai-core-api-jvm:2.4.0")
+    implementation("net.mamoe:mirai-core-api-jvm:2.7-M2")
     //wayzer
     implementation("com.google.guava:guava:30.1-jre")
+    //docker
+    implementation("com.amihaiemil.web:docker-java-api:0.0.13")
 }
