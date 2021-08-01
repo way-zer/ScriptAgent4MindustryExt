@@ -9,7 +9,7 @@ command("mute", "管理指令: 禁言") {
     usage = "<3位id>"
     permission = "wayzer.admin.mute"
     body {
-        if (arg.size < 3) replyUsage()
+        if (arg.isEmpty()) replyUsage()
         val uuid = netServer.admins.getInfoOptional(arg[0])?.id
             ?: depends("wayzer/admin")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(arg[0])
             ?: returnReply("[red]请输入目标3位ID,不清楚可通过/list查询".with())
