@@ -37,9 +37,12 @@ class ScriptAgent4Mindustry : Plugin() {
     override fun init() {
         val dir = Vars.dataDirectory.child("scripts").file()
         Config.rootDir = dir
-        ScriptManager.getScriptNullable("main/main")?.let {
-            Log.info("发现main/main脚本,开始加载")
-            ScriptManager.loadScript(it, enable = false, children = false)
+        System.getenv("SAMain")?.let { id ->
+            Log.info("发现环境变量SAMain=$id")
+            val script = ScriptManager.getScriptNullable(id)
+                ?: error("未找到脚本$id")
+            Log.info("发现脚本$id,开始加载")
+            ScriptManager.loadScript(script, enable = false, children = false)
             FinishLoadEvent(false).emit()
             ScriptManager.enableAll()
         } ?: let {
