@@ -22,10 +22,11 @@ command("spawn", "召唤单位") {
                     .with("list" to Team.baseTeams.mapIndexed { i, type -> "[yellow]$i[green]($type)" }.joinToString())
             )
         } ?: Team.sharded
+        val unit = player?.unit()
         val num = arg.getOrNull(2)?.toIntOrNull() ?: 1
         repeat(num) {
             type.create(team).apply {
-                if (player != null) set(player!!.unit().x, player!!.unit().y)
+                if (unit != null) set(unit.x, unit.y)
                 else team.data().core()?.let {
                     set(it.x, it.y)
                 }
