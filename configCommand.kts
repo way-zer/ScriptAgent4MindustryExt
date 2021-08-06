@@ -1,6 +1,7 @@
 package coreLibrary
 
 import cf.wayzer.placehold.PlaceHoldApi.with
+import coreLibrary.lib.util.menu
 
 val thisRef = this
 onEnable {
@@ -18,17 +19,31 @@ onEnable {
                         """
                         [yellow]可用操作
                         [purple]config reload [light_purple]重载配置文件
+                        [purple]config list [页码] [light_purple]重载配置文件
                         [purple]config <配置项> [light_purple]查看配置项介绍及当前值
                         [purple]config <配置项> set <value> [light_purple]设置配置值
                         [purple]config <配置项> write [light_purple]写入默认值到配置文件
                         [purple]config <配置项> reset [light_purple]恢复默认值（从配置文件移除默认值）
                     """.trimIndent().with()
                     )
+                if (arg[0].equals("list", true)) {
+                    val page = arg.getOrNull(1)?.toIntOrNull() ?: 1
+                    returnReply(menu("配置项", ConfigBuilder.all.values.sortedBy { it.path }, page, 15) {
+                        "[green]{key} [blue]{desc}".with(
+                            "key" to it.path,
+                            "desc" to (it.desc.firstOrNull() ?: "")
+                        )
+                    })
+                }
                 if (arg[0].equals("reload", true)) {
+                    if (!hasPermission("$permission.reload"))
+                        replyNoPermission()
                     ConfigBuilder.reloadFile()
                     returnReply("[green]重载成功".with())
                 }
                 val config = arg.firstOrNull()?.let { ConfigBuilder.all[it] } ?: returnReply("[red]找不到配置项".with())
+                if (!hasPermission(permission + "." + config.path))
+                    returnReply("[red]你没有权限修改配置项: {config}".with("config" to config.path))
                 when (arg.getOrNull(1)?.toLowerCase()) {
                     null -> {
                         returnReply(
