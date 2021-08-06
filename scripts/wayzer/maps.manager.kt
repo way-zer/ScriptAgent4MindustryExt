@@ -101,6 +101,7 @@ object MapManager {
     private fun resetAndLoad(callBack: () -> Unit) {
         Core.app.post {
             if (!Vars.net.server()) Vars.netServer.openServer()
+            Vars.state.serverPaused = true
             val players = Groups.player.toList()
             players.forEach { it.clearUnit() }
             callBack()
@@ -115,6 +116,7 @@ object MapManager {
                 Vars.netServer.sendWorldData(it)
             }
             players.forEach { it.add() }
+            Vars.state.serverPaused = false
         }
     }
 }

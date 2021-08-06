@@ -1,20 +1,12 @@
 @file:Depends("wayzer/maps", "地图管理")
-@file:Import("@wayzer/services/VoteService.kt", sourceFile = true)
+@file:Depends("wayzer/voteService", "投票实现")
 
 package wayzer.ext
 
-import arc.util.Time
-import mindustry.gen.Groups
-import mindustry.io.SaveIO
-import wayzer.MapManager
-import wayzer.MapRegistry
-import wayzer.services.VoteService
+import wayzer.VoteService
 import java.time.Instant
-import kotlin.math.ceil
-import kotlin.math.min
-import kotlin.random.Random
 
-val voteService by ServiceRegistry<VoteService>()
+val voteService = contextScript<VoteService>()
 
 fun VoteService.register() {
     addSubVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图") {
