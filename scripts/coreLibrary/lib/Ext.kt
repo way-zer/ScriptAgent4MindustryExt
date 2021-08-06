@@ -9,4 +9,4 @@ val Config.dataDirectory
         mkdirs()
     }
 
-val ISubScript.logger get() = Logger.getLogger(id.replace("/", "."))
+val ISubScript.logger get() = Logger.getLogger(id.replace("/", "."))!!
