@@ -3,6 +3,7 @@
 package wayzer
 
 import cf.wayzer.placehold.PlaceHoldContext
+import coreMindustry.lib.util.sendMenuPhone
 import mindustry.gen.Groups
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
@@ -92,7 +93,7 @@ fun ISubScript.addSubVote(
         this.aliases = aliases.toList()
         body(body)
         if (permission.isEmpty())
-            permission = "wayzer.vote." + aliases.first().toLowerCase()
+            permission = "wayzer.vote." + aliases.first().lowercase()
     }
     voteCommands.autoRemove(this)
 }
