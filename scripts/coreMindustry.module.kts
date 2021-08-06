@@ -6,16 +6,12 @@
 @file:Import("mindustry.Vars.*", defaultImport = true)
 @file:Import("coreMindustry.lib.*", defaultImport = true)
 
-import arc.Core
-import coreMindustry.lib.*
-import mindustry.Vars
-
 name = "Mindustry 核心脚本模块"
 
 generateHelper()
 
 fun updateOriginCommandHandler(client: arc.util.CommandHandler, server: arc.util.CommandHandler) {
-    Vars.netServer?.apply {
+    netServer?.apply {
         javaClass.getDeclaredField("clientCommands").let {
             it.isAccessible = true
             it.set(this, client)
@@ -32,7 +28,7 @@ fun updateOriginCommandHandler(client: arc.util.CommandHandler, server: arc.util
 Listener//ensure init
 
 onEnable {
-    Commands.rootProvider.set(RootCommands)
+    Commands.rootProvider.provide(this, RootCommands)
     updateOriginCommandHandler(
         MyCommandHandler("/", Config.clientCommands),
         MyCommandHandler("", Config.serverCommands)

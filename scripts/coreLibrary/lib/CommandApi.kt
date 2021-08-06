@@ -7,7 +7,6 @@ import cf.wayzer.scriptAgent.events.ScriptDisableEvent
 import cf.wayzer.scriptAgent.getContextScript
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
-import coreLibrary.lib.util.Provider
 import coreLibrary.lib.util.menu
 import java.util.logging.Logger
 
@@ -133,7 +132,7 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
      */
     open fun getSubCommands(context: CommandContext?): Map<String, CommandInfo> = subCommands
     fun getSub(context: CommandContext): CommandInfo? {
-        return context.arg.getOrNull(0)?.let { getSubCommands(context)[it.toLowerCase()] }
+        return context.arg.getOrNull(0)?.let { getSubCommands(context)[it.lowercase()] }
     }
 
     override fun onComplete(context: CommandContext) {
@@ -149,15 +148,15 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
         val showDetail = context.arg.firstOrNull() == "-v"
         val page = context.arg.lastOrNull()?.toIntOrNull() ?: 1
         context.reply(menu(context.prefix, getSubCommands(context).values.toSet().filter {
-            it.permission.isBlank() || context.hasPermission(it.permission)
+            showDetail || it.permission.isBlank() || context.hasPermission(it.permission)
         }, page, 10) {
             context.helpInfo(it, showDetail)
         })
     }
 
     protected open fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
-        val existed = subCommands[name.toLowerCase()]?.takeIf { it.script?.enabled == true } ?: let {
-            subCommands[name.toLowerCase()] = command
+        val existed = subCommands[name.lowercase()]?.takeIf { it.script?.enabled == true } ?: let {
+            subCommands[name.lowercase()] = command
             return
         }
         if (existed == command) return
@@ -165,12 +164,12 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
             Logger.getLogger("[CommandApi]").warning("duplicate aliases $name($command) with $existed")
         } else {
             Logger.getLogger("[CommandApi]").warning("replace command $name: NOW:$command OLD:$existed")
-            subCommands[name.toLowerCase()] = command //name is more important
+            subCommands[name.lowercase()] = command //name is more important
         }
     }
 
     open fun removeSub(name: String) {
-        subCommands.remove(name.toLowerCase())
+        subCommands.remove(name.lowercase())
     }
 
     fun addSub(command: CommandInfo) {
@@ -181,9 +180,9 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
     }
 
     fun removeSub(command: CommandInfo) {
-        subCommands.remove(command.name.toLowerCase(), command)
+        subCommands.remove(command.name.lowercase(), command)
         command.aliases.forEach {
-            subCommands.remove(it.toLowerCase(), command)
+            subCommands.remove(it.lowercase(), command)
         }
     }
 
@@ -214,19 +213,23 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
     }
 
     companion object {
-        val rootProvider = Provider<Commands>()
+        val rootProvider = ServiceRegistry<Commands>()
         val controlCommand = Commands()
 
         init {
-            rootProvider.every {
-                it += CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令") {
-                    aliases = listOf("sa")
-                    permission = "scriptAgent.admin"
-                    body(controlCommand)
+            Commands::class.java.getContextScript().apply {
+                launch {
+                    rootProvider.subscribe {
+                        it += CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令") {
+                            aliases = listOf("sa")
+                            permission = "scriptAgent.admin"
+                            body(controlCommand)
+                        }
+                    }
                 }
-            }
-            Commands::class.java.getContextScript().listenTo<ScriptDisableEvent> {
-                rootProvider.get()?.removeAll(script)
+                listenTo<ScriptDisableEvent> {
+                    rootProvider.getOrNull()?.removeAll(script)
+                }
             }
         }
 

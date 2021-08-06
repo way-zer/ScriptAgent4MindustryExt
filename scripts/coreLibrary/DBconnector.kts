@@ -30,11 +30,11 @@ fun h2(): () -> Connection {
 fun postgre(): () -> Connection {
     Class.forName("org.postgresql.Driver")
     //使用请修改此处连接方式与账号密码
-    return {DriverManager.getConnection("jdbc:postgresql://localhost:5432/mindustry","mindustry", "")}
+    return { DriverManager.getConnection("jdbc:postgresql://localhost:5432/mindustry", "mindustry", "") }
 }
 
 onEnable {
     //3. 请重新注释此处
-    DBApi.DB.db.set(Database.connect(h2()))
-//    DBApi.DB.db.set(Database.connect(postgre()))
+    DBApi.DB.provide(this, Database.connect(h2()))
+//    DBApi.DB.provide(this, Database.connect(postgre()))
 }

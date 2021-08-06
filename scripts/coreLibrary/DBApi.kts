@@ -5,7 +5,7 @@
 
 package coreLibrary
 
-import coreLibrary.lib.util.Provider
+import coreLibrary.lib.util.ServiceRegistry
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
@@ -13,25 +13,29 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
-object DB {
+@Suppress("unused")
+object DB : ServiceRegistry<Database>() {
     private val ISubScript.registeredTable by dataKeyWithDefault { mutableSetOf<Table>() }
-    val db = Provider<Database>()
 
     /**
      * 为模块注册表格
      * 注册时不一定立刻运行
-     * 会等[db]初始化后统一注册
+     * 会等[DB]初始化后统一注册
      */
     fun ISubScript.registerTable(vararg t: Table) {
         registeredTable.addAll(t)
-        db.listenWithAutoCancel(this) {
-            transaction(it) {
-                SchemaUtils.createMissingTablesAndColumns(*t)
+        launch {
+            subscribe {
+                transaction(it) {
+                    SchemaUtils.createMissingTablesAndColumns(*t)
+                }
             }
         }
     }
 }
 
-DB.db.every {
-    TransactionManager.defaultDatabase = it
+launch {
+    DB.subscribe {
+        TransactionManager.defaultDatabase = it
+    }
 }
