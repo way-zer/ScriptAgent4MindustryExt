@@ -7,7 +7,9 @@ import cf.wayzer.scriptAgent.events.ScriptDisableEvent
 import cf.wayzer.scriptAgent.getContextScript
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
+import coreLibrary.lib.util.ServiceRegistry
 import coreLibrary.lib.util.menu
+import kotlinx.coroutines.launch
 import java.util.logging.Logger
 
 
@@ -17,6 +19,13 @@ class CommandContext : DSLBuilder(), Cloneable {
 
     // Should init if not empty
     var arg = emptyList<String>()
+
+    /** use for arg like '-v' */
+    fun checkArg(p: String): Boolean {
+        if (p !in arg) return false
+        arg = arg.filterNot { it == p }
+        return true
+    }
 
     /**
      * message callback
@@ -145,8 +154,10 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
     }
 
     open fun onHelp(context: CommandContext, explicit: Boolean) {
-        val showDetail = context.arg.firstOrNull() == "-v"
-        val page = context.arg.lastOrNull()?.toIntOrNull() ?: 1
+        val showDetail = context.checkArg("-v")
+        if (showDetail && !context.hasPermission("command.detail"))
+            return context.reply("[red]必须拥有command.detail权限才能查看完整help".with())
+        val page = context.arg.firstOrNull()?.toIntOrNull() ?: 1
         context.reply(menu(context.prefix, getSubCommands(context).values.toSet().filter {
             showDetail || it.permission.isBlank() || context.hasPermission(it.permission)
         }, page, 10) {
