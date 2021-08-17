@@ -3,9 +3,11 @@
 
 package wayzer
 
+import arc.Events
 import cf.wayzer.placehold.DynamicVar
 import coreMindustry.lib.util.sendMenuPhone
 import mindustry.game.Gamemode
+import mindustry.game.Team
 import mindustry.gen.Groups
 import mindustry.io.SaveIO
 import java.time.Duration
@@ -84,6 +86,7 @@ onEnable {
     val field = control.javaClass.getDeclaredField("inExtraRound")
     field.apply {
         isAccessible = true
+        logger.info("inExtraRound:" + get(control))
         setBoolean(control, true)
     }
 }
@@ -134,6 +137,16 @@ command("load", "管理指令: 加载存档") {
             returnReply("[red]存档不存在或者损坏".with())
         MapManager.loadSave(file)
         broadcast("[green]强制加载存档{slot}".with("slot" to arg[0]))
+    }
+}
+
+command("gameover", "管理指令: 结束游戏") {
+    usage = "[winner]"
+    permission = "wayzer.maps.gameover"
+    body {
+        val winner = arg.firstOrNull()?.let { Team.all.firstOrNull { t -> t.name == it } }
+            ?: state.rules.waveTeam
+        Events.fire(EventType.GameOverEvent(winner))
     }
 }
 
