@@ -19,7 +19,7 @@ onEnable {
                         """
                         [yellow]可用操作
                         [purple]config reload [light_purple]重载配置文件
-                        [purple]config list [页码] [light_purple]重载配置文件
+                        [purple]config list [页码] [light_purple]列出配置项
                         [purple]config <配置项> [light_purple]查看配置项介绍及当前值
                         [purple]config <配置项> set <value> [light_purple]设置配置值
                         [purple]config <配置项> write [light_purple]写入默认值到配置文件

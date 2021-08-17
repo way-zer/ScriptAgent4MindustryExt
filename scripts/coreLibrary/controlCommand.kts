@@ -87,7 +87,7 @@ onEnable {
                         val old = Config.realSourceFile(script.id) ?: return@launch
                         val new = old.parentFile.resolve(old.name + ".bak")
                         old.renameTo(new)
-                        reply("[yellow]重命名为{new}".with("name" to new.name))
+                        reply("[yellow]重命名为{name}".with("name" to new.name))
                     }
                 }
             }
