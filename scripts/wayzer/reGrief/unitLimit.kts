@@ -11,7 +11,7 @@ val unitToKill by config.key(220, "单位数上限，禁止产生新的")
 val interval = Interval(1)
 listen<EventType.UnitUnloadEvent> { e ->
     if (e.unit.team == state.rules.waveTeam) {
-        if (e.unit.team.data().unitCount > 5000) {
+        if (e.unit.team.data().unitCount > 5000 && !state.gameOver) {
             broadcast("[red]敌方单位超过5000,自动投降".with())
             state.gameOver = true
             Events.fire(EventType.GameOverEvent(state.rules.waveTeam))
