@@ -10,7 +10,7 @@ fun enableWatch() {
     watcher = FileSystems.getDefault().newWatchService()
     Config.rootDir.walkTopDown().onEnter { it.name != "cache" && it.name != "lib" && it.name != "res" }
         .filter { it.isDirectory }.forEach {
-            it.toPath().register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY)
+            it.toPath().register(watcher!!, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY)
         }
     launch(Dispatchers.IO) {
         while (true) {
@@ -25,13 +25,13 @@ fun enableWatch() {
                 when {
                     file.toString().endsWith(Config.contentScriptSuffix) -> { //处理子脚本重载
                         val id = Config.getIdByFile(file.toFile())
-                        println("脚本文件更新: ${event.kind().name()} $id")
+                        logger.info("脚本文件更新: ${event.kind().name()} $id")
                         delay(1000)
                         ScriptManager.loadScript(ScriptManager.getScript(id), force = true, enable = true)
                     }
                     file.toFile().isDirectory -> {//添加子目录到Watch
                         file.register(
-                            watcher,
+                            watcher!!,
                             StandardWatchEventKinds.ENTRY_CREATE,
                             StandardWatchEventKinds.ENTRY_MODIFY
                         )

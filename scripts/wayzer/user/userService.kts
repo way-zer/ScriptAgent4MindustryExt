@@ -14,7 +14,7 @@ fun getLevel(profile: PlayerProfile): Int {
 fun updateExp(profile: PlayerProfile, exp: Int, desc: String = "") {
     val impl = depends("wayzer/user/level")?.import<(PlayerProfile, String, Int) -> Unit>("updateExp")
     if (impl == null) {
-        println("updateExp(${profile.qq},$exp)")
+        logger.severe("updateExp(${profile.qq},$exp)")
         error("经验等级系统不可用,请联系管理员")
     }
     impl(profile, desc, exp)
@@ -29,7 +29,7 @@ fun notify(profile: PlayerProfile, message: String, params: Map<String, String>,
     val impl = depends("wayzer/user/notification")
         ?.import<(PlayerProfile, String, Map<String, String>, Boolean) -> Unit>("notify")
     if (impl == null) {
-        println("finishAchievement(${profile.qq},$message,$params,$broadcast)")
+        logger.severe("finishAchievement(${profile.qq},$message,$params,$broadcast)")
         error("通知系统不可用,请联系管理员")
     }
     impl(profile, message, params, broadcast)
@@ -39,7 +39,7 @@ fun finishAchievement(profile: PlayerProfile, name: String, exp: Int, broadcast:
     val impl = depends("wayzer/user/achievement")
         ?.import<(PlayerProfile, String, Int, Boolean) -> Unit>("finishAchievement")
     if (impl == null) {
-        println("finishAchievement(${profile.qq},$name,$exp,$broadcast)")
+        logger.severe("finishAchievement(${profile.qq},$name,$exp,$broadcast)")
         error("成就系统不可用,请联系管理员")
     }
     impl(profile, name, exp, broadcast)

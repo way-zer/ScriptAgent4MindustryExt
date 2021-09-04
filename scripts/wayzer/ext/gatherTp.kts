@@ -3,7 +3,6 @@ package wayzer.ext
 import arc.math.geom.Vec2
 import mindustry.core.World
 import mindustry.entities.Units
-import mindustry.gen.Unit
 import java.time.Duration
 import java.time.Instant
 
@@ -61,7 +60,7 @@ listen<EventType.PlayerChatEvent> {
                 unit.set(lastPos.x, lastPos.y)
                 delay(1)
             }
-            println(i)
+            it.player.sendMessage("[red]传送失败,请重试")
         }
     }
 }
