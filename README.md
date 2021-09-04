@@ -9,7 +9,7 @@
 > A strong script plugin for Mindustry by kts(for english README see [me](./README_en.md))  
 
 本仓库包含加载器及大量功能性脚本(可使用或做例子),包括 投票/换图/权限/等级/机器人 等
-> This repository contains the loader and lots of feature scripts(use or for example)
+> This repository contains the loader and lots of feature scripts(use or for example)  
 > including vote/map/permission/level/bot and much more
 
 ## 特性
