@@ -3,13 +3,14 @@
 ![Support 6.0](https://img.shields.io/badge/Support_Version-6.0_lateset-success)
 ![GitHub Releases](https://img.shields.io/github/downloads/way-zer/ScriptAgent4MindustryExt/latest/total)
 [![Build Status](https://travis-ci.com/way-zer/ScriptAgent4MindustryExt.svg?branch=1.1)](https://travis-ci.com/way-zer/ScriptAgent4MindustryExt)
-[![BuildPlugin](https://github.com/way-zer/ScriptAgent4Mindustry/actions/workflows/buildPlugin.yml/badge.svg)](https://github.com/way-zer/ScriptAgent4Mindustry/actions/workflows/buildPlugin.yml)
-[![CheckScript](https://github.com/way-zer/ScriptAgent4Mindustry/actions/workflows/checkScripts.yml/badge.svg)](https://github.com/way-zer/ScriptAgent4Mindustry/actions/workflows/checkScripts.yml)
+
 # ScriptAgent for Mindustry
 一个强大的Mindustry脚本插件,基于kts定义的DSL  
-A strong script plugin for Mindustry by kts(for english README see [me](./README_en.md))
-本仓库包含加载器及大量功能性脚本(可使用或做例子)
-This repository contains the loader and lots of strong scripts(use or for example)
+> A strong script plugin for Mindustry by kts(for english README see [me](./README_en.md))  
+
+本仓库包含加载器及大量功能性脚本(可使用或做例子),包括 投票/换图/权限/等级/机器人 等
+> This repository contains the loader and lots of feature scripts(use or for example)
+> including vote/map/permission/level/bot and much more
 
 ## 特性
 
