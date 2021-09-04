@@ -18,7 +18,6 @@ import mindustry.gen.Call
 import mindustry.gen.Groups
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
-import mindustry.maps.Map
 import mindustry.maps.MapException
 
 /**
@@ -39,7 +38,7 @@ class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val applyMode: (Gam
 
 object MapManager {
     var current: MapInfo = Vars.state.map?.let { //default may be useful, just for in case
-        MapInfo(it.idInTag, it, it.rules().mode())
+        MapInfo(it.rules().idInTag, it, it.rules().mode())
     } ?: MapInfo(0, Vars.maps.all().first(), Gamemode.survival)
         private set
 
@@ -56,9 +55,10 @@ object MapManager {
         resetAndLoad {
             current = info
             try {
-                info.map.idInTag = info.id
                 Vars.world.loadMap(info.map)
-                Vars.state.rules = event.rules
+                Vars.state.rules = event.rules.apply {
+                    idInTag = info.id
+                }
                 Vars.logic.play()
             } catch (e: MapException) {
                 broadcast("[red]地图{info.map.name}无效:{reason}".with("info" to info, "reason" to (e.message ?: "")))
@@ -69,7 +69,7 @@ object MapManager {
 
     fun loadSave(file: Fi) {
         val map = MapIO.createMap(file, true)
-        val info = MapInfo(map.idInTag, map, map.rules().mode())
+        val info = MapInfo(map.rules().idInTag, map, map.rules().mode())
         if (MapChangeEvent(info, true) { map.rules() }.emit().cancelled) return
         resetAndLoad {
             current = info
@@ -92,7 +92,7 @@ object MapManager {
     private val configTempSaveSlot by contextScript<Maps>().config.key(111, "临时缓存的存档格位")
 
     /** Use for identity Save */
-    private var Map.idInTag: Int
+    private var Rules.idInTag: Int
         get() = tags.getInt("id", 0)
         set(value) {
             tags.put("id", value.toString())
