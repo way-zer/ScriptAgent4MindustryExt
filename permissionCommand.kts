@@ -82,5 +82,5 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
 val debug by config.key(false, "调试输出,如果开启,则会在后台打印权限请求")
 listenTo<RequestPermissionEvent>(5) {
     if (debug)
-        println("$permission -- $group")
+        logger.info("$permission $directReturn -- $group")
 }
