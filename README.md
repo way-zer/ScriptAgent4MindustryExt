@@ -35,6 +35,11 @@
 
 快速开始,功能介绍等请查阅[Wiki](https://github.com/way-zer/ScriptAgent4MindustryExt/wiki)
 
+## 功能预览
+![image](https://user-images.githubusercontent.com/15688938/132090197-e041d11c-e09a-49ee-94e8-d2cdae30038f.png)
+![image](https://user-images.githubusercontent.com/15688938/132090212-1f924326-4ba7-43be-bbb8-e055599fa75c.png)
+![image](https://user-images.githubusercontent.com/15688938/132090238-bbfcaf2e-154a-446c-9d1f-92f391835f0a.png)
+
 ## 版权
 
 - 插件本体：未经许可禁止转载和用作其他用途
