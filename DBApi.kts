@@ -24,18 +24,14 @@ object DB : ServiceRegistry<Database>() {
      */
     fun ISubScript.registerTable(vararg t: Table) {
         registeredTable.addAll(t)
-        launch {
-            subscribe {
-                transaction(it) {
-                    SchemaUtils.createMissingTablesAndColumns(*t)
-                }
+        subscribe(this) {
+            transaction(it) {
+                SchemaUtils.createMissingTablesAndColumns(*t)
             }
         }
     }
 }
 
-launch {
-    DB.subscribe {
-        TransactionManager.defaultDatabase = it
-    }
+DB.subscribe(this) {
+    TransactionManager.defaultDatabase = it
 }

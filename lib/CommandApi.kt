@@ -4,12 +4,11 @@ package coreLibrary.lib
 
 import cf.wayzer.scriptAgent.define.ISubScript
 import cf.wayzer.scriptAgent.events.ScriptDisableEvent
-import cf.wayzer.scriptAgent.getContextScript
 import cf.wayzer.scriptAgent.listenTo
+import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.util.ServiceRegistry
 import coreLibrary.lib.util.menu
-import kotlinx.coroutines.launch
 import java.util.logging.Logger
 
 
@@ -228,14 +227,12 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
         val controlCommand = Commands()
 
         init {
-            Commands::class.java.getContextScript().apply {
-                launch {
-                    rootProvider.subscribe {
-                        it += CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令") {
-                            aliases = listOf("sa")
-                            permission = "scriptAgent.admin"
-                            body(controlCommand)
-                        }
+            thisContextScript().apply {
+                rootProvider.subscribe(this) {
+                    it += CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令") {
+                        aliases = listOf("sa")
+                        permission = "scriptAgent.admin"
+                        body(controlCommand)
                     }
                 }
                 listenTo<ScriptDisableEvent> {
