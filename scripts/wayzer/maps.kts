@@ -94,6 +94,9 @@ onEnable {
 val waitingTime by config.key(Duration.ofSeconds(10)!!, "游戏结束换图的等待时间")
 val gameOverMsgType by config.key(MsgType.InfoMessage, "游戏结束消息是显示方式")
 listen<EventType.GameOverEvent> { event ->
+    state.gameOver = true
+    Call.updateGameOver(event.winner)
+
     ContentHelper.logToConsole(
         if (state.rules.pvp) "&lcGame over! Team &ly${event.winner.name}&lc is victorious with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
         else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
