@@ -1,5 +1,5 @@
 @file:Depends("coreLibrary")
-@file:Import("net.mamoe:mirai-core-jvm:2.7-M2", mavenDepends = true)
+@file:Import("net.mamoe:mirai-core-jvm:2.8.0-M1", mavenDepends = true)
 @file:Import("mirai.lib.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.events.*", defaultImport = true)
@@ -7,15 +7,11 @@
 @file:Import("net.mamoe.mirai.message.data.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.contact.*", defaultImport = true)
 
-import arc.util.Log
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.sendBlocking
 import net.mamoe.mirai.BotFactory
-import net.mamoe.mirai.utils.BotConfiguration
-import net.mamoe.mirai.utils.MiraiLogger
-import net.mamoe.mirai.utils.SimpleLogger
-import net.mamoe.mirai.utils.StandardCharImageLoginSolver
+import net.mamoe.mirai.utils.*
+import java.util.logging.Level
 
 generateHelper()
 
@@ -23,7 +19,7 @@ val enable by config.key(false, "是否启动机器人(开启前先设置账号�
 val qq by config.key(1849301538L, "机器人qq号")
 val password by config.key("123456", "机器人qq密码")
 val qqProtocol by config.key(
-    BotConfiguration.MiraiProtocol.ANDROID_PHONE,
+    BotConfiguration.MiraiProtocol.ANDROID_PAD,
     "QQ登录类型，不同的类型可同时登录",
     "可用值: ANDROID_PHONE ANDROID_PAD ANDROID_WATCH"
 )
@@ -35,23 +31,22 @@ onEnable {
         println("机器人未开启,请先修改配置文件")
         return@onEnable
     }
-    MiraiLogger.setDefaultLoggerCreator {
-        SimpleLogger { priority, msg, throwable ->
-            when (priority) {
-                SimpleLogger.LogPriority.WARNING -> {
-                    Log.warn("[$it]$msg", throwable)
-                }
-                SimpleLogger.LogPriority.ERROR -> {
-                    Log.err("[$it]$msg", throwable)
-                }
-                SimpleLogger.LogPriority.INFO -> {
-                    if (it?.startsWith("Bot") == true)
-                        Log.info("[$it]$msg", throwable)
-                }
-                else -> {
-                    // ignore
-                }
+    MiraiLogger.setDefaultLoggerCreator { tag ->
+        @OptIn(MiraiInternalApi::class)
+        object : PlatformLogger() {
+            override fun info0(message: String?, e: Throwable?) {
+                if (tag?.startsWith("Bot") == true)
+                    logger.log(Level.INFO, message, e)
             }
+
+            override fun info0(message: String?) {
+                info0(message, null)
+            }
+
+            override fun debug0(message: String?) {}
+            override fun debug0(message: String?, e: Throwable?) {}
+            override fun verbose0(message: String?) {}
+            override fun verbose0(message: String?, e: Throwable?) {}
         }
     }
     val bot = BotFactory.newBot(qq, password) {
@@ -70,7 +65,7 @@ Commands.controlCommand.let {
         usage = "[args...]"
         permission = "mirai.input"
         body {
-            channel.sendBlocking(arg.joinToString(" "))
+            channel.trySend(arg.joinToString(" "))
         }
     }
 }

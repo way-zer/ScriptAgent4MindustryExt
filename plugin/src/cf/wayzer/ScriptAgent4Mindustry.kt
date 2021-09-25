@@ -34,6 +34,7 @@ class ScriptAgent4Mindustry : Plugin() {
         Config.serverCommands = handler
     }
 
+    @OptIn(LoaderApi::class)
     override fun init() {
         val dir = Vars.dataDirectory.child("scripts").file()
         Config.rootDir = dir

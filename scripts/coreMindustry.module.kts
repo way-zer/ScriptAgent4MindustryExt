@@ -1,4 +1,5 @@
 @file:Depends("coreLibrary")
+@file:Import("arc.Core", libraryByClass = true)
 @file:Import("arc.Core", defaultImport = true)
 @file:Import("mindustry.gen.Player", defaultImport = true)
 @file:Import("mindustry.gen.Call", defaultImport = true)
