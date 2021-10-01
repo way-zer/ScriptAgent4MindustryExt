@@ -63,6 +63,8 @@ onEnable {
                 @Suppress("EXPERIMENTAL_API_USAGE")
                 GlobalScope.launch {
                     reply("[yellow]异步处理中".with())
+                    @OptIn(LoaderApi::class)
+                    ScriptManager.loadRoot()
                     val success = ScriptManager.loadScript(script, force = true, enable = true, children = true) != null
                     reply((if (success) "[green]重载成功" else "[red]加载失败").with())
                 }
