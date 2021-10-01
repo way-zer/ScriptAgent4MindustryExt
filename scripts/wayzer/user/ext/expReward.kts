@@ -2,6 +2,7 @@
 
 package wayzer.user.ext
 
+import coreLibrary.DBApi
 import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.user.UserService
@@ -11,6 +12,7 @@ val userService = contextScript<UserService>()
 
 onEnable {
     launch {
+        DBApi.DB.awaitInit()
         while (true) {
             delay(5000)
             transaction {

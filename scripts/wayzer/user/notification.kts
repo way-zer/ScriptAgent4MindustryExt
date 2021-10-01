@@ -1,6 +1,7 @@
 @file:Depends("wayzer/user/userService")
 package wayzer.user
 
+import coreLibrary.DBApi
 import mindustry.gen.Groups
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
@@ -55,6 +56,7 @@ fun loop() {
 
 onEnable {
     launch {
+        DBApi.DB.awaitInit()
         while (enabled) {
             delay(5000)
             loop()
