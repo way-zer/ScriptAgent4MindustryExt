@@ -6,10 +6,7 @@ import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.event.ServiceProvidedEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlin.properties.ReadOnlyProperty
 
 /**
@@ -32,6 +29,7 @@ open class ServiceRegistry<T : Any> {
     val provided get() = getOrNull() != null
     fun toFlow() = impl.asSharedFlow()
 
+    suspend fun awaitInit() = impl.first()
     fun subscribe(scope: CoroutineScope, body: suspend (T) -> Unit) {
         impl.onEach { body(it) }.launchIn(scope)
     }
