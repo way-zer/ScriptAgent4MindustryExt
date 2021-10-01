@@ -1,29 +1,29 @@
 package wayzer.map
 
-import mindustry.game.EventType
-import mindustry.gen.Call
 import mindustry.gen.Groups
 import mindustry.world.blocks.storage.CoreBlock
 
 
 fun CoreBlock.CoreBuild.showInfo(p: Player) {
     if (p.con == null) return
-    fun draw(dotY: Float, text: String) = Call.label(p.con, text, 60f/*1分钟*/, x, y + dotY)
-    draw(0f, "[purple]====[white]${state.map.name()}[purple]====")
-    draw(-10f, "[purple]By: [scarlet]${state.map.author()}")
-    state.map.description().apply {
-        var lastEnd = -1
-        var pos = -20f
-        while (lastEnd < length) {
-            val newEnd =
-                indexOfAny(charArrayOf(' ', '，', ',', '.', '。', '!', '！'), lastEnd + 30).takeUnless { it == -1 }
-                    ?: length
-            draw(pos, substring(lastEnd + 1, newEnd))
-            lastEnd = newEnd
-            pos += -10f
+    var i = 0
+    val desc = state.map.description().map {
+        if (i > 20 && it in charArrayOf(' ', '，', ',', '.', '。', '!', '！')) {
+            i = 0
+            '\n'
+        } else {
+            i++
+            it
         }
-    }
-//    draw(-20f, world.map.description())
+    }.joinToString("")
+    Call.label(
+        p.con, """
+        |[white]${state.map.name()}
+        |
+        |[purple]By: [scarlet]${state.map.author()}
+        |[white]${desc}
+    """.trimMargin(), 2 * 60f, x, y
+    )
 }
 
 listen<EventType.PlayEvent> {
@@ -37,7 +37,7 @@ listen<EventType.PlayEvent> {
     }
 }
 
-listen<EventType.PlayerJoin>{e->
+listen<EventType.PlayerJoin> { e ->
     Core.app.post {
         e.player.team().cores().firstOrNull()?.showInfo(e.player)
     }
