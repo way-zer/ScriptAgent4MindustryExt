@@ -5,8 +5,10 @@ import cf.wayzer.scriptAgent.define.ISubScript
 import cf.wayzer.scriptAgent.emit
 import coreLibrary.lib.PlaceHoldString
 import coreMindustry.lib.ContentHelper
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import mindustry.game.Gamemode
 import mindustry.io.SaveIO
 import mindustry.maps.Map
@@ -63,7 +65,10 @@ object MapRegistry : MapProvider() {
     }
 
     override val supportFilter: Set<String> get() = providers.flatMapTo(mutableSetOf()) { it.supportFilter }
-    override fun getMaps(filter: String) = providers.flatMapTo(mutableSetOf()) { it.getMaps(filter) }
+    override fun getMaps(filter: String) = providers.flatMapTo(mutableSetOf()) {
+        if (filter !in it.supportFilter) emptyList()
+        else it.getMaps(filter)
+    }
 
     /**Dispatch should be Dispatchers.game*/
     override suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)?): MapInfo? {

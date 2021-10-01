@@ -76,6 +76,7 @@ MapRegistry.register(this, object : MapProvider() {
                 val downloadUrl = "$webRoot/api/maps/$hash/downloadServer?token=$token"
                 val bytes by lazy { URL(downloadUrl).readBytes() }
                 override fun read() = ByteArrayInputStream(bytes)
+                override fun exists() = true
             }, tags.getInt("width", 0), tags.getInt("height"), tags, true)
             map.resourceId = hash
             MapInfo(id, map, mode ?: map.rules().mode())

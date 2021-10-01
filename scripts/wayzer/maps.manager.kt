@@ -28,6 +28,11 @@ class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val applyMode: (Gam
     /** useless when [isSave]*/
     var rules = applyMode(info.mode)
 
+    var onLoadMap: () -> Unit = {
+        Vars.world.loadMap(info.map)
+        Vars.state.rules = rules
+    }
+
     /** Should call other load*/
     override var cancelled: Boolean = false
 
@@ -55,10 +60,8 @@ object MapManager {
         resetAndLoad {
             current = info
             try {
-                Vars.world.loadMap(info.map)
-                Vars.state.rules = event.rules.apply {
-                    idInTag = info.id
-                }
+                event.onLoadMap()
+                Vars.state.rules.idInTag = event.info.id
                 Vars.logic.play()
             } catch (e: MapException) {
                 broadcast("[red]地图{info.map.name}无效:{reason}".with("info" to info, "reason" to (e.message ?: "")))

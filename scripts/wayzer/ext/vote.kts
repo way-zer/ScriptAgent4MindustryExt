@@ -28,7 +28,7 @@ fun VoteService.register() {
                 "换图([green]{nextMap.id}[]: [green]{nextMap.map.name}[yellow]|[green]{nextMap.mode}[])".with("nextMap" to map),
                 supportSingle = true
             ) {
-                if (!SaveIO.isSaveValid(map.map.file))
+                if (map.map.file.exists() && !SaveIO.isSaveValid(map.map.file))
                     return@start broadcast("[red]换图失败,地图[yellow]{nextMap.name}[green](id: {nextMap.id})[red]已损坏".with("nextMap" to map))
                 MapManager.loadMap(map)
                 Core.app.post { // 推后,确保地图成功加载
