@@ -2,11 +2,11 @@ package coreMindustry.lib
 
 import arc.util.CommandHandler
 import arc.util.Log
-import cf.wayzer.placehold.PlaceHoldContext
 import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.ColorApi
 import coreLibrary.lib.ConsoleColor
+import coreLibrary.lib.PlaceHoldString
 import coreLibrary.lib.with
 import mindustry.Vars.netServer
 import mindustry.gen.Call
@@ -36,7 +36,7 @@ object ContentHelper {
 enum class MsgType { Message, InfoMessage, InfoToast }
 
 fun broadcast(
-    text: PlaceHoldContext,
+    text: PlaceHoldString,
     type: MsgType = MsgType.Message,
     time: Float = 10f,
     quite: Boolean = false,
@@ -51,7 +51,7 @@ fun broadcast(
     }
 }
 
-fun Player?.sendMessage(text: PlaceHoldContext, type: MsgType = MsgType.Message, time: Float = 10f) {
+fun Player?.sendMessage(text: PlaceHoldString, type: MsgType = MsgType.Message, time: Float = 10f) {
     if (this == null) ContentHelper.logToConsole(text.toString())
     else {
         if (con == null) return

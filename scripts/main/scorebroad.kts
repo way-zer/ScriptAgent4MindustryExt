@@ -1,17 +1,17 @@
 package main
 //WayZer 版权所有(请勿删除版权注解)
 import arc.util.Align
-import mindustry.gen.Call
 import mindustry.gen.Groups
 import java.time.Duration
 
 name = "扩展功能: 积分榜"
 //建议只修改下面一段,其他地方代码请勿乱动
 val msg = """
-    [magenta]欢迎[goldenrod]{player.name}[magenta]来到WZ服务器
-    [violet]当前地图为: [orange]{map.name}
-    [violet]服务器FPS: [orange]{fps}
-    [royal]输入/broad可以开关该显示
+[magenta]欢迎[goldenrod]{player.name}[magenta]来到微泽
+[violet]当前地图为: [yellow][{map.id}][orange]{map.name}
+[violet]本局游戏时间: [orange]{state.gameTime:分钟}
+{scoreBroad.ext.*:${"\n"}}
+[royal]输入/broad可以开关该显示
 """.trimIndent()
 
 val disabled = mutableSetOf<String>()

@@ -31,7 +31,7 @@ dependencies {
     implementation("cf.wayzer:ScriptAgent:$libraryVersion")
 
     //coreLibrary
-    implementation("cf.wayzer:PlaceHoldLib:3.1")
+    implementation("cf.wayzer:PlaceHoldLib:4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     implementation("io.github.config4k:config4k:0.4.1")
     //coreLib/DBApi
