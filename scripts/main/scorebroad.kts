@@ -10,7 +10,7 @@ name = "扩展功能: 积分榜"
 val msg = """
     [magenta]欢迎[goldenrod]{player.name}[magenta]来到WZ服务器
     [violet]当前地图为: [orange]{map.name}
-    [violet]服务器FPS: [orange]{fps}
+    [violet]服务器TPS: [orange]{tps}
     [royal]输入/broad可以开关该显示
 """.trimIndent()
 

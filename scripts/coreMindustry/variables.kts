@@ -18,7 +18,7 @@ import java.util.*
 name = "基础: 全局变量"
 
 //SystemVars
-registerVar("fps", "服务器fps", DynamicVar.v {
+registerVar("tps", "服务器tps", DynamicVar.v {
     (60f / Time.delta).toInt()
 })
 registerVar("heapUse", "内存占用(MB)", DynamicVar.v {
