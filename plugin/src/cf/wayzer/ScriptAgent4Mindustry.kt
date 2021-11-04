@@ -6,11 +6,8 @@ import arc.util.CommandHandler
 import arc.util.Log
 import cf.wayzer.ConfigExt.clientCommands
 import cf.wayzer.ConfigExt.serverCommands
-import cf.wayzer.scriptAgent.Config
-import cf.wayzer.scriptAgent.ScriptAgent
-import cf.wayzer.scriptAgent.ScriptManager
+import cf.wayzer.scriptAgent.*
 import cf.wayzer.scriptAgent.define.LoaderApi
-import cf.wayzer.scriptAgent.emit
 import cf.wayzer.scriptAgent.events.FinishLoadEvent
 import mindustry.Vars
 import mindustry.plugin.Plugin
@@ -36,8 +33,8 @@ class ScriptAgent4Mindustry : Plugin() {
 
     @OptIn(LoaderApi::class)
     override fun init() {
-        val dir = Vars.dataDirectory.child("scripts").file()
-        Config.rootDir = dir
+        Config.rootDir = Vars.dataDirectory.child("scripts").file()
+        ScriptRegistry.scanRoot()
         System.getenv("SAMain")?.let { id ->
             Log.info("发现环境变量SAMain=$id")
             val script = ScriptManager.getScriptNullable(id)
@@ -48,7 +45,7 @@ class ScriptAgent4Mindustry : Plugin() {
             ScriptManager.enableAll()
         } ?: let {
             @OptIn(LoaderApi::class)
-            ScriptManager.loadDir(dir)
+            ScriptManager.loadRoot()
         }
         Core.app.addListener(object : ApplicationListener {
             override fun pause() {
@@ -60,7 +57,7 @@ class ScriptAgent4Mindustry : Plugin() {
         Log.info("&b           By &cWayZer    ")
         Log.info("&b插件官网: https://git.io/SA4Mindustry")
         Log.info("&bQQ交流群: 1033116078")
-        if (dir.listFiles()?.isEmpty() != false)
+        if (ScriptRegistry.allScripts { true }.isEmpty())
             Log.warn("未在config/scripts下发现脚本,请下载安装脚本包,以发挥本插件功能")
         Log.info("&y===========================")
     }

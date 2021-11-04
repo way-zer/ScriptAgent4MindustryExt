@@ -27,14 +27,16 @@ object GenerateMain {
     fun afterLoad(args: Array<String>) {
         DependencyManager {
             addRepository("https://www.jitpack.io/")
-            requireWithChildren(Dependency.parse("com.github.Anuken.Mindustry:core:v129.1"))
+            requireWithChildren(Dependency.parse("com.github.Anuken.Mindustry:core:v134.1"))
             loadToClassLoader(GenerateMain::class.java.classLoader)
         }
 
         Config.rootDir = File("scripts")
+        ScriptManager.loadRoot()
+
         var notFound = 0
         if (args.isEmpty())
-            ScriptManager.loadDir(Config.rootDir, enable = false)
+            ScriptManager.loadAll(false)
         else
             args.forEach {
                 val script = ScriptManager.getScriptNullable(it)
