@@ -135,11 +135,9 @@ inner class VoteCommands : Commands() {
         if (voting.get()) return context.reply("[red]投票进行中".with())
         super.invoke(context)
         if (voting.get()) {//success
-            Call.sendMessage(
-                context.prefix + context.arg.joinToString(" "),
-                mindustry.core.NetClient.colorizeName(context.player!!.id, context.player!!.name),
-                context.player!!
-            )
+            val raw = context.prefix + context.arg.joinToString(" ")
+            val msg = netServer.chatFormatter.format(context.player!!, raw)
+            Call.sendMessage(msg, raw, context.player!!)
         }
     }
 
