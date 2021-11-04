@@ -7,7 +7,7 @@ import mindustry.type.UnitType
 name = "扩展功能: 召唤单位"
 
 command("spawn", "召唤单位") {
-    usage = "[类型ID=列出] [队伍ID,默认为sharded] [数量=1]"
+    usage = "[类型ID=列出] [队伍ID,默认为sharded] [数量=1] [armor=?]"
     permission = id.replace("/", ".")
     aliases = listOf("召唤")
     body {
@@ -24,8 +24,10 @@ command("spawn", "召唤单位") {
         } ?: Team.sharded
         val unit = player?.unit()
         val num = arg.getOrNull(2)?.toIntOrNull() ?: 1
+        val armor = arg.getOrNull(3)?.toFloatOrNull()
         repeat(num) {
             type.create(team).apply {
+                this.armor = armor ?: this.armor
                 if (unit != null) set(unit.x, unit.y)
                 else team.data().core()?.let {
                     set(it.x, it.y)
