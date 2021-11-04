@@ -4,7 +4,6 @@ import arc.graphics.Color
 import cf.wayzer.placehold.PlaceHoldApi.with
 import mindustry.content.Blocks
 import mindustry.content.Fx
-import mindustry.gen.Call
 import mindustry.type.Item
 import mindustry.world.Block
 import mindustry.world.blocks.storage.CoreBlock
@@ -103,7 +102,9 @@ listen<EventType.BlockDestroyEvent> {
 }
 listen<EventType.PickupEvent> {
     val build = it.build ?: return@listen
-    log(build.tileX(), build.tileY(), Log.PickUp(it.carrier.player?.uuid()))
+    //As the build has removed when pickup, use tileOn instead
+    val tile = build.tileOn()
+    log(tile.centerX(), tile.centerY(), Log.PickUp(it.carrier.player?.uuid()))
 }
 
 fun Player.showLog(xf: Float, yf: Float) {
