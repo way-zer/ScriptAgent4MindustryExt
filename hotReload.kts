@@ -24,7 +24,7 @@ fun enableWatch() {
                 val file = (key.watchable() as Path).resolve(event.context() as? Path ?: return@forEach)
                 when {
                     file.toString().endsWith(Config.contentScriptSuffix) -> { //处理子脚本重载
-                        val id = Config.getIdByFile(file.toFile())
+                        val id = ScriptRegistry.getIdByFile(file.toFile())
                         logger.info("脚本文件更新: ${event.kind().name()} $id")
                         delay(1000)
                         ScriptManager.loadScript(ScriptManager.getScript(id), force = true, enable = true)

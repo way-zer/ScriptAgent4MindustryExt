@@ -9,5 +9,5 @@ val Config.dataDirectory
         mkdirs()
     }
 
-val ISubScript.dotId get() = id.replace('/', '/')
+val ISubScript.dotId get() = id.replace('/', '.')
 val ISubScript.logger get() = Logger.getLogger(dotId)!!
