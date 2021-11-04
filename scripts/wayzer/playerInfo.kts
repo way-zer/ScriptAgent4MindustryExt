@@ -1,5 +1,6 @@
 package wayzer
 
+import arc.util.Strings
 import cf.wayzer.placehold.DynamicVar
 import mindustry.gen.Groups
 import mindustry.net.Administration
@@ -43,6 +44,7 @@ registerVarForType<PlayerProfile>().apply {
 listen<EventType.PlayerConnect> {
     val p = it.player
     if (Groups.player.any { pp -> pp.uuid() == p.uuid() }) return@listen p.con.kick(Packets.KickReason.idInUse)
+    if (Strings.stripColors(it.player.name).length > 24) return@listen p.con.kick("Name is too long")
     val data = PlayerData.findById(p.uuid())
     val event = PlayerJoin(p, data).apply { emit() }
     if (event.cancelled)

@@ -1,5 +1,6 @@
 package wayzer.lib.dao
 
+import arc.util.Strings
 import com.google.common.cache.CacheBuilder
 import coreLibrary.lib.with
 import coreMindustry.lib.sendMessage
@@ -29,7 +30,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     @NeedTransaction
     fun onJoin(player: Player) {
         if (secure(player)) {
-            lastName = player.name
+            lastName = Strings.stripColors(player.name)
             lastTime = Instant.now()
             lastIp = player.con.address
             profile?.onJoin(player)
@@ -119,7 +120,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
             new(p.uuid()) {
                 firstIP = p.con.address
                 lastIp = p.con.address
-                lastName = p.name
+                lastName = Strings.stripColors(p.name)
             }.also { it.flush() }
         }.also { cache.put(p.uuid(), it) }
 
