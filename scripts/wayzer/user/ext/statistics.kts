@@ -92,10 +92,12 @@ onEnable {
     launch {
         while (true) {
             delay(1000)
-            Groups.player.forEach {
-                it.data.playedTime++
-                if (it.dead() || !it.active)
-                    it.data.idleTime++
+            runCatching {
+                Groups.player.forEach {
+                    it.data.playedTime++
+                    if (it.dead() || !it.active)
+                        it.data.idleTime++
+                }
             }
         }
     }
