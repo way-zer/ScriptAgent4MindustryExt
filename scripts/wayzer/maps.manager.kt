@@ -1,13 +1,15 @@
 package wayzer
 
-import arc.Core
 import arc.Events
 import arc.files.Fi
 import cf.wayzer.scriptAgent.Event
 import cf.wayzer.scriptAgent.contextScript
 import cf.wayzer.scriptAgent.emit
+import cf.wayzer.scriptAgent.thisContextScript
 import coreLibrary.lib.config
+import coreLibrary.lib.logger
 import coreLibrary.lib.with
+import coreMindustry.lib.MindustryDispatcher
 import coreMindustry.lib.broadcast
 import mindustry.Vars
 import mindustry.core.GameState
@@ -19,20 +21,13 @@ import mindustry.gen.Groups
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
 import mindustry.maps.MapException
+import java.util.logging.Level
 
 /**
  * @param isSave when true, only "info.map.file" is valid
  */
-class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val applyMode: (Gamemode) -> Rules) : Event,
+class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val rules: Rules) : Event,
     Event.Cancellable {
-    /** useless when [isSave]*/
-    var rules = applyMode(info.mode)
-
-    var onLoadMap: () -> Unit = {
-        Vars.world.loadMap(info.map)
-        Vars.state.rules = rules
-    }
-
     /** Should call other load*/
     override var cancelled: Boolean = false
 
@@ -48,21 +43,19 @@ object MapManager {
         private set
 
     fun loadMap(info: MapInfo = MapRegistry.nextMapInfo()) {
-        val event = MapChangeEvent(info, false) { newMode ->
-            info.map.applyRules(newMode).apply {
-                Regex("\\[(@[a-zA-Z0-9]+)(=[^=\\]]+)?]").findAll(info.map.description()).forEach {
-                    val value = it.groupValues[2].takeIf(String::isNotEmpty) ?: "true"
-                    tags.put(it.groupValues[1], value.removePrefix("="))
-                }
+        val event = MapChangeEvent(info, false, info.map.applyRules(info.mode).apply {
+            idInTag = info.id
+            Regex("\\[(@[a-zA-Z0-9]+)(=[^=\\]]+)?]").findAll(info.map.description()).forEach {
+                val value = it.groupValues[2].takeIf(String::isNotEmpty) ?: "true"
+                tags.put(it.groupValues[1], value.removePrefix("="))
             }
-        }.emit()
+        }).emit()
         if (event.cancelled) return
         resetAndLoad {
             current = info
+            Vars.state.map = info.map
             try {
-                event.onLoadMap()
-                Vars.state.rules.idInTag = event.info.id
-                Vars.logic.play()
+                info.load(event.rules)
             } catch (e: MapException) {
                 broadcast("[red]地图{info.map.name}无效:{reason}".with("info" to info, "reason" to (e.message ?: "")))
                 return@resetAndLoad loadMap()
@@ -72,14 +65,13 @@ object MapManager {
 
     fun loadSave(file: Fi) {
         val map = MapIO.createMap(file, true)
-        val info = MapInfo(map.rules().idInTag, map, map.rules().mode())
-        if (MapChangeEvent(info, true) { map.rules() }.emit().cancelled) return
-        resetAndLoad {
-            current = info
+        val info = MapInfo(map.rules().idInTag, map, map.rules().mode()) {
             SaveIO.load(file)
+            Vars.state.rules = it
             Vars.state.set(GameState.State.playing)
             Events.fire(EventType.PlayEvent())
         }
+        loadMap(info)
     }
 
     fun getSlot(id: Int): Fi? {
@@ -102,10 +94,15 @@ object MapManager {
         }
 
     private fun resetAndLoad(callBack: () -> Unit) {
-        Core.app.post {
+        MindustryDispatcher.runInMain {
             if (!Vars.net.server()) Vars.netServer.openServer()
             val players = Groups.player.toList()
             players.forEach { it.clearUnit() }
+            try {
+                current.beforeReset?.invoke()
+            } catch (e: Throwable) {
+                thisContextScript().logger.log(Level.WARNING, "Error when do reset for $current", e)
+            }
             Vars.logic.reset()
             Call.worldDataBegin()
             callBack()

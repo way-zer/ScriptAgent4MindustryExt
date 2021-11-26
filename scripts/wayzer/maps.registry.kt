@@ -9,11 +9,22 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import mindustry.Vars
 import mindustry.game.Gamemode
+import mindustry.game.Rules
 import mindustry.io.SaveIO
 import mindustry.maps.Map
 
-data class MapInfo(val id: Int, val map: Map, val mode: Gamemode) {
+data class MapInfo(
+    val id: Int, val map: Map, val mode: Gamemode,
+    val beforeReset: (() -> Unit)? = null,
+    /**use for generator or save*/
+    val load: ((Rules) -> Unit) = {
+        Vars.world.loadMap(map)
+        Vars.state.rules = it
+        Vars.logic.play()
+    }
+) {
     override fun equals(other: Any?): Boolean {
         if (other !is MapInfo) return false
         return id == other.id
