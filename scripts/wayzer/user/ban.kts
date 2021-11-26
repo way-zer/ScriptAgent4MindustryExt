@@ -60,7 +60,7 @@ command("banX", "管理指令: 禁封") {
     body {
         if (arg.size < 3) replyUsage()
         val uuid = netServer.admins.getInfoOptional(arg[0])?.id
-            ?: depends("wayzer/admin")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(arg[0])
+            ?: depends("wayzer/user/shortID")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(arg[0])
             ?: returnReply("[red]请输入目标3位ID,不清楚可通过/list查询".with())
         val time = arg[1].toIntOrNull()?.takeIf { it > 0 } ?: replyUsage()
         val reason = arg.slice(2 until arg.size).joinToString(" ")

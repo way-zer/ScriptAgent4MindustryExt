@@ -14,13 +14,11 @@ name = "基础: 玩家数据"
 
 
 registerVarForType<Player>().apply {
-    registerChild("shortID", "uuid 3位前缀,可以展现给其他玩家", DynamicVar.obj { it.uuid().substring(0, 3) })
     registerChild("ext", "模块扩展数据", DynamicVar.obj { PlayerData[it.uuid()] })
     registerChild("profile", "统一账号信息(可能不存在)", DynamicVar.obj { PlayerData[it.uuid()].profile })
 }
 
 registerVarForType<Administration.PlayerInfo>().apply {
-    registerChild("shortID", "uuid 3位前缀,可以展现给其他玩家", DynamicVar.obj { it.id.substring(0, 3) })
     registerChild("ext", "模块扩展数据", DynamicVar.obj { PlayerData[it.id] })
     registerChild("profile", "统一账号信息(可能不存在)", DynamicVar.obj { PlayerData[it.id].profile })
 }

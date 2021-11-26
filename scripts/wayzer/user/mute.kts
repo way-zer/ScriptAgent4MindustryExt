@@ -11,7 +11,7 @@ command("mute", "管理指令: 禁言") {
     body {
         if (arg.isEmpty()) replyUsage()
         val uuid = netServer.admins.getInfoOptional(arg[0])?.id
-            ?: depends("wayzer/admin")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(arg[0])
+            ?: depends("wayzer/user/shortID")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(arg[0])
             ?: returnReply("[red]请输入目标3位ID,不清楚可通过/list查询".with())
         val target = Groups.player.find { it.uuid() == uuid } ?: null
         if (players.add(uuid)) {

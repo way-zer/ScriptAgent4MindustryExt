@@ -100,7 +100,8 @@ command("team", "管理指令: 修改自己或他人队伍(PVP模式)") {
             returnReply("[yellow]可用队伍: []{list}".with("list" to teams))
         }
         val player = arg.getOrNull(1)?.let {
-            Groups.player.find { p -> p.uuid().startsWith(it) }
+            depends("wayzer/user/shortID")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(it)
+                ?.let { id -> Groups.player.find { it.uuid() == id } }
                 ?: returnReply("[red]找不到玩家,请使用/list查询正确的3位id".with())
         } ?: player ?: returnReply("[red]请输入玩家ID".with())
         changeTeam(player, team)

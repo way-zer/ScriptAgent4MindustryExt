@@ -1,11 +1,8 @@
 package wayzer
 
 import arc.util.Time
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
 import mindustry.gen.Groups
 import mindustry.net.Packets
-import java.time.Duration
 import java.util.*
 
 name = "基础: 禁封管理"
@@ -32,23 +29,6 @@ listen<EventType.PlayerBanEvent> {
     it.player?.info?.lastKicked = Time.millis()
     it.player?.con?.kick(Packets.KickReason.banned)
 }
-
-val shortIDs: Cache<String, String> = CacheBuilder.newBuilder()
-    .expireAfterWrite(Duration.ofMinutes(60)).build()
-listen<EventType.PlayerLeave> {
-    it.player.uuid().let { u ->
-        val new = u.substring(0, 3)
-        val old = shortIDs.getIfPresent(new)
-        shortIDs.put(new, u)
-        if (old != null && old != u)
-            logger.warning("3位ID碰撞: $u $old")
-    }
-}
-fun getUUIDbyShort(id: String): String? {
-    return Groups.player.find { it.uuid().startsWith(id) }?.uuid()
-        ?: shortIDs.getIfPresent(id)
-}
-export(this::getUUIDbyShort)
 
 command("list", "列出当前玩家") {
     body {
