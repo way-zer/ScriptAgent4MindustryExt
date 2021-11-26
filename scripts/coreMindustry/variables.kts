@@ -18,8 +18,8 @@ import java.util.*
 name = "基础: 全局变量"
 
 //SystemVars
-registerVar("fps", "服务器fps", DynamicVar.v {
-    (60f / Time.delta).toInt()
+registerVar("tps", "服务器tps", DynamicVar.v {
+    Core.graphics.framesPerSecond.coerceAtMost(255)
 })
 registerVar("heapUse", "内存占用(MB)", DynamicVar.v {
     Core.app.javaHeap / 1024 / 1024  //MB
