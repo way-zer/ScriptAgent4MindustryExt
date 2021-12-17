@@ -12,6 +12,7 @@ import wayzer.MapChangeEvent
 import wayzer.user.UserService
 import java.io.Serializable
 import java.time.Duration
+import java.time.Instant
 import kotlin.math.ceil
 import kotlin.math.min
 
@@ -31,10 +32,11 @@ data class StatisticsData(
                 if (win) 600 * (1 - idleTime / playedTime) else 0
 
     //结算经验计算
-    val exp get() = min(ceil(score * 15 / 3600).toInt(), 40)//3600点积分为15,40封顶
+    val exp get() = min(ceil(score * 15 / 3600 * rate).toInt(), (60 * rate).toInt())//3600点积分为15,40封顶
 
     companion object {
         lateinit var teamWin: Team
+        var rate = 1.0
     }
 }
 
@@ -49,6 +51,10 @@ val Player.active
         ?.let { it(this) < 5000 } ?: true
 
 val userService = contextScript<UserService>()
+
+data class Activity(val name: String, val rate: Double, val endTime: Long = 0)
+
+val activity by config.key(Activity("无", 1.0), "活动设置")
 
 @Savable
 val statisticsData = mutableMapOf<String, StatisticsData>()
@@ -145,8 +151,17 @@ fun onGameOver(winner: Team) {
         [yellow]贡献排行榜(时长/挂机/建筑): {list}
     """.trimIndent().with("gameTime" to gameTime, "totalTime" to Duration.ofSeconds(totalTime.toLong()), "list" to list)
     )
-
+    StatisticsData.rate = 1.0
     if (sortedData.isNotEmpty() && gameTime > Duration.ofMinutes(15)) {
+        if (activity.endTime > System.currentTimeMillis()) {
+            StatisticsData.rate = activity.rate
+            broadcast(
+                "[gold]{name} [green]活动加成 [gold]x{rate:%.1f}[],还剩{left:小时}".with(
+                    "name" to activity.name, "rate" to activity.rate,
+                    "left" to Duration.between(Instant.now(), Instant.ofEpochMilli(activity.endTime))
+                )
+            )
+        }
         val map = mutableMapOf<PlayerProfile, StatisticsData>()
         sortedData.groupBy { PlayerData.findById(it.first.id)?.profile }.forEach { (key, value) ->
             if (key == null || value.isEmpty()) return@forEach
