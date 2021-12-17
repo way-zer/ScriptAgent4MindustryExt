@@ -15,14 +15,14 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 @Suppress("unused")
 object DB : ServiceRegistry<Database>() {
-    private val ISubScript.registeredTable by dataKeyWithDefault { mutableSetOf<Table>() }
+    private val Script.registeredTable by dataKeyWithDefault { mutableSetOf<Table>() }
 
     /**
      * 为模块注册表格
      * 注册时不一定立刻运行
      * 会等[DB]初始化后统一注册
      */
-    fun ISubScript.registerTable(vararg t: Table) {
+    fun Script.registerTable(vararg t: Table) {
         registeredTable.addAll(t)
         subscribe(this) {
             transaction(it) {

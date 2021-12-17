@@ -7,9 +7,9 @@
 @file:Import("mindustry.Vars.*", defaultImport = true)
 @file:Import("coreMindustry.lib.*", defaultImport = true)
 
-name = "Mindustry 核心脚本模块"
+package coreMindustry
 
-generateHelper()
+name = "Mindustry 核心脚本模块"
 
 fun updateOriginCommandHandler(client: arc.util.CommandHandler, server: arc.util.CommandHandler) {
     netServer?.apply {

@@ -2,7 +2,7 @@
 
 package coreLibrary.lib
 
-import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.events.ScriptDisableEvent
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.thisContextScript
@@ -66,7 +66,7 @@ interface TabCompleter {
 }
 
 class CommandInfo(
-    val script: ISubScript?,
+    val script: Script?,
     val name: String,
     val description: String,
     init: CommandInfo.() -> Unit = {}
@@ -102,7 +102,7 @@ class CommandInfo(
             if (permission.isNotBlank() && !context.hasPermission(permission))
                 context.replyNoPermission()
             body.invoke(context)
-        } catch (e: Return) {
+        } catch (_: Return) {
         } catch (e: Exception) {
             context.reply("[red]执行命令出现异常: {msg}".with("msg" to (e.message ?: "")))
             e.printStackTrace()
@@ -196,7 +196,7 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
         }
     }
 
-    open fun removeAll(script: ISubScript) {
+    open fun removeAll(script: Script) {
         val toRemove = mutableListOf<String>()
         subCommands.forEach { (k, s) ->
             if (s.script == script) toRemove.add(k)
@@ -205,7 +205,7 @@ open class Commands : (CommandContext) -> Unit, TabCompleter {
     }
 
     operator fun plusAssign(command: CommandInfo) = addSub(command)
-    fun autoRemove(script: ISubScript) {
+    fun autoRemove(script: Script) {
         script.onDisable {
             removeAll(script)
         }

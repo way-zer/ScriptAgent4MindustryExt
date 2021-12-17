@@ -82,7 +82,7 @@ fun start(player: Player, voteDesc: PlaceHoldContext, supportSingle: Boolean = f
     }
 }
 
-fun ISubScript.addSubVote(
+fun Script.addSubVote(
     desc: String,
     usage: String,
     vararg aliases: String,

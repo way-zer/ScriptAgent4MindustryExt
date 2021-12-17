@@ -36,8 +36,7 @@ object MapRenderer {
     //参考 mindustry.core.ContentLoader.loadColors
     private fun loadColors(content: ContentLoader) {
         if (content.blocks().isEmpty) return
-        val img = Config.getModuleDir("wayzer").resolve("res/block_colors.png")
-            .takeIf { it.exists() && it.canRead() }?.inputStream()?.use { ImageIO.read(it) }
+        val img = javaClass.classLoader.getResourceAsStream("block_colors.png")?.use { ImageIO.read(it) }
         if (img == null) Log.warn("[wayzer/ext/mapSnap]找不到图集res/block_colors.png")
         img?.apply {
             repeat(width) { i ->

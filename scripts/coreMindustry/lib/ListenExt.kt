@@ -6,7 +6,7 @@ import arc.struct.ObjectMap
 import arc.struct.Seq
 import arc.util.Log
 import cf.wayzer.scriptAgent.Event
-import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.events.ScriptDisableEvent
 import cf.wayzer.scriptAgent.events.ScriptEnableEvent
@@ -16,7 +16,7 @@ import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreMindustry.lib.Listener.Companion.listener
 
 sealed class Listener<T : Any> : Cons<T> {
-    abstract val script: ISubScript?
+    abstract val script: Script?
     abstract val handler: (T) -> Unit
     abstract fun register()
     abstract fun unregister()
@@ -29,7 +29,7 @@ sealed class Listener<T : Any> : Cons<T> {
     }
 
     data class OnClass<T : Any>(
-        override val script: ISubScript?,
+        override val script: Script?,
         val cls: Class<T>,
         override val handler: (T) -> Unit
     ) : Listener<T>() {
@@ -43,7 +43,7 @@ sealed class Listener<T : Any> : Cons<T> {
     }
 
     data class OnTrigger<T : Any>(
-        override val script: ISubScript?,
+        override val script: Script?,
         val v: T,
         override val handler: (T) -> Unit
     ) : Listener<T>() {
@@ -58,7 +58,7 @@ sealed class Listener<T : Any> : Cons<T> {
 
     companion object {
         private val key = DSLBuilder.DataKeyWithDefault("listener") { mutableListOf<Listener<*>>() }
-        val ISubScript.listener by key
+        val Script.listener by key
 
         @Suppress("UNCHECKED_CAST")
         private val map = Events::class.java.getDeclaredField("events").apply {
@@ -79,11 +79,11 @@ sealed class Listener<T : Any> : Cons<T> {
 }
 
 @ScriptDsl
-inline fun <reified T : Any> ISubScript.listen(noinline handler: (T) -> Unit) {
+inline fun <reified T : Any> Script.listen(noinline handler: (T) -> Unit) {
     listener.add(Listener.OnClass(this, T::class.java, handler))
 }
 
 @ScriptDsl
-fun <T : Any> ISubScript.listen(v: T, handler: (T) -> Unit) {
+fun <T : Any> Script.listen(v: T, handler: (T) -> Unit) {
     listener.add(Listener.OnTrigger(this, v, handler))
 }

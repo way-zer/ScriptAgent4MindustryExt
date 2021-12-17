@@ -6,9 +6,9 @@
 @file:Import("org.slf4j:slf4j-api:1.7.29", mavenDependsSingle = true)
 @file:Import("coreLibrary.lib.*", defaultImport = true)
 
+package coreLibrary
+
 name = "ScriptAgent 库模块"
 /*
 本模块实现一些平台无关的库
  */
-
-generateHelper()

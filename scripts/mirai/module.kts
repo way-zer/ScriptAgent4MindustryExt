@@ -1,5 +1,5 @@
 @file:Depends("coreLibrary")
-@file:Import("net.mamoe:mirai-core-jvm:2.8.0-RC", mavenDepends = true)
+@file:Import("net.mamoe:mirai-core-jvm:2.8.1", mavenDepends = true)
 @file:Import("mirai.lib.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.events.*", defaultImport = true)
@@ -7,13 +7,13 @@
 @file:Import("net.mamoe.mirai.message.data.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.contact.*", defaultImport = true)
 
+package mirai
+
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import net.mamoe.mirai.BotFactory
 import net.mamoe.mirai.utils.*
 import java.util.logging.Level
-
-generateHelper()
 
 val enable by config.key(false, "是否启动机器人(开启前先设置账号密码)")
 val qq by config.key(1849301538L, "机器人qq号")
@@ -50,6 +50,7 @@ onEnable {
         }
     }
     val bot = BotFactory.newBot(qq, password) {
+        loginCacheEnabled = false
         protocol = qqProtocol
         fileBasedDeviceInfo(Config.dataDirectory.resolve("miraiDeviceInfo.json").absolutePath)
         parentCoroutineContext = coroutineContext

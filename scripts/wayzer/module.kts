@@ -4,9 +4,9 @@
 @file:Import("wayzer.lib.*", defaultImport = true)
 @file:Import("wayzer.lib.dao.*", defaultImport = true)
 
-import wayzer.lib.dao.*
+package wayzer
+
 import coreLibrary.DBApi.DB.registerTable
-import wayzer.lib.PermissionExt
 
 name = "WayZer Mindustry Plugin"
 /**
@@ -43,7 +43,6 @@ name = "WayZer Mindustry Plugin"
  * TODO: (ext/special/builderRobot)
  */
 
-generateHelper()
 registerTable(PlayerProfile.T, PlayerData.T, PlayerData.Usid, Achievement.T, PlayerNotification.T)
 
 Setting//ensure init

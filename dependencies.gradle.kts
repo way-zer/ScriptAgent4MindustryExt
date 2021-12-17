@@ -1,7 +1,7 @@
 repositories {
     mavenLocal()
     if (System.getProperty("user.timezone") == "Asia/Shanghai") {
-        maven(url = "https://maven.aliyun.com/repository/public")
+//        maven(url = "https://maven.aliyun.com/repository/public")
     }
     mavenCentral()
     if (System.getProperty("user.timezone") != "Asia/Shanghai")//ScriptAgent
@@ -19,8 +19,8 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.7.6"
-    val mindustryVersion = "v134.1"
+    val libraryVersion = "1.8.0.1"
+    val mindustryVersion = "v135"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
     pluginImplementation("cf.wayzer:LibraryManager:1.4.1")
@@ -32,7 +32,6 @@ dependencies {
 
     //coreLibrary
     implementation("cf.wayzer:PlaceHoldLib:4.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     implementation("io.github.config4k:config4k:0.4.1")
     //coreLib/DBApi
     val exposedVersion = "0.35.1"
@@ -47,9 +46,12 @@ dependencies {
 //    compile("org.jline:jline-terminal-jansi:3.19.0")
     implementation("org.jline:jline-reader:3.19.0")
     //mirai
-    implementation("net.mamoe:mirai-core-api-jvm:2.7-M2")
+    implementation("net.mamoe:mirai-core-api-jvm:2.8.1")
     //wayzer
     implementation("com.google.guava:guava:30.1-jre")
+    //gbot
+    implementation("love.forte.simple-robot:component-tencent-guild:0.0.1")
+
     //docker
     implementation("com.amihaiemil.web:docker-java-api:0.0.13")
 }

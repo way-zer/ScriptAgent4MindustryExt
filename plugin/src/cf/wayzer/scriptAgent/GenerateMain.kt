@@ -27,12 +27,12 @@ object GenerateMain {
     fun afterLoad(args: Array<String>) {
         DependencyManager {
             addRepository("https://www.jitpack.io/")
-            requireWithChildren(Dependency.parse("com.github.Anuken.Mindustry:core:v134.1"))
+            requireWithChildren(Dependency.parse("com.github.Anuken.Mindustry:core:v135"))
             loadToClassLoader(GenerateMain::class.java.classLoader)
         }
 
         Config.rootDir = File("scripts")
-        ScriptManager.loadRoot()
+        ScriptRegistry.scanRoot()
 
         var notFound = 0
         if (args.isEmpty())
@@ -47,10 +47,10 @@ object GenerateMain {
                 }
                 ScriptManager.loadScript(script, enable = false, children = false)
             }
-        val fail = ScriptManager.allScripts.count { it.value.scriptState == ScriptState.Fail }
+        val fail = ScriptRegistry.allScripts { it.scriptState == ScriptState.Fail }.count()
         if (notFound != 0)
             println("有${notFound}个输入脚本未找到")
-        println("共加载${ScriptManager.allScripts.size}个脚本，失败${fail}个")
+        println("共加载${ScriptRegistry.allScripts { it.scriptState != ScriptState.ToLoad }.size}个脚本，失败${fail}个")
         exitProcess(notFound + fail)
     }
 }

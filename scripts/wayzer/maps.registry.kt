@@ -1,7 +1,7 @@
 package wayzer
 
 import cf.wayzer.scriptAgent.Event
-import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.emit
 import coreLibrary.lib.PlaceHoldString
 import coreMindustry.lib.ContentHelper
@@ -68,7 +68,7 @@ class GetNextMapEvent(val previous: MapInfo?, var mapInfo: MapInfo) : Event, Eve
 
 object MapRegistry : MapProvider() {
     private val providers = mutableSetOf<MapProvider>()
-    fun register(script: ISubScript, provider: MapProvider) {
+    fun register(script: Script, provider: MapProvider) {
         script.onDisable {
             providers.remove(provider)
         }
