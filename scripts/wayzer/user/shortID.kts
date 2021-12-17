@@ -21,6 +21,7 @@ fun shortStr(str: String): String {
     return Base64Coder.encode(bs).sliceArray(0..2).concatToString()
 }
 
+@JvmName("shortIDExt")
 fun Player.shortID() = shortStr(uuid())
 fun shortID(p: Player) = shortStr(p.uuid())
 export(::shortStr, ::shortID)
