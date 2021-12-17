@@ -2,7 +2,7 @@ package coreMindustry.lib
 
 import arc.func.Cons2
 import arc.struct.ObjectMap
-import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import mindustry.Vars
 import mindustry.net.Administration
@@ -14,7 +14,7 @@ import mindustry.net.Packet
  * @param handle return true to call old handler/origin
  */
 @ScriptDsl
-inline fun <reified T : Packet> ISubScript.listenPacket2Server(crossinline handle: (NetConnection, T) -> Boolean) {
+inline fun <reified T : Packet> Script.listenPacket2Server(crossinline handle: (NetConnection, T) -> Boolean) {
     onEnable {
         val old = Net::class.java.getDeclaredField("serverListeners").run {
             isAccessible = true
@@ -34,7 +34,7 @@ inline fun <reified T : Packet> ISubScript.listenPacket2Server(crossinline handl
 }
 
 @ScriptDsl
-fun ISubScript.registerActionFilter(handle: Administration.ActionFilter) {
+fun Script.registerActionFilter(handle: Administration.ActionFilter) {
     onEnable {
         Vars.netServer.admins.actionFilters.add(handle)
         onDisable {
