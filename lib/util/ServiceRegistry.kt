@@ -1,6 +1,6 @@
 package coreLibrary.lib.util
 
-import cf.wayzer.scriptAgent.define.ISubScript
+import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.emit
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.event.ServiceProvidedEvent
@@ -17,7 +17,7 @@ import kotlin.properties.ReadOnlyProperty
 open class ServiceRegistry<T : Any> {
     private val impl = MutableSharedFlow<T>(1, 0, BufferOverflow.DROP_OLDEST)
 
-    fun provide(script: ISubScript, inst: T) {
+    fun provide(script: Script, inst: T) {
         script.providedService.add(this to inst)
         this.impl.tryEmit(inst)
         ServiceProvidedEvent(inst, script).emit()
@@ -38,6 +38,6 @@ open class ServiceRegistry<T : Any> {
     val notNull get() = ReadOnlyProperty<Any?, T> { _, _ -> get() }
 
     companion object {
-        val ISubScript.providedService by DSLBuilder.dataKeyWithDefault { mutableSetOf<Pair<ServiceRegistry<*>, *>>() }
+        val Script.providedService by DSLBuilder.dataKeyWithDefault { mutableSetOf<Pair<ServiceRegistry<*>, *>>() }
     }
 }
