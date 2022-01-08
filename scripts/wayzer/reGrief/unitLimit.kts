@@ -27,17 +27,20 @@ listen<EventType.UnitUnloadEvent> { e ->
     val count = e.unit.team.data().unitCount
     when {
         count >= unitToKill -> {
-            val toKill = count - unitToKill
-            val m = Groups.unit.filter { it.team == e.unit.team && it.maxHealth < 1000f && !it.isPlayer }
-                .sortedBy { it.health }
-            if (m.isNotEmpty())
-                alert("[red]警告: 单位过多,可能造成服务器卡顿,随机杀死低级单位".with("count" to count))
-            repeat(min(toKill, m.size)) {
-                m[it].kill()
-            }
-            if (toKill > m.size) {
-                alert("[red]警告: 单位过多,可能造成服务器卡顿,已禁止生成".with("count" to count))
-                e.unit.kill()
+            launch(Dispatchers.game) {
+                yield()
+                val toKill = count - unitToKill
+                val m = Groups.unit.filter { it.team == e.unit.team && it.maxHealth < 1000f && !it.isPlayer }
+                    .sortedBy { it.health }
+                if (m.isNotEmpty())
+                    alert("[red]警告: 单位过多,可能造成服务器卡顿,随机杀死低级单位".with("count" to count))
+                repeat(min(toKill, m.size)) {
+                    m[it].kill()
+                }
+                if (toKill > m.size) {
+                    alert("[red]警告: 单位过多,可能造成服务器卡顿,已禁止生成".with("count" to count))
+                    e.unit.kill()
+                }
             }
         }
         count >= unitToWarn -> {
