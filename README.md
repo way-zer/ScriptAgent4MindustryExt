@@ -1,6 +1,6 @@
 ![For Mindustry](https://img.shields.io/badge/For-Mindustry-orange)
 ![Lang CN](https://img.shields.io/badge/Lang-ZH--CN-blue)
-![Support 6.0](https://img.shields.io/badge/Support_Version-6.0_lateset-success)
+![Support 7.0](https://img.shields.io/badge/Support_Version-7.0_lateset-success)
 ![GitHub Releases](https://img.shields.io/github/downloads/way-zer/ScriptAgent4MindustryExt/latest/total)
 [![Build Status](https://travis-ci.com/way-zer/ScriptAgent4MindustryExt.svg?branch=1.1)](https://travis-ci.com/way-zer/ScriptAgent4MindustryExt)
 
