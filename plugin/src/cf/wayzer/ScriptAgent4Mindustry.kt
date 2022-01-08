@@ -46,9 +46,10 @@ class ScriptAgent4Mindustry : Plugin() {
         } ?: let {
             @OptIn(LoaderApi::class)
             ScriptManager.loadRoot()
+            ScriptManager.loadAll(true)
         }
         Core.app.addListener(object : ApplicationListener {
-            override fun pause() {
+            override fun exit() {
                 ScriptManager.disableAll()
             }
         })

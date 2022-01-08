@@ -3,5 +3,6 @@
   "author": "WayZer",
   "main": "cf.wayzer.ScriptAgent4Mindustry",
   "description": "More commands and features.",
-  "version": "@version@"
+  "version": "@version@",
+  "minGameVersion": 105
 }
