@@ -93,6 +93,14 @@ onEnable {
 
 val waitingTime by config.key(Duration.ofSeconds(10)!!, "游戏结束换图的等待时间")
 val gameOverMsgType by config.key(MsgType.InfoMessage, "游戏结束消息是显示方式")
+
+class GameOverEvent(val winner: Team) : Event, Event.Cancellable {
+    /**After cancell, there is no broadcast and changeMap */
+    override var cancelled: Boolean = false
+    override val handler: Event.Handler get() = Companion
+
+    companion object : Event.Handler()
+}
 listen<EventType.GameOverEvent> { event ->
     state.gameOver = true
     Call.updateGameOver(event.winner)
@@ -101,6 +109,7 @@ listen<EventType.GameOverEvent> { event ->
         if (state.rules.pvp) "&lcGame over! Team &ly${event.winner.name}&lc is victorious with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
         else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
     )
+    if (GameOverEvent(event.winner).emit().cancelled) return@listen
     val map = MapRegistry.nextMapInfo(MapManager.current)
     val winnerMsg: Any = if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
     val msg = """
