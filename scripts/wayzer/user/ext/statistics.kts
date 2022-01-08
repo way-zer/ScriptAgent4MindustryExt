@@ -4,6 +4,7 @@
 package wayzer.user.ext
 
 import cf.wayzer.placehold.DynamicVar
+import cf.wayzer.placehold.PlaceHoldApi
 import mindustry.game.Gamemode
 import mindustry.game.Team
 import mindustry.gen.Groups
@@ -76,7 +77,7 @@ registerVarForType<Player>().apply {
     registerChild("statistics", "游戏统计数据", DynamicVar.obj { it.data })
 }
 onDisable {
-    PlaceHoldString.bindTypes.remove(StatisticsData::class.java)//局部类，防止泄漏
+    PlaceHoldApi.resetTypeBinder(StatisticsData::class.java)//局部类，防止泄漏
 }
 
 listen<EventType.ResetEvent> {

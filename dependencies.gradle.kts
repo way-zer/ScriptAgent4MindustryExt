@@ -31,7 +31,7 @@ dependencies {
     implementation("cf.wayzer:ScriptAgent:$libraryVersion")
 
     //coreLibrary
-    implementation("cf.wayzer:PlaceHoldLib:4.2")
+    implementation("cf.wayzer:PlaceHoldLib:4.3")
     implementation("io.github.config4k:config4k:0.4.1")
     //coreLib/DBApi
     val exposedVersion = "0.35.1"
