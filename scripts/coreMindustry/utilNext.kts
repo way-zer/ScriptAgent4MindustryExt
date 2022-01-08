@@ -89,6 +89,21 @@ suspend fun sendMenu(
     } ?: (-1 to -1)
 }
 
+suspend fun <T> sendMenuBuilder(
+    player: Player,
+    timeoutMillis: Int,
+    title: String,
+    msg: String,
+    builder: suspend MutableList<List<Pair<String, suspend () -> T>>>.() -> Unit
+): T? {
+    val list = mutableListOf<List<Pair<String, suspend () -> T>>>()
+    list.builder()
+    val (row, col) = sendMenu(player, timeoutMillis, title, msg, list.map { line ->
+        line.joinToString("||") { it.first }
+    }.toTypedArray())
+    return list.getOrNull(row)?.getOrNull(col)?.second?.invoke()
+}
+
 listenPacket2Server<MenuChooseCallPacket> { con, packet ->
     con.player?.let { p ->
         MenuChooseEvent(p, packet.menuId, packet.option).emit().handled.not()
