@@ -3,6 +3,7 @@ package wayzer.ext
 import arc.math.geom.Vec2
 import mindustry.core.World
 import mindustry.entities.Units
+import mindustry.gen.Unit
 import java.time.Duration
 import java.time.Instant
 
