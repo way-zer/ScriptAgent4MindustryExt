@@ -185,5 +185,5 @@ var CommandInfo.type by DSLBuilder.dataKeyWithDefault { CommandType.Both }
  */
 var CommandContext.player by DSLBuilder.dataKey<Player>()
 fun CommandContext.reply(text: PlaceHoldString, type: MsgType = MsgType.Message, time: Float = 10f) {
-    player.sendMessage(text, type, time)
+    player?.sendMessage(text, type, time) ?: reply(text)
 }
