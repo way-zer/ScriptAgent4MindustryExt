@@ -3,22 +3,19 @@ package coreLibrary.lib.util
 import coreLibrary.lib.PlaceHoldString
 import coreLibrary.lib.with
 import kotlin.math.ceil
-import kotlin.math.min
 
 
 fun calPage(page: Int, prePage: Int, size: Int): Pair<Int, Int> {
     val totalPage = ceil(size / prePage.toDouble()).toInt()
-    val newPage = when {
-        page < 1 -> 1
-        page > totalPage -> totalPage
-        else -> page
-    }
+    //note: totalPage may be 0 (less than 1), so can't use coerceIn
+    val newPage = page.coerceAtMost(totalPage).coerceAtLeast(1)
     return newPage to totalPage
 }
 
 fun <E> menu(title: String, list: List<E>, page: Int, prePage: Int, handle: (E) -> PlaceHoldString): PlaceHoldString {
     val (newPage, totalPage) = calPage(page, prePage, list.size)
-    val list2 = list.subList((newPage - 1) * prePage, min(list.size, newPage * prePage)).map(handle)
+    val list2 = list.subList((newPage - 1) * prePage, (newPage * prePage).coerceAtMost(list.size))
+        .map(handle)
     return """
             | [green]==== [white]{title}[green] ====
             | {list:${"\n"}}
