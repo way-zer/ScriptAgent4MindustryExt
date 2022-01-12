@@ -1,7 +1,7 @@
-@file:Import("org.jetbrains.exposed:exposed-core:0.35.1", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-dao:0.35.1", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-java-time:0.35.1", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-jdbc:0.35.1", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-core:0.37.3", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-dao:0.37.3", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-java-time:0.37.3", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-jdbc:0.37.3", mavenDepends = true)
 
 package coreLibrary
 
