@@ -22,14 +22,15 @@ MapRegistry.register(this, object : MapProvider() {
     override val supportFilter = baseFilter + "internal"
     override fun getMaps(filter: String): Collection<MapInfo> {
         maps.reload()
-        val mapList = if (configEnableInternMaps) maps.all() else maps.customMaps()
-        if (mapList.isEmpty) {
+        var enableIntern = configEnableInternMaps
+        if (!enableIntern && maps.customMaps().isEmpty) {
             logger.warning("服务器未安装自定义地图,自动使用自带地图")
-            mapList.addAll(maps.all())
+            enableIntern = true
         }
+        val mapList = if (enableIntern) maps.all() else maps.customMaps()
         return mapList.sortedBy { it.file.lastModified() }
             .mapIndexed { i, map -> MapInfo(i + 1, map, bestMode(map)) }
-            .filterWhen(!configEnableInternMaps && filter != "all") { it.map.custom }
+            .filterWhen(!enableIntern && filter != "all") { it.map.custom }
             .filterByMode(filter)
     }
 
