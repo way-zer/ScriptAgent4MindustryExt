@@ -8,8 +8,8 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.Function
-import org.jetbrains.exposed.sql.`java-time`.JavaLocalDateColumnType
-import org.jetbrains.exposed.sql.`java-time`.date
+import org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType
+import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.statements.Statement
 import org.jetbrains.exposed.sql.statements.StatementType
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
