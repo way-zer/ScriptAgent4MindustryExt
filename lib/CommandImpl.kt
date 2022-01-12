@@ -45,7 +45,7 @@ object RootCommands : Commands() {
             removeCommand(name)
             register(name, "[arg...]", command.description) { arg, player: Player? ->
                 command(CommandContext().apply {
-                    reply = { reply(it, MsgType.Message) }
+                    reply = { player.sendMessage(it) }
                     this.player = player
                     prefix = "/$name"
                     this.arg = arg.getOrNull(0)?.split(' ') ?: emptyList()
@@ -128,7 +128,7 @@ object RootCommands : Commands() {
             hasPermission = {
                 player == null || player.admin || player.hasPermission(it)
             }
-            reply = { reply(it, MsgType.Message) }
+            reply = { player.sendMessage(it, MsgType.Message) }
             this.prefix = if (prefix.isEmpty()) "* " else prefix
             this.arg = text.removePrefix(prefix).split(' ')
         })
