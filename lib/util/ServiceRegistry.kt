@@ -5,6 +5,7 @@ import cf.wayzer.scriptAgent.emit
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.event.ServiceProvidedEvent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import kotlin.properties.ReadOnlyProperty
@@ -21,6 +22,12 @@ open class ServiceRegistry<T : Any> {
         script.providedService.add(this to inst)
         this.impl.tryEmit(inst)
         ServiceProvidedEvent(inst, script).emit()
+
+        @OptIn(ExperimentalCoroutinesApi::class)
+        script.onDisable {
+            if (getOrNull() == inst)
+                impl.resetReplayCache()
+        }
     }
 
     fun getOrNull() = impl.replayCache.firstOrNull()
