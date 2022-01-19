@@ -18,6 +18,8 @@ command("gather", "发出集合请求") {
     aliases = listOf("集合")
     permission = "wayzer.ext.gather"
     body {
+        if (state.rules.pvp)
+            returnReply("[red]PVP模式禁用".with())
         if (Duration.between(lastTime, Instant.now()) < Duration.ofSeconds(30)) {
             returnReply("[red]刚刚有人发起请求,请稍等30s再试".with())
         }
