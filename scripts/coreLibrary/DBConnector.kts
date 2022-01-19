@@ -15,7 +15,7 @@ import java.sql.DriverManager
 fun h2(): () -> Connection {
     sourceFile.parentFile.listFiles { _, n -> n.startsWith("h2DB.db") }?.takeIf { it.isNotEmpty() }?.forEach {
         logger.info("检测到旧数据库文件,自动迁移到新目录")
-        val new = Config.dataDirectory.resolve(it.name)
+        val new = Config.dataDir.resolve(it.name)
         if (new.exists()) {
             logger.warning("目标文件$new 存在,不进行覆盖，请自行处理")
         } else {
@@ -23,7 +23,7 @@ fun h2(): () -> Connection {
             it.delete()
         }
     }
-    val file = Config.dataDirectory.resolve("h2DB.db")
+    val file = Config.dataDir.resolve("h2DB.db")
     Class.forName("org.h2.Driver")
     return { DriverManager.getConnection("jdbc:h2:${file.absolutePath}") }
 }

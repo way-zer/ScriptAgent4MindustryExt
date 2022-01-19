@@ -44,7 +44,7 @@ onEnable {
                 val config = arg.firstOrNull()?.let { ConfigBuilder.all[it] } ?: returnReply("[red]找不到配置项".with())
                 if (!hasPermission(permission + "." + config.path))
                     returnReply("[red]你没有权限修改配置项: {config}".with("config" to config.path))
-                when (arg.getOrNull(1)?.toLowerCase()) {
+                when (arg.getOrNull(1)?.lowercase()) {
                     null -> {
                         returnReply(
                             """

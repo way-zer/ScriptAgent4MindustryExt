@@ -1,13 +1,18 @@
+@file:Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+
 package coreLibrary.lib
 
 import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.define.Script
-import java.util.logging.Logger
 
+@Deprecated("included in ScriptAgent", ReplaceWith("Config.dataDir"))
 val Config.dataDirectory
-    get() = rootDir.resolve("data").apply {
-        mkdirs()
-    }
+    get() = dataDir
 
-val Script.dotId get() = id.replace('/', '.')
-val Script.logger get() = Logger.getLogger(dotId)!!
+@Deprecated("included in ScriptAgent", level = DeprecationLevel.HIDDEN)
+val Script.dotId
+    get() = dotId
+
+@Deprecated("included in ScriptAgent", level = DeprecationLevel.HIDDEN)
+val Script.logger
+    get() = logger

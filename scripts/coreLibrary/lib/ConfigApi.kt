@@ -172,7 +172,7 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
         private val key_configs = DSLBuilder.DataKeyWithDefault("configs") { mutableSetOf<ConfigKey<*>>() }
         val Script.configs by key_configs
         val all = mutableMapOf<String, ConfigKey<*>>()
-        var configFile: File = cf.wayzer.scriptAgent.Config.dataDirectory.resolve("config.conf")
+        var configFile: File = cf.wayzer.scriptAgent.Config.dataDir.resolve("config.conf")
         private lateinit var fileConfig: Config
         private var lastLoad: Long = -1
 

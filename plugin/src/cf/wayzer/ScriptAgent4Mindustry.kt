@@ -49,6 +49,11 @@ class ScriptAgent4Mindustry : Plugin() {
             ScriptManager.loadAll(true)
         }
         Core.app.addListener(object : ApplicationListener {
+            override fun pause() {
+                if (Vars.headless)
+                    exit()
+            }
+
             override fun exit() {
                 ScriptManager.disableAll()
             }

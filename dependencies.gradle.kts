@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.8.0.1"
+    val libraryVersion = "1.8.1.2"
     val mindustryVersion = "v135"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
