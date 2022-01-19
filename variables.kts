@@ -20,7 +20,7 @@ registerVarForType<Instant>().apply {
 
 registerVarForType<Duration>().apply {
     registerToString("参数设定单位(天,时,分,秒,d,h,m,s,默认m)") { _, obj, arg ->
-        val unit = when (arg?.get(0)?.toLowerCase()) {
+        val unit = when (arg?.get(0)?.lowercaseChar()) {
             'd', '天' -> ChronoUnit.DAYS
             'h', '小', '时' -> ChronoUnit.HOURS
             'm', '分' -> ChronoUnit.MINUTES
