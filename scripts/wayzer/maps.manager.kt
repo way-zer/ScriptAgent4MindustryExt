@@ -7,7 +7,6 @@ import cf.wayzer.scriptAgent.contextScript
 import cf.wayzer.scriptAgent.emit
 import cf.wayzer.scriptAgent.thisContextScript
 import coreLibrary.lib.config
-import coreLibrary.lib.logger
 import coreLibrary.lib.with
 import coreMindustry.lib.MindustryDispatcher
 import coreMindustry.lib.broadcast
@@ -42,8 +41,9 @@ object MapManager {
     } ?: MapInfo(0, Vars.maps.all().first(), Gamemode.survival)
         private set
 
-    fun loadMap(info: MapInfo = MapRegistry.nextMapInfo()) {
-        val event = MapChangeEvent(info, false, info.map.applyRules(info.mode).apply {
+    @JvmOverloads
+    fun loadMap(info: MapInfo = MapRegistry.nextMapInfo(), isSave: Boolean = false) {
+        val event = MapChangeEvent(info, isSave, info.map.applyRules(info.mode).apply {
             idInTag = info.id
             Regex("\\[(@[a-zA-Z0-9]+)(=[^=\\]]+)?]").findAll(info.map.description()).forEach {
                 val value = it.groupValues[2].takeIf(String::isNotEmpty) ?: "true"
@@ -71,7 +71,7 @@ object MapManager {
             Vars.state.set(GameState.State.playing)
             Events.fire(EventType.PlayEvent())
         }
-        loadMap(info)
+        loadMap(info, true)
     }
 
     fun getSlot(id: Int): Fi? {
@@ -88,7 +88,7 @@ object MapManager {
 
     /** Use for identity Save */
     private var Rules.idInTag: Int
-        get() = tags.getInt("id", 0)
+        get() = tags.getInt("id", -1)
         set(value) {
             tags.put("id", value.toString())
         }
@@ -103,7 +103,7 @@ object MapManager {
             } catch (e: Throwable) {
                 thisContextScript().logger.log(Level.WARNING, "Error when do reset for $current", e)
             }
-            Vars.logic.reset()
+//            Vars.logic.reset()
             Call.worldDataBegin()
             callBack()
             players.forEach {
