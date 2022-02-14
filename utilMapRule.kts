@@ -1,6 +1,5 @@
 package coreMindustry
 
-import mindustry.content.UnitTypes
 import kotlin.reflect.KMutableProperty0
 
 val bakMap = mutableMapOf<KMutableProperty0<*>, Any?>()
@@ -26,5 +25,3 @@ listen<EventType.ResetEvent> {
         bakMap.clear()
     }
 }
-
-registerMapRule(UnitTypes.gamma::health) { 2000f }
