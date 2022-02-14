@@ -163,11 +163,13 @@ listen<EventType.TapEvent> {
 // 自动保留破坏核心的可疑行为
 var lastCoreLog = emptyList<PlaceHoldString>()
 var lastTime = 0L
-val dangerBlock = arrayOf(
-    Blocks.thoriumReactor,
-    Blocks.liquidTank, Blocks.liquidRouter, Blocks.bridgeConduit, Blocks.phaseConduit,
-    Blocks.conduit, Blocks.platedConduit, Blocks.pulseConduit
-)
+val dangerBlock by useContents {
+    arrayOf(
+        Blocks.thoriumReactor,
+        Blocks.liquidTank, Blocks.liquidRouter, Blocks.bridgeConduit, Blocks.phaseConduit,
+        Blocks.conduit, Blocks.platedConduit, Blocks.pulseConduit
+    )
+}
 listen<EventType.BlockDestroyEvent> { event ->
     if (event.tile.block() is CoreBlock) {
         if (System.currentTimeMillis() - lastTime > 5000) { //防止核心连环爆炸,仅记录第一个被炸核心

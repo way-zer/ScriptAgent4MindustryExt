@@ -12,10 +12,6 @@ import javax.imageio.ImageIO
 
 //参考 mindustry.graphics.MinimapRenderer
 object MapRenderer {
-    init {
-        loadColors(content)
-    }
-
     var img: BufferedImage? = null
     fun drawAll(world: World) {
         img = BufferedImage(world.width(), world.height(), BufferedImage.TYPE_INT_ARGB).apply {
@@ -34,7 +30,7 @@ object MapRenderer {
     }
 
     //参考 mindustry.core.ContentLoader.loadColors
-    private fun loadColors(content: ContentLoader) {
+    fun loadColors(content: ContentLoader) {
         if (content.blocks().isEmpty) return
         val img = javaClass.classLoader.getResourceAsStream("block_colors.png")?.use { ImageIO.read(it) }
         if (img == null) Log.warn("[wayzer/ext/mapSnap]找不到图集res/block_colors.png")
@@ -78,7 +74,11 @@ listen<EventType.WorldLoadEvent> {
 listen<EventType.TileChangeEvent> {
     it.tile.getLinkedTiles(MapRenderer::update)
 }
+listen<EventType.ContentInitEvent> {
+    MapRenderer.loadColors(content)
+}
 onEnable {
+    MapRenderer.loadColors(content)
     if (net.server())
         MapRenderer.drawAll(world)
 }

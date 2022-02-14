@@ -52,9 +52,11 @@ fun Script.registerActionFilter(handle: Administration.ActionFilter) {
  */
 @ScriptDsl
 inline fun <T : Any> Script.useContents(crossinline init: () -> T): ReadOnlyProperty<Any?, T> {
-    var v = init()
+    var v: T? = null
+    if (Vars.content != null)
+        v = init()
     listen<EventType.ContentInitEvent> {
         v = init()
     }
-    return DSLBuilder.Companion.SimpleDelegate { v }
+    return DSLBuilder.Companion.SimpleDelegate { v ?: error("No Vars.content") }
 }
