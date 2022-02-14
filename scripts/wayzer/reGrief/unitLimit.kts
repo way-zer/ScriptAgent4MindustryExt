@@ -3,6 +3,7 @@ package wayzer.reGrief
 import arc.Events
 import arc.util.Interval
 import mindustry.gen.Groups
+import mindustry.gen.Unit
 import kotlin.math.min
 
 val unitToWarn by config.key(190, "开始警告的单位数")
@@ -15,6 +16,9 @@ listen<EventType.UnitUnloadEvent> { e ->
             broadcast("[red]敌方单位超过5000,自动投降".with())
             state.gameOver = true
             Events.fire(EventType.GameOverEvent(state.rules.waveTeam))
+            Core.app.post {
+                Groups.unit.filter { it.team == state.rules.waveTeam }.forEach(Unit::kill)
+            }
         }
         return@listen
     }
@@ -46,5 +50,24 @@ listen<EventType.UnitUnloadEvent> { e ->
         count >= unitToWarn -> {
             alert("[yellow]警告: 建筑过多单位,可能造成服务器卡顿,当前: {count}".with("count" to count))
         }
+    }
+}
+
+var gameOverWave = -1
+listen<EventType.WaveEvent> {
+    if (gameOverWave > 0 && state.wave > gameOverWave && !state.gameOver) {
+        broadcast("[red]到达终结波,自动投降".with())
+        state.gameOver = true
+        Events.fire(EventType.GameOverEvent(state.rules.waveTeam))
+        return@listen
+    }
+    val flySpawn = spawner.countFlyerSpawns()
+    val groundSpawn = spawner.countGroundSpawns()
+    val sum = state.rules.spawns.sum {
+        it.getSpawned(state.wave - 1) * if (it.type.flying) flySpawn else groundSpawn
+    }
+    if (sum >= 3000) {
+        state.rules.spawns.clear()
+        gameOverWave = state.wave
     }
 }
