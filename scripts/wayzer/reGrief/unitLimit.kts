@@ -71,3 +71,7 @@ listen<EventType.WaveEvent> {
         gameOverWave = state.wave
     }
 }
+
+listen<EventType.ResetEvent> {
+    gameOverWave = -1
+}
