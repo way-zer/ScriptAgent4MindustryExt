@@ -38,6 +38,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
+
     //coreMindustry
     implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
     //coreMindustry/console
@@ -45,6 +46,9 @@ dependencies {
     implementation("org.jline:jline-terminal:3.19.0")
 //    compile("org.jline:jline-terminal-jansi:3.19.0")
     implementation("org.jline:jline-reader:3.19.0")
+    //coreMindustry/utilContentsOverwrite
+    implementation("cf.wayzer.MindustryContents:core:1.0.5")
+
     //mirai
     implementation("net.mamoe:mirai-core-api-jvm:2.8.1")
     //wayzer
