@@ -46,8 +46,21 @@ object MindustryDispatcher : CoroutineDispatcher() {
             }
         }
     }
+
+    object Post : CoroutineDispatcher() {
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            if (mainThread?.isAlive == false)
+                block.run()
+            else
+                Core.app.post(block)
+        }
+    }
 }
 
 @Suppress("unused")
 val Dispatchers.game
     get() = MindustryDispatcher
+
+@Suppress("unused")
+val Dispatchers.gamePost
+    get() = MindustryDispatcher.Post
