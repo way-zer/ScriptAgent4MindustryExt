@@ -74,6 +74,9 @@ tasks {
             include(dependency("cf.wayzer:ScriptAgent"))
             include(dependency("cf.wayzer:LibraryManager"))
         }
+        doLast {
+            println(archiveFile.get())
+        }
     }
     create<JavaExec>("precompile") {
         group = "plugin"
