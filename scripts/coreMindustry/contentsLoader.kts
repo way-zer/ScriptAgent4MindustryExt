@@ -21,6 +21,8 @@ listen<EventType.ResetEvent> {
     ContentsLoader.Api.lastLoadedPacks.forEach {
         Call.clientPacketReliable("ContentsLoader|load", it)
     }
+    registerVar("scoreBroad.ext.contentsVersion", "内容包版本显示", ("[violet]资源包已加载: [orange]$version\n" +
+            "  [yellow](使用[sky]ContentsLoader[]MOD获得最佳体验)").takeIf { ContentsLoader.Api.lastLoadedPacks != listOf("origin") })
 }
 
 listen<EventType.ConnectionEvent> { e ->
