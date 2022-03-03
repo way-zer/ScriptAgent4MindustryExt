@@ -53,7 +53,7 @@ onEnable {
                     ScriptManager.loadRoot()
                     val script = ScriptManager.getScriptNullable(arg[0]) ?: returnReply("[red]找不到模块或者脚本".with())
                     if (noCache) {
-                        val file = Config.cacheFile(script.id)
+                        val file = Config.cacheFile(script.id, script.isModule)
                         reply("[yellow]清理cache文件{name}".with("name" to file.name))
                         file.delete()
                     }
