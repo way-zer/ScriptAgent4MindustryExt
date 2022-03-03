@@ -1,0 +1,19 @@
+name: "SA changelog"
+author: "way-zer"
+description: ""
+inputs:
+  token:
+    description: "Authorized secret GitHub Personal Access Token. Defaults to github.token"
+    required: false
+    default: ${{ github.token }}
+outputs:
+  changes:
+    description: "Formatted changelog"
+  releaseBody:
+    description: "Release Body"
+runs:
+  using: "node16"
+  main: "preload.js"
+branding:
+  color: "green"
+  icon: "package"
