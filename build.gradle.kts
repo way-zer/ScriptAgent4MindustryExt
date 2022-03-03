@@ -59,6 +59,9 @@ tasks {
             exclude(".metadata")
         }
         archiveClassifier.set("scripts")
+        doLast {
+            println(archiveFile.get())
+        }
     }
     val buildPlugin = create<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildPlugin") {
         group = "plugin"
@@ -84,6 +87,8 @@ tasks {
         inputs.files(sourceSets.main.get().allSource)
         classpath(buildPlugin.outputs.files)
         mainClass.set("cf.wayzer.scriptAgent.GenerateMain")
+        if (javaVersion >= JavaVersion.VERSION_16)
+            jvmArgs("--add-opens java.base/java.net=ALL-UNNAMED")
     }
     create<Zip>("precompileZip") {
         group = "plugin"
@@ -96,5 +101,8 @@ tasks {
             include("*/res/*")
         }
         archiveClassifier.set("precompile")
+        doLast {
+            println(archiveFile.get())
+        }
     }
 }

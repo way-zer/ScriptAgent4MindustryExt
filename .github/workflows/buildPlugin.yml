@@ -1,15 +1,18 @@
-# This is a basic workflow to help you get started with Actions
-
 name: BuildPlugin
 
-# Controls when the action will run. 
 on:
   push:
-    branches: [ "1.1","6.0" ]
+    branches-ignore:
+      - 'private*'
+    paths:
+      - 'plugin/'
+      - 'build.gradle.kts'
+      - 'dependencies.gradle.kts'
   pull_request:
-    branches: [ "1.1","6.0" ]
-
-  # Allows you to run this workflow manually from the Actions tab
+    paths:
+      - 'plugin/'
+      - 'build.gradle.kts'
+      - 'dependencies.gradle.kts'
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -24,6 +27,16 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      - uses: actions/cache@v2
+        with:
+          path: |
+            libs
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: deps-${{ hashFiles('dependencies.gradle.kts', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            deps-
+
       # Runs a single command using the runners shell
       - name: Run gradle buildPlugin
         run: ./gradlew buildPlugin
@@ -31,5 +44,5 @@ jobs:
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.2.1
         with:
-          name: ScriptAgent-SNAPSHOT.jar
+          name: ScriptAgent-beta-${{github.run_num}}.jar
           path: build/libs
