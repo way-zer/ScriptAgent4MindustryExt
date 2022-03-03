@@ -1,64 +1,94 @@
 package wayzer.map
 
 import arc.Events
-import arc.struct.Seq
 import mindustry.core.NetServer
 import mindustry.game.Team
-import mindustry.game.Teams
 import mindustry.gen.Groups
 import mindustry.world.blocks.storage.CoreBlock
 
 name = "更好的队伍"
 
-val enableTeamLock by config.key(true, "PVP模式队伍锁定，单局不能更换队伍")
-val spectateTeam = Team.all[255]!!
-val allTeam: Seq<Teams.TeamData>
-    get() = state.teams.active.filter {
-        it.hasCore() && it.team !in arrayOf(
-            Team.derelict,
-            Team.crux
-        )
-    }
-val backup = netServer?.assigner //Can be null when generate ktc
-onDisable {
-    netServer.assigner = backup
+data class AssignTeamEvent(val player: Player, val group: Iterable<Player>, var team: Team?) : Event {
+    override val handler: Event.Handler get() = Companion
+
+    companion object : Event.Handler()
 }
 
+val enableTeamLock by config.key(true, "PVP模式队伍锁定，单局不能更换队伍")
+val spectateTeam = Team.all[255]!!
+val allTeam: List<Team>
+    get() = state.teams.active.items.filter {
+        it.hasCore() && (it.team != Team.derelict && it.team !in bannedTeam)
+    }.map { it.team }
+
+@Savable(false)
 val teams = mutableMapOf<String, Team>()
+var bannedTeam = emptySet<Team>()
+var keepTeamsOnce = false
+
+fun updateBannedTeam(force: Boolean = false) {
+    if (force || bannedTeam.isEmpty())
+        bannedTeam = state.rules.tags.get("@banTeam")?.split(',').orEmpty()
+            .mapNotNull { Team.all.getOrNull(it.toIntOrNull() ?: -1) }.toSet()
+    Groups.player.filter { it.team() in bannedTeam }.forEach {
+        changeTeam(it)
+        it.sendMessage("[yellow]因为原队伍被禁用,你已自动切换队伍".with(), MsgType.InfoMessage)
+    }
+}
 onEnable {
+    val backup = netServer.assigner
     netServer.assigner = object : NetServer.TeamAssigner {
         override fun assign(player: Player, p1: MutableIterable<Player>): Team {
+            val event = AssignTeamEvent(player, p1, null).emit()
+            event.team?.let {
+                if (enableTeamLock) teams[player.uuid()] = it
+                return it
+            }
             if (!enableTeamLock) return backup!!.assign(player, p1)
             if (!state.rules.pvp) return state.rules.defaultTeam
-            if (teams[player.uuid()]?.active() == false)
+            if (teams[player.uuid()]?.run { (this != spectateTeam && !active()) || this in bannedTeam } == true)
                 teams.remove(player.uuid())
             return teams.getOrPut(player.uuid()) {
                 //not use old,because it may assign to team without core
-                allTeam.shuffled()
-                    .minByOrNull { p1.count { p -> p.team() == it.team && player != p } }
-                    ?.team ?: state.rules.defaultTeam
+                randomTeam(player, p1)
             }
         }
     }
+    onDisable {
+        netServer.assigner = backup
+    }
+    updateBannedTeam(true)
 }
+listen<EventType.PlayEvent> { updateBannedTeam(true) }
 //custom gameover
-listen<EventType.BlockDestroyEvent> {
+listen<EventType.BlockDestroyEvent> { e ->
     if (state.gameOver || !state.rules.pvp) return@listen
-    if (it.tile.block() is CoreBlock) {
+    if (e.tile.block() is CoreBlock) {
         allTeam.singleOrNull()?.let {
             state.gameOver = true
-            Events.fire(EventType.GameOverEvent(it.team))
+            Events.fire(EventType.GameOverEvent(it))
         }
     }
 }
 listen<EventType.ResetEvent> {
+    if (keepTeamsOnce) {
+        keepTeamsOnce = false
+        return@listen
+    }
     teams.clear()
 }
 
-fun changeTeam(p: Player, team: Team) {
-    teams[p.uuid()] = team
+fun randomTeam(player: Player, group: Iterable<Player> = Groups.player): Team {
+    return allTeam.shuffled()
+        .minByOrNull { group.count { p -> p.team() == it && player != p } }
+        ?: state.rules.defaultTeam
+}
+
+fun changeTeam(p: Player, team: Team? = null) {
+    val newTeam = AssignTeamEvent(p, Groups.player, team).emit().team ?: randomTeam(p)
+    teams[p.uuid()] = newTeam
     p.clearUnit()
-    p.team(team)
+    p.team(newTeam)
     p.clearUnit()
 }
 
@@ -69,13 +99,12 @@ command("ob", "切换为观察者") {
     permission = "wayzer.ext.observer"
     body {
         if (player!!.team() == spectateTeam) {
-            val team = netServer.assignTeam(player!!)
-            changeTeam(player!!, team)
+            changeTeam(player!!)
             if (state.rules.enemyLights.not())
                 Call.setRules(player!!.con, state.rules)
             broadcast(
-                "[yellow]玩家[green]{player.name}[yellow]重新投胎到{team.colorizeName}"
-                    .with("player" to player!!, "team" to team), quite = true
+                "[yellow]玩家[green]{player.name}[yellow]重新投胎到{player.team.colorizeName}"
+                    .with("player" to player!!), quite = true
             )
         } else {
             changeTeam(player!!, spectateTeam)
