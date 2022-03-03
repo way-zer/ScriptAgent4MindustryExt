@@ -23,6 +23,7 @@ val allTeam: List<Team>
 
 @Savable(false)
 val teams = mutableMapOf<String, Team>()
+customLoad(::teams, teams::putAll)
 var bannedTeam = emptySet<Team>()
 var keepTeamsOnce = false
 
