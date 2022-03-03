@@ -8,6 +8,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.properties.ReadOnlyProperty
 
 /**
@@ -17,6 +19,7 @@ import kotlin.properties.ReadOnlyProperty
 @Suppress("unused")
 open class ServiceRegistry<T : Any> {
     private val impl = MutableSharedFlow<T>(1, 0, BufferOverflow.DROP_OLDEST)
+    private val mutex = Mutex()
 
     fun provide(script: Script, inst: T) {
         script.providedService.add(this to inst)
@@ -37,8 +40,13 @@ open class ServiceRegistry<T : Any> {
     fun toFlow() = impl.asSharedFlow()
 
     suspend fun awaitInit() = impl.first()
-    fun subscribe(scope: CoroutineScope, body: suspend (T) -> Unit) {
-        impl.onEach { body(it) }.launchIn(scope)
+
+    @JvmOverloads
+    fun subscribe(scope: CoroutineScope, async: Boolean = false, body: suspend (T) -> Unit) {
+        impl.onEach {
+            if (async) body(it)
+            else mutex.withLock { body(it) }
+        }.launchIn(scope)
     }
 
     val nullable get() = ReadOnlyProperty<Any?, T?> { _, _ -> getOrNull() }
