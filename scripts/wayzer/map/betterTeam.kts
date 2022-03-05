@@ -17,9 +17,9 @@ data class AssignTeamEvent(val player: Player, val group: Iterable<Player>, var 
 val enableTeamLock by config.key(true, "PVP模式队伍锁定，单局不能更换队伍")
 val spectateTeam = Team.all[255]!!
 val allTeam: List<Team>
-    get() = state.teams.active.items.filter {
+    get() = state.teams.active.asSequence().filter {
         it.hasCore() && (it.team != Team.derelict && it.team !in bannedTeam)
-    }.map { it.team }
+    }.map { it.team }.toList()
 
 @Savable(false)
 val teams = mutableMapOf<String, Team>()
