@@ -14,7 +14,6 @@ data class AssignTeamEvent(val player: Player, val group: Iterable<Player>, var 
     companion object : Event.Handler()
 }
 
-val enableTeamLock by config.key(true, "PVP模式队伍锁定，单局不能更换队伍")
 val spectateTeam = Team.all[255]!!
 val allTeam: List<Team>
     get() = state.teams.active.asSequence().filter {
@@ -42,11 +41,9 @@ onEnable {
         override fun assign(player: Player, p1: MutableIterable<Player>): Team {
             val event = AssignTeamEvent(player, p1, null).emit()
             event.team?.let {
-                if (enableTeamLock) teams[player.uuid()] = it
+                teams[player.uuid()] = it
                 return it
             }
-            if (!enableTeamLock) return backup!!.assign(player, p1)
-            if (!state.rules.pvp) return state.rules.defaultTeam
             if (teams[player.uuid()]?.run { (this != spectateTeam && !active()) || this in bannedTeam } == true)
                 teams.remove(player.uuid())
             return teams.getOrPut(player.uuid()) {
@@ -55,9 +52,7 @@ onEnable {
             }
         }
     }
-    onDisable {
-        netServer.assigner = backup
-    }
+    onDisable { netServer.assigner = backup }
     updateBannedTeam(true)
 }
 listen<EventType.PlayEvent> { updateBannedTeam(true) }
@@ -80,6 +75,7 @@ listen<EventType.ResetEvent> {
 }
 
 fun randomTeam(player: Player, group: Iterable<Player> = Groups.player): Team {
+    if (!state.rules.pvp) return state.rules.defaultTeam
     return allTeam.shuffled()
         .minByOrNull { group.count { p -> p.team() == it && player != p } }
         ?: state.rules.defaultTeam
