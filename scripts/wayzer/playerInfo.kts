@@ -56,3 +56,13 @@ listen<EventType.PlayerLeave> { event ->
         PlayerData.findOrCreate(p).onQuit(p)
     }
 }
+
+onEnable {
+    launch(Dispatchers.IO) {
+        delay(5000)
+        val online = Groups.player.mapNotNull { PlayerData[it.uuid()].secureProfile(it) }
+        transaction {
+            online.forEach(PlayerProfile::loopCheck)
+        }
+    }
+}

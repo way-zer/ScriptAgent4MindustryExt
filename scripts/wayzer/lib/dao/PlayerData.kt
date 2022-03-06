@@ -27,8 +27,14 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     private var profileId by T.profile
     val profile: PlayerProfile? get() = profileId?.let { PlayerProfile[it] }
 
+    @Transient
+    var player: Player? = null
+
     @NeedTransaction
     fun onJoin(player: Player) {
+        if (this.player != null)
+            return player.kick("[red]你已经在服务器中了")
+        this.player = player
         if (secure(player)) {
             lastName = Strings.stripColors(player.name)
             lastTime = Instant.now()
@@ -39,6 +45,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
 
     @NeedTransaction
     fun onQuit(player: Player) {
+        this.player = null
         if (secure(player)) {
             lastTime = Instant.now()
             lastIp = player.con.address
@@ -62,7 +69,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     object T : IdTable<String>("PlayerData") {
         override val id: Column<EntityID<String>> = varchar("UID", 24).entityId()
         override val primaryKey: PrimaryKey = PrimaryKey(id)
-        val lastName = varchar("lastName", 48)
+        val lastName = varchar("lastName", 32)
         val lastIp = varchar("lastIp", 15)
         val firstIp = varchar("firstIp", 15)
         val lastTime = timestamp("lastTime").defaultExpression(CurrentTimestamp())

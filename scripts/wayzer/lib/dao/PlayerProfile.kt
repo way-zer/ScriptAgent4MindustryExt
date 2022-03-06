@@ -25,26 +25,48 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
     var online by T.online
 
     val controlling get() = online == Setting.serverId
+    val players = mutableSetOf<Player>()
 
     @NeedTransaction
     fun onJoin(player: Player) {
-        if (online == null) online = Setting.serverId
-        if (controlling) {
-            name = Strings.stripColors(player.name)
-        }
-        if (!controlling) {
-            if (Setting.limitOne) player.kick("[red]你已经在其他服务器登录,禁止再在该服登录")
-            else player.sendMessage("[yellow]你已经在其他服务器登录，不重复累计在线时长")
+        if (players.add(player))
+            loopCheck()
+        allOnline.add(this)
+    }
+
+    @NeedTransaction
+    fun loopCheck() {
+        val old = controlling
+        if (online == null || Duration.between(lastTime, Instant.now()) > Duration.ofMinutes(5))
+            online = Setting.serverId
+        if (controlling)
+            lastTime = Instant.now()
+
+        if (!old && controlling) {
+            players.firstOrNull()?.let { name = Strings.stripColors(it.name) }
+            players.forEach {
+                it.sendMessage("[green]登录成功！")
+            }
+        } else if (old && !controlling) {
+            if (Setting.limitOne) players.toList().forEach {
+                it.kick("[red]你已经在其他服务器登录,禁止重复登录")
+            } else {
+                players.forEach {
+                    it.sendMessage("[yellow]你已经在其他服务器登录，不重复累计在线时长")
+                }
+            }
         }
     }
 
     @Suppress("UNUSED_PARAMETER")
     @NeedTransaction
     fun onQuit(player: Player) {
+        players.remove(player)
         if (controlling) {
-            lastTime = Instant.now()
             online = null
         }
+        if (players.isEmpty())
+            allOnline.remove(this)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -73,6 +95,7 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
         private val idCache = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofMinutes(1))
             .build<Long, Int>()//qq to id
+        val allOnline = hashSetOf<PlayerProfile>()
 
         override fun findById(id: EntityID<Int>): PlayerProfile? {
             return cache.getIfPresent(id.value) ?: transaction {

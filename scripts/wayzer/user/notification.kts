@@ -1,28 +1,26 @@
 @file:Depends("wayzer/user/userService")
+
 package wayzer.user
 
 import coreLibrary.DBApi
-import mindustry.gen.Groups
+import coreLibrary.DBApi.DB.registerTable
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.time.Instant
 
 name = "通知服务"
 val userService = contextScript<UserService>()
 
 fun notify(profile: PlayerProfile, message: String, params: Map<String, String>, broadcast: Boolean = false) {
     transaction {
-        PlayerNotification.new(profile, message, params, broadcast)
+        NotificationEntity.new(profile, message, params, broadcast)
     }
 }
 export(::notify)
 
-val map = mutableMapOf<Int, Instant>()//profile -> lastTime
-listen<EventType.PlayerLeave> {
-    map.remove(PlayerData[it.player.uuid()].profile?.id?.value)
-}
 
-fun List<PlayerNotification>.run(profile: PlayerProfile, players: List<Player>) {
+fun List<NotificationEntity>.run(profile: PlayerProfile) {
+    val players = profile.players
     launch(Dispatchers.game) {
+        if (players.isEmpty()) return@launch
         forEach {
             if (it.broadcast)
                 broadcast(
@@ -40,20 +38,14 @@ fun List<PlayerNotification>.run(profile: PlayerProfile, players: List<Player>) 
 }
 
 fun loop() {
-    Groups.player.groupBy { PlayerData[it.uuid()].profile }.forEach { (profile, players) ->
-        if (profile == null) return@forEach
-        val lastTime = map.getOrPut(profile.id.value) { profile.lastTime }
+    PlayerProfile.allOnline.forEach { profile ->
         transaction {
-            val value = PlayerNotification.getNew(profile, lastTime).toList()
-            if (value.isEmpty()) return@transaction null
-            profile.refresh()
-            if (profile.controlling) profile.lastTime = Instant.now()
-            return@transaction value
-        }?.run(profile, players)
-        map[profile.id.value] = Instant.now()
+            NotificationEntity.getNew(profile).toList()
+        }.takeUnless { it.isEmpty() }?.run(profile)
     }
 }
 
+registerTable(NotificationEntity.T, NotificationEntity.TimeTable)
 onEnable {
     launch {
         DBApi.DB.awaitInit()

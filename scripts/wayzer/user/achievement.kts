@@ -2,14 +2,15 @@
 
 package wayzer.user
 
+import coreLibrary.DBApi.DB.registerTable
 import org.jetbrains.exposed.sql.transactions.transaction
-import wayzer.lib.dao.Achievement as DB
 
 val userService = contextScript<UserService>()
+registerTable(AchievementEntity.T)
 
 fun finishAchievement(profile: PlayerProfile, name: String, exp: Int, broadcast: Boolean = false) {
     transaction {
-        if (!DB.newWithCheck(profile.id, name, exp)) return@transaction
+        if (!AchievementEntity.newWithCheck(profile.id, name, exp)) return@transaction
         userService.updateExp(profile, exp, "完成成就")
         userService.notify(
             profile,

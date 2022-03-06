@@ -1,4 +1,4 @@
-package wayzer.lib.dao
+package wayzer.user
 
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -8,9 +8,10 @@ import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
+import wayzer.lib.dao.PlayerProfile
 import wayzer.lib.dao.util.NeedTransaction
 
-class Achievement(id: EntityID<Int>) : IntEntity(id) {
+class AchievementEntity(id: EntityID<Int>) : IntEntity(id) {
     var userId by T.profile
     var name by T.name
     var exp by T.exp
@@ -23,7 +24,7 @@ class Achievement(id: EntityID<Int>) : IntEntity(id) {
         val time = timestamp("time").defaultExpression(CurrentTimestamp())
     }
 
-    companion object : IntEntityClass<Achievement>(T) {
+    companion object : IntEntityClass<AchievementEntity>(T) {
         @NeedTransaction
         fun newWithCheck(profile: EntityID<Int>, name: String, exp: Int): Boolean {
             return if (T.select { (T.profile eq profile) and (T.name eq name) }.empty()) {

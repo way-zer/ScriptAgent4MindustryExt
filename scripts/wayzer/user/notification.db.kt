@@ -1,17 +1,22 @@
-package wayzer.lib.dao
+package wayzer.user
 
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.update
+import wayzer.lib.dao.PlayerProfile
 import wayzer.lib.dao.util.NeedTransaction
 import java.time.Instant
-import kotlin.math.max
+import java.util.*
 
-class PlayerNotification(id: EntityID<Int>) : IntEntity(id) {
+class NotificationEntity(id: EntityID<Int>) : IntEntity(id) {
     var userId by T.user
     var message by T.message
     private var _params by T.params
@@ -34,10 +39,11 @@ class PlayerNotification(id: EntityID<Int>) : IntEntity(id) {
         val time = timestamp("time").defaultExpression(CurrentTimestamp())
     }
 
-    companion object : IntEntityClass<PlayerNotification>(T) {
+    companion object : IntEntityClass<NotificationEntity>(T) {
         @NeedTransaction
-        fun getNew(profile: PlayerProfile, lastTime: Instant) = find {
-            (T.user eq profile.id) and (T.time greaterEq lastTime)
+        fun getNew(profile: PlayerProfile) = find {
+            val time = TimeTable.getAndUpdate(profile)
+            (T.user eq profile.id) and (T.time greaterEq time)
         }
 
         @NeedTransaction
@@ -46,6 +52,25 @@ class PlayerNotification(id: EntityID<Int>) : IntEntity(id) {
             this.message = message
             this.params = params
             this.broadcast = broadcast
+        }
+    }
+
+    object TimeTable : IdTable<Int>("NotificationCheckTime") {
+        override val id = reference("profile", PlayerProfile.T)
+        private val localTime = WeakHashMap<PlayerProfile, Instant>()
+        val time = timestamp("time")
+
+        @NeedTransaction
+        fun getAndUpdate(profile: PlayerProfile): Instant {
+            val result = localTime.replace(profile, Instant.now())
+                ?: select { id eq profile.id }.forUpdate().firstOrNull()?.get(time) ?: Instant.EPOCH
+            if (profile.controlling && update({ id eq profile.id }) { it[time] = Instant.now() } == 0) {
+                insert {
+                    it[id] = profile.id
+                    it[time] = Instant.now()
+                }
+            }
+            return result
         }
     }
 }
