@@ -50,7 +50,7 @@ dependencies {
     implementation("cf.wayzer.MindustryContents:contents:1.0.6")
 
     //mirai
-    implementation("net.mamoe:mirai-core-api-jvm:2.8.1")
+    implementation("net.mamoe:mirai-core-api-jvm:2.10.0")
     //wayzer
     implementation("com.google.guava:guava:30.1-jre")
     //gbot
