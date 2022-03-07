@@ -38,7 +38,7 @@ fun List<NotificationEntity>.run(profile: PlayerProfile) {
 }
 
 fun loop() {
-    PlayerProfile.allOnline.forEach { profile ->
+    PlayerProfile.allOnline.toList().forEach { profile ->
         transaction {
             NotificationEntity.getNew(profile).toList()
         }.takeUnless { it.isEmpty() }?.run(profile)
