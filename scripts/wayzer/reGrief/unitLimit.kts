@@ -11,17 +11,8 @@ val unitToKill by config.key(220, "单位数上限，禁止产生新的")
 
 val interval = Interval(1)
 listen<EventType.UnitUnloadEvent> { e ->
-    if (e.unit.team == state.rules.waveTeam) {
-        if (e.unit.team.data().unitCount > 5000 && !state.gameOver) {
-            broadcast("[red]敌方单位超过5000,自动投降".with())
-            state.gameOver = true
-            Events.fire(EventType.GameOverEvent(state.rules.waveTeam))
-            Core.app.post {
-                Groups.unit.filter { it.team == state.rules.waveTeam }.forEach(Unit::kill)
-            }
-        }
+    if (e.unit.team == state.rules.waveTeam && state.rules.waves && state.rules.defaultTeam != state.rules.waveTeam)
         return@listen
-    }
     fun alert(text: PlaceHoldString) {
         if (interval[0, 2 * 60f]) {//2s cooldown
             broadcast(text, MsgType.InfoToast, 4f, true, Groups.player.filter { it.team() == e.unit.team })
@@ -49,6 +40,17 @@ listen<EventType.UnitUnloadEvent> { e ->
         }
         count >= unitToWarn -> {
             alert("[yellow]警告: 建筑过多单位,可能造成服务器卡顿,当前: {count}".with("count" to count))
+        }
+    }
+}
+
+listen<EventType.UnitSpawnEvent> { e ->
+    if (e.unit.team.data().unitCount > 5000 && !state.gameOver) {
+        broadcast("[red]敌方单位超过5000,自动投降".with())
+        state.gameOver = true
+        Events.fire(EventType.GameOverEvent(state.rules.waveTeam))
+        Core.app.post {
+            Groups.unit.filter { it.team == state.rules.waveTeam }.forEach(Unit::kill)
         }
     }
 }
