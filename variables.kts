@@ -67,10 +67,9 @@ registerVar("team", "当前玩家的队伍", DynamicVar.v { getVar("player.team"
 registerVarForType<Team>().apply {
     registerChild("name", "队伍名", DynamicVar.obj { it.name })
     registerChild("color", "队伍颜色", DynamicVar.obj { "[#${it.color}]" })
-    registerChild(
-        "colorizeName",
-        "彩色队伍名",
-        DynamicVar.obj { typeResolve(it, "color")?.toString() + typeResolve(it, "name")?.toString() })
+    registerChild("colorizeName", "彩色队伍名", DynamicVar.obj {
+        resolveVar(it, "color")?.toString() + resolveVar(it, "name")?.toString()
+    })
 }
 
 //Unit
@@ -80,7 +79,7 @@ registerVarForType<Unit>().apply {
     registerChild("health", "当前血量", DynamicVar.obj { it.health })
     registerChild("maxHealth", "最大血量", DynamicVar.obj { it.maxHealth })
     registerChild("shield", "护盾值", DynamicVar.obj { it.shield })
-    registerChild("ammo", "弹药", DynamicVar.obj { if (state.rules.unitAmmo) it.shield else typeResolve(it, "maxAmmo") })
+    registerChild("ammo", "弹药", DynamicVar.obj { if (state.rules.unitAmmo) it.shield else resolveVar(it, "maxAmmo") })
     registerChild("maxAmmo", "弹药容量", DynamicVar.obj { it.type.ammoCapacity })
 }
 
