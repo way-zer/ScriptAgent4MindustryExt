@@ -46,12 +46,12 @@ onEnable {
                 val noCache = checkArg("--noCache")
                 if (arg.isEmpty()) replyUsage()
 
-                @Suppress("EXPERIMENTAL_API_USAGE")
-                GlobalScope.launch {
+                //not cancel when disable self
+                launch(Job()) {
                     reply("[yellow]异步处理中".with())
                     @OptIn(LoaderApi::class)
                     ScriptManager.loadRoot()
-                    val script = ScriptManager.getScriptNullable(arg[0]) ?: returnReply("[red]找不到模块或者脚本".with())
+                    val script = ScriptManager.getScriptNullable(arg[0]) ?: return@launch reply("[red]找不到模块或者脚本".with())
                     if (noCache) {
                         val file = Config.cacheFile(script.id, script.isModule)
                         reply("[yellow]清理cache文件{name}".with("name" to file.name))
@@ -72,17 +72,19 @@ onEnable {
                 val save = checkArg("--save")
                 if (arg.isEmpty()) replyUsage()
                 val script = ScriptManager.getScriptNullable(arg[0]) ?: returnReply("[red]找不到模块或者脚本".with())
-                @Suppress("EXPERIMENTAL_API_USAGE")
-                GlobalScope.launch {
+
+                //not cancel when disable self
+                launch(Job()) {
                     reply("[yellow]异步处理中".with())
                     ScriptManager.disableScript(script, "手动关闭".takeIf { save })
                     reply("[green]关闭脚本成功".with())
-//                    if (save) {
-//                        val old = Config.realSourceFile(script.id) ?: return@launch
-//                        val new = old.parentFile.resolve(old.name + ".bak")
-//                        old.renameTo(new)
-//                        reply("[yellow]重命名为{name}".with("name" to new.name))
-//                    }
+                    if (save) {
+                        val old = script.run { ScriptRegistry.checkValid(scriptInfo) ?: return@launch }.sourceFile
+                        val new = old.parentFile.resolve(old.name + ".bak")
+                        old.renameTo(new)
+                        reply("[yellow]重命名为{name}".with("name" to new.name))
+                        ScriptRegistry.checkValid(script.scriptInfo)
+                    }
                 }
             }
         })
