@@ -91,20 +91,7 @@ fun handleInput(reader: LineReader) {
 }
 
 lateinit var reader: LineReader
-
-onEnable {
-    val arr = arrayOfNulls<Thread>(Thread.activeCount())
-    Thread.enumerate(arr)
-    arr.filter { ((it?.name == "Server Controls") || (it?.name == "Console Reader")) }.forEach {
-        it!!.interrupt()
-        if (it.name == "Server Controls") {
-            //Thread "Server Controls" don't have any point to interrupt. Only stop
-            @Suppress("DEPRECATION")
-            it.stop()
-        }
-        it.join()
-    }
-
+fun start() {
     thread(true, isDaemon = true, contextClassLoader = javaClass.classLoader, name = "Console Reader") {
         reader = LineReaderBuilder.builder()
             .completer(MyCompleter).build() as LineReader
@@ -118,5 +105,22 @@ onEnable {
         } finally {
             System.setOut(bakOut)
         }
+    }
+}
+
+onEnable {
+    thread(true, isDaemon = true) {
+        val arr = arrayOfNulls<Thread>(Thread.activeCount())
+        Thread.enumerate(arr)
+        arr.filter { ((it?.name == "Server Controls") || (it?.name == "Console Reader")) }.forEach {
+            it!!.interrupt()
+            if (it.name == "Server Controls") {
+                //Thread "Server Controls" don't have any point to interrupt. Only stop
+                @Suppress("DEPRECATION")
+                it.stop()
+            }
+            it.join()
+        }
+        start()
     }
 }
