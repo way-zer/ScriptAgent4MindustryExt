@@ -37,7 +37,7 @@ object ColorApi {
     private val map = mutableMapOf<String, Color>()//name(Upper)->source
     val all get() = map as Map<String, Color>
     fun register(name: String, color: Color) {
-        map[name.toUpperCase()] = color
+        map[name.uppercase()] = color
     }
 
     init {
@@ -47,7 +47,6 @@ object ColorApi {
     }
 
     fun consoleColorHandler(color: Color): String {
-        if (System.getProperty("os.name", "").contains("Windows")) return ""
         return if (color is ConsoleColor) color.code else ""
     }
 
@@ -55,7 +54,7 @@ object ColorApi {
         return raw.replace(Regex("\\[([!a-zA-Z_]+)]")) {
             val matched = it.groupValues[1]
             if (matched.startsWith("!")) return@replace "[${matched.substring(1)}]"
-            val color = all[matched.toUpperCase()] ?: return@replace it.value
+            val color = all[matched.uppercase()] ?: return@replace it.value
             return@replace colorHandler(color)
         }
     }
