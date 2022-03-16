@@ -13,7 +13,8 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 val customWelcome by config.key("customWelcome", false, "是否开启自定义进服信息(中文)") {
-    Administration.Config.showConnectMessages.set(!it)
+    if (Core.settings != null)
+        Administration.Config.showConnectMessages.set(!it)
 }
 val showIcon by config.key(true, "是否显示等级图标")
 val userService = contextScript<UserService>()
