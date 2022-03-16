@@ -5,11 +5,11 @@ on:
     branches-ignore:
       - 'private*'
     paths:
-      - 'scripts/'
+      - 'scripts/**'
       - 'dependencies.gradle.kts'
   pull_request:
     paths:
-      - 'scripts/'
+      - 'scripts/**'
       - 'dependencies.gradle.kts'
   workflow_dispatch:
 
