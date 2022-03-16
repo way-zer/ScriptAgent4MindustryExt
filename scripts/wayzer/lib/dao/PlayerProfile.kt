@@ -1,6 +1,5 @@
 package wayzer.lib.dao
 
-import arc.util.Strings
 import com.google.common.cache.CacheBuilder
 import mindustry.gen.Player
 import org.jetbrains.exposed.dao.IntEntity
@@ -43,7 +42,9 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
             lastTime = Instant.now()
 
         if (!old && controlling) {
-            players.firstOrNull()?.let { name = Strings.stripColors(it.name) }
+            players.firstOrNull()?.let {
+                name = PlayerData[it.uuid()].lastName
+            }
             players.forEach {
                 it.sendMessage("[green]登录成功！")
             }

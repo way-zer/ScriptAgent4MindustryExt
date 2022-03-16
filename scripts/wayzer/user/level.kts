@@ -5,14 +5,16 @@ package wayzer.user
 import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.PlaceHoldApi.with
 import coreLibrary.lib.event.RequestPermissionEvent
-import mindustry.gen.Groups
+import mindustry.net.Administration
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-val customWelcome by config.key(false, "是否开启自定义进服信息(中文)")
+val customWelcome by config.key("customWelcome", false, "是否开启自定义进服信息(中文)") {
+    Administration.Config.showConnectMessages.set(!it)
+}
 val showIcon by config.key(true, "是否显示等级图标")
 val userService = contextScript<UserService>()
 
@@ -31,9 +33,6 @@ registerVarForType<PlayerProfile>().apply {
     registerChild("nextLevel", "下一级的要求经验值", DynamicVar.obj { expByLevel(level(it.totalExp) + 1) })
 }
 
-/**
- * @return 所有在线用户
- */
 fun updateExp(p: PlayerProfile, desc: String, dot: Int) {
     if (dot != 0) {
         userService.notify(
@@ -49,31 +48,24 @@ fun updateExp(p: PlayerProfile, desc: String, dot: Int) {
             userService.notify(p, "[gold]恭喜你成功升级到{level}级", mapOf("level" to level(p.totalExp).toString()))
         }
     }
-    Groups.player.filter { PlayerData[it.uuid()].secureProfile(it) == p }.forEach {
-        it.name = it.name.replace(Regex("<.>"), "<${getIcon(level(p.totalExp))}>")
-    }
 }
 export(::updateExp)
 
-listen<EventType.PlayerConnect> {
-    if (!showIcon) return@listen
-    Core.app.post {
-        it.player.apply {
-            name = "[white]<${
-                getIcon(
-                    level(
-                        PlayerData.findById(uuid())?.secureProfile(this)?.totalExp ?: 0
-                    )
-                )
-            }>[#$color]$name"
-        }
-    }
+registerVarForType<Player>().apply {
+    registerChild("prefix.0lvl", "等级图标显示", DynamicVar.obj {
+        if (!showIcon) return@obj ""
+        "<${getIcon(level(PlayerData[it.uuid()].secureProfile(it)?.totalExp ?: 0))}>"
+    })
 }
 
 listen<EventType.PlayerJoin> {
     if (!customWelcome) return@listen
-    it.player.sendMessage("[cyan][+]{player.name} [gold]加入了服务器".with("player" to it.player))
     broadcast("[cyan][+]{player.name} [goldenrod]加入了服务器".with("player" to it.player))
+}
+
+listen<EventType.PlayerLeave> {
+    if (!customWelcome) return@listen
+    broadcast("[coral][-]{player.name} [brick]离开了服务器".with("player" to it.player))
 }
 
 listenTo<RequestPermissionEvent> {

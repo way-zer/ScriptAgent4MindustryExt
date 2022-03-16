@@ -29,6 +29,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
 
     @Transient
     var player: Player? = null
+    var realName = "NotInit"
 
     @NeedTransaction
     fun onJoin(player: Player) {
@@ -36,7 +37,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
             return player.kick("[red]你已经在服务器中了")
         this.player = player
         if (secure(player)) {
-            lastName = Strings.stripColors(player.name)
+            lastName = Strings.stripColors(realName)
             lastTime = Instant.now()
             lastIp = player.con.address
             profile?.onJoin(player)

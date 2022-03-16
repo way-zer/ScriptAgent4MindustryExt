@@ -8,7 +8,7 @@ package wayzer.user
 import cf.wayzer.placehold.PlaceHoldApi
 
 fun getLevel(profile: PlayerProfile): Int {
-    return PlaceHoldApi.GlobalContext.typeResolve(this, "level") as Int
+    return PlaceHoldApi.GlobalContext.resolveVar(this, "level") as Int
 }
 
 fun updateExp(profile: PlayerProfile, exp: Int, desc: String = "") {

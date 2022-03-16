@@ -2,6 +2,7 @@ package wayzer
 
 import arc.util.Strings
 import cf.wayzer.placehold.DynamicVar
+import coreLibrary.DBApi
 import mindustry.gen.Groups
 import mindustry.net.Administration
 import mindustry.net.Packets
@@ -16,6 +17,8 @@ name = "基础: 玩家数据"
 registerVarForType<Player>().apply {
     registerChild("ext", "模块扩展数据", DynamicVar.obj { PlayerData[it.uuid()] })
     registerChild("profile", "统一账号信息(可能不存在)", DynamicVar.obj { PlayerData[it.uuid()].profile })
+    registerChild("prefix", "名字前缀,可通过prefix.xxx变量注册", DynamicVar.obj { resolveVar(it, "prefix.*", params = "") })
+    registerChild("suffix", "名字后缀,可通过suffix.xxx变量注册", DynamicVar.obj { resolveVar(it, "suffix.*", params = "") })
 }
 
 registerVarForType<Administration.PlayerInfo>().apply {
@@ -39,30 +42,52 @@ registerVarForType<PlayerProfile>().apply {
     registerChild("lastTime", "账号最后登录时间", DynamicVar.obj { Date.from(it.lastTime) })
 }
 
+fun Player.updateName() {
+    name = "[white]{player.prefix}[]{name}[white]{player.suffix}".with(
+        "player" to this,
+        "name" to PlayerData[uuid()].realName
+    ).toString()
+}
+
+
 listen<EventType.PlayerConnect> {
     val p = it.player
     if (Groups.player.any { pp -> pp.uuid() == p.uuid() }) return@listen p.con.kick(Packets.KickReason.idInUse)
     if (Strings.stripColors(it.player.name).length > 24) return@listen p.con.kick("Name is too long")
-    val data = PlayerData.findById(p.uuid())
-    val event = PlayerJoin(p, data).apply { emit() }
-    if (event.cancelled)
-        p.kick("[red]拒绝入服: ${event.reason}")
-    else transaction { PlayerData.findOrCreate(p).onJoin(p) }
+
+    val event = PlayerJoin(p, PlayerData.findById(p.uuid())).emit()
+    if (event.cancelled) return@listen p.kick("[red]拒绝入服: ${event.reason}")
+
+    val data = PlayerData.findOrCreate(p)
+    if (data.player != null) return@listen p.kick("[red]你已经在服务器中了")
+    data.realName = p.name
+    p.updateName()
 }
 
-listen<EventType.PlayerLeave> { event ->
-    val p = event.player
-    transaction {
-        PlayerData.findOrCreate(p).onQuit(p)
-    }
+listen<EventType.PlayerJoin> {
+    transaction { PlayerData[it.player.uuid()].onJoin(it.player) }
+}
+
+listen<EventType.PlayerLeave> {
+    transaction { PlayerData[it.player.uuid()].onQuit(it.player) }
 }
 
 onEnable {
-    launch(Dispatchers.IO) {
-        delay(5000)
-        val online = Groups.player.mapNotNull { PlayerData[it.uuid()].secureProfile(it) }
-        transaction {
-            online.forEach(PlayerProfile::loopCheck)
+    launch {
+        DBApi.DB.awaitInit()
+        Groups.player.toList().forEach {
+            transaction { PlayerData[it.uuid()].onJoin(it) }
+        }
+        launch(Dispatchers.IO) {
+            delay(5000)
+            val online = Groups.player.mapNotNull { PlayerData[it.uuid()].secureProfile(it) }
+            transaction {
+                online.forEach(PlayerProfile::loopCheck)
+            }
+        }
+        launch(Dispatchers.game) {
+            delay(5000)
+            Groups.player.forEach { it.updateName() }
         }
     }
 }
