@@ -29,25 +29,23 @@ object PlaceHold {
 
     class TypePlaceHoldKey<R>(val name: String, private val cls: Class<R>) {
         operator fun <T : Any> getValue(thisRef: T, prop: KProperty<*>): R {
-            val v = PlaceHoldApi.GlobalContext.typeResolve(thisRef, name)
+            val v = PlaceHoldApi.GlobalContext.resolveVar(thisRef, name)
             if (cls.isInstance(v)) return cls.cast(v)
             error("Can't get typeVar $name: FROM $thisRef GET $v")
         }
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     class ScriptTypeBinder<T : Any>(
         private val script: Script,
         private val namePrefix: String,
         private val binder: TypeBinder<T>
     ) {
-        fun registerChild(key: String, desc: String, body: DynamicVar<T, Any>) {
+        fun registerToString(desc: String, body: DynamicVar<T, String>) = registerChildAny(PlaceHoldContext.ToString,desc,body)
+        fun registerChild(key: String, desc: String, body: DynamicVar<T, Any>) = registerChildAny(key, desc, body)
+        fun registerChildAny(key: String, desc: String, body: Any?) {
             script.registeredVars["$namePrefix.$key"] = desc
-            binder.registerChild(key, body)
-        }
-
-        fun registerToString(desc: String, body: DynamicVar<T, String>) {
-            script.registeredVars["$namePrefix.toString"] = desc
-            binder.registerToString(body)
+            binder.registerChildAny(key, body)
         }
     }
 
