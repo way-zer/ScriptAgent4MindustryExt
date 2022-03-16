@@ -35,11 +35,14 @@ jobs:
           restore-keys: |
             deps-
 
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - uses: actions/cache@v2
         with:
           path: |
             scripts/cache
-          key: kts-cache
+          key: kts-cache-${{ steps.date.outputs.date }}
           restore-keys: |
             kts-cache
 
