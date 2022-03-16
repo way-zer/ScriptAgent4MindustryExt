@@ -2,6 +2,7 @@ package coreMindustry.lib
 
 import arc.util.CommandHandler
 import arc.util.Log
+import arc.util.Strings
 import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.ColorApi
@@ -15,7 +16,7 @@ import mindustry.gen.Player
 
 object ContentHelper {
     fun logToConsole(text: String) {
-        Log.info(ColorApi.handle(text, ColorApi::consoleColorHandler))
+        Log.info(Strings.stripColors(ColorApi.handle(text, ColorApi::consoleColorHandler)))
     }
 
     fun mindustryColorHandler(color: ColorApi.Color): String {
