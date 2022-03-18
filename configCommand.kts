@@ -48,12 +48,12 @@ onEnable {
                     null -> {
                         returnReply(
                             """
-                        [yellow]==== [light_yellow]配置项: {name}[yellow] ====
-                        {desc}
-                        [cyan]当前值: [yellow]{value}
-                        [yellow]使用/sa config help查看可用操作
-                    """.trimIndent().with(
-                                "name" to config.path, "desc" to config.desc.map { "[purple]$it\n" },
+                        |[yellow]==== [light_yellow]配置项: {name}[yellow] ====
+                        |[purple]{desc:${"\n"}}
+                        |[cyan]当前值: [yellow]{value}
+                        |[yellow]使用/sa config help查看可用操作
+                    """.trimMargin().with(
+                                "name" to config.path, "desc" to config.desc,
                                 "value" to config.getString()
                             )
                         )
