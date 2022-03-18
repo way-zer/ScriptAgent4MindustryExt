@@ -1,30 +1,24 @@
 package wayzer.map
 
-import arc.math.geom.Geometry
-import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.gen.Groups
-import mindustry.gen.Unit
-import mindustry.world.blocks.storage.CoreBlock
 import java.time.Duration
 import kotlin.math.ceil
 
 val time by config.key(600, "pvp保护时间(单位秒,小于等于0关闭)")
 
-listen<EventType.WorldLoadEvent> {
+listen<EventType.PlayEvent> {
     launch(Dispatchers.game) {
-        delay(3_000)
         var leftTime = state.rules.tags.getInt("@pvpProtect", time)
         if (state.rules.mode() != Gamemode.pvp || time <= 0) return@launch
-        broadcast("[yellow]PVP保护时间,禁止在其他基地攻击(持续{time:分钟})".with("time" to Duration.ofSeconds(leftTime.toLong())), quite = true)
+        broadcast(
+            "[yellow]PVP保护时间,禁止在其他基地攻击(持续{time:分钟})".with("time" to Duration.ofSeconds(leftTime.toLong())),
+            quite = true
+        )
         suspend fun checkAttack(time: Int) = repeat(time) {
             delay(1000)
             Groups.unit.forEach {
-                fun Unit.nearest(): CoreBlock.CoreBuild? {
-                    return Geometry.findClosest(it.x, it.y, state.teams.present
-                            .filterNot { t -> t.team == it.team }.flatMap { t -> t.cores })
-                }
-                if (it.nearest()?.within(it, state.rules.enemyCoreBuildRadius) == true) {
+                if (it.closestEnemyCore()?.within(it, state.rules.enemyCoreBuildRadius) == true) {
                     it.player?.sendMessage("[red]PVP保护时间,禁止在其他基地攻击".with())
                     it.kill()
                 }
