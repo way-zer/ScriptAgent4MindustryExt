@@ -17,8 +17,8 @@ name = "基础: 玩家数据"
 registerVarForType<Player>().apply {
     registerChild("ext", "模块扩展数据", DynamicVar.obj { PlayerData[it.uuid()] })
     registerChild("profile", "统一账号信息(可能不存在)", DynamicVar.obj { PlayerData[it.uuid()].profile })
-    registerChild("prefix", "名字前缀,可通过prefix.xxx变量注册", DynamicVar.obj { resolveVar(it, "prefix.*", params = "") })
-    registerChild("suffix", "名字后缀,可通过suffix.xxx变量注册", DynamicVar.obj { resolveVar(it, "suffix.*", params = "") })
+    registerChild("prefix", "名字前缀,可通过prefix.xxx变量注册", DynamicVar.obj { resolveVar(it, "prefix.*.toString", "") })
+    registerChild("suffix", "名字后缀,可通过suffix.xxx变量注册", DynamicVar.obj { resolveVar(it, "suffix.*.toString", "") })
 }
 
 registerVarForType<Administration.PlayerInfo>().apply {
@@ -79,15 +79,19 @@ onEnable {
             transaction { PlayerData[it.uuid()].onJoin(it) }
         }
         launch(Dispatchers.IO) {
-            delay(5000)
-            val online = Groups.player.mapNotNull { PlayerData[it.uuid()].secureProfile(it) }
-            transaction {
-                online.forEach(PlayerProfile::loopCheck)
+            while (true) {
+                delay(5000)
+                val online = Groups.player.mapNotNull { PlayerData[it.uuid()].secureProfile(it) }
+                transaction {
+                    online.forEach(PlayerProfile::loopCheck)
+                }
             }
         }
         launch(Dispatchers.game) {
-            delay(5000)
-            Groups.player.forEach { it.updateName() }
+            while (true) {
+                delay(5000)
+                Groups.player.forEach { it.updateName() }
+            }
         }
     }
 }
