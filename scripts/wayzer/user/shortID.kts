@@ -45,6 +45,7 @@ export(this::getUUIDbyShort)
 
 registerVarForType<Player>().apply {
     registerChild("shortID", "uuid 3位前缀,可以展现给其他玩家", DynamicVar.obj { it.shortID() })
+    registerChild("suffix.9shortID", "名字后缀：3位ID", DynamicVar.obj { "|[red]${it.shortID()}[]" })
 }
 registerVarForType<Administration.PlayerInfo>().apply {
     registerChild("shortID", "uuid 3位前缀,可以展现给其他玩家", DynamicVar.obj { shortStr(it.id) })

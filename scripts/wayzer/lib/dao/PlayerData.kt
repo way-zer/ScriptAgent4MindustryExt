@@ -33,6 +33,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
 
     @NeedTransaction
     fun onJoin(player: Player) {
+        if (this.player == player) return
         if (this.player != null)
             return player.kick("[red]你已经在服务器中了")
         this.player = player
