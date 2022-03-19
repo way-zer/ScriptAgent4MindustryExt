@@ -6,6 +6,7 @@ import cf.wayzer.scriptAgent.emit
 import coreLibrary.lib.PermissionApi.Global
 import coreLibrary.lib.PermissionApi.PermissionHandler
 import coreLibrary.lib.event.RequestPermissionEvent
+import java.util.*
 
 /**
  * 权限系统Api
@@ -41,12 +42,14 @@ interface PermissionApi {
      */
     companion object Global : PermissionHandler<List<String>> {
         val default = StringPermissionHandler()
-        var impl: StringPermissionHandler? = null
-        val allKnownGroup: Set<String> get() = default.allKnownGroup + impl?.allKnownGroup.orEmpty()
+        val handlers = LinkedList<StringPermissionHandler>().apply {
+            addLast(default)
+        }
+        val allKnownGroup: Set<String> get() = handlers.flatMapTo(mutableSetOf()) { it.allKnownGroup }
 
         fun handleGroup(group: String, permission: String): Result {
-            return (impl?.handle(group, permission) ?: Result.Default).fallback {
-                default.handle(group, permission)
+            return handlers.fold(Result.Default) { it, handler ->
+                it.fallback { handler.handle(group, permission) }
             }
         }
 
@@ -110,6 +113,13 @@ interface PermissionApi {
             }
         }
 
+        fun unRegisterPermission(subject: String, permission: Iterable<String>) {
+            permission.forEach {
+                val pp = convertToInternal(it).removeSuffix("-")
+                tree.setPermission(subject, pp, Result.Default)
+            }
+        }
+
         fun clear() {
             allPermission.clear()
             tree.clear()
@@ -118,10 +128,9 @@ interface PermissionApi {
 
     /**
      * Use for implementing [Global.impl]
-     * @param hasGroup 由数根负责传递,树根为null
+     * @param hasGroup 由数根负责传递
      */
     class StringPermissionTree(private val hasGroup: ((subject: String, group: String) -> Boolean)) {
-        val test by lazy { }
         val map = mutableMapOf<String, StringPermissionTree>()
         val allow = mutableSetOf<String>()
         val reject = mutableSetOf<String>()
