@@ -3,7 +3,8 @@ package coreLibrary
 import coreLibrary.lib.event.RequestPermissionEvent
 
 val handler = PermissionApi.StringPermissionHandler()
-PermissionApi.impl = handler
+onEnable { PermissionApi.handlers.addFirst(handler) }
+onDisable { PermissionApi.handlers.remove(handler) }
 
 var groups by config.key(
     "groups", mapOf("@default" to emptyList<String>()),
@@ -25,7 +26,7 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
     body {
         if (arg.isEmpty()) returnReply("当前已有组: {list}".with("list" to PermissionApi.allKnownGroup))
         val group = arg[0]
-        when (arg.getOrNull(1)?.toLowerCase() ?: "") {
+        when (arg.getOrNull(1)?.lowercase() ?: "") {
             "add" -> {
                 if (arg.size < 3) returnReply("[red]请输入需要增减的权限".with())
                 val now = groups[group].orEmpty()
@@ -64,7 +65,7 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
                     )
                 )
             }
-            "delGroup".toLowerCase() -> {
+            "delGroup".lowercase() -> {
                 val now = groups[group].orEmpty()
                 if (group in groups)
                     groups = groups - group
@@ -80,7 +81,7 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
 }
 
 val debug by config.key(false, "调试输出,如果开启,则会在后台打印权限请求")
-listenTo<RequestPermissionEvent>(5) {
+listenTo<RequestPermissionEvent>(Event.Priority.Watch) {
     if (debug)
         logger.info("$permission $directReturn -- $group")
 }
