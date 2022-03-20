@@ -69,3 +69,4 @@ command("banX", "管理指令: 禁封") {
         reply("[green]已禁封{qq}".with("qq" to (qq ?: uuid)))
     }
 }
+PermissionApi.registerDefault("wayzer.admin.ban", group = "@admin")
