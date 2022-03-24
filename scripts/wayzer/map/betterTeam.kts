@@ -59,12 +59,14 @@ listen<EventType.PlayEvent> { updateBannedTeam(true) }
 //custom gameover
 listen<EventType.BlockDestroyEvent> { e ->
     if (state.gameOver || !state.rules.pvp) return@listen
-    if (e.tile.block() is CoreBlock) {
-        allTeam.singleOrNull()?.let {
-            state.gameOver = true
-            Events.fire(EventType.GameOverEvent(it))
+    if (e.tile.block() is CoreBlock)
+        launch(Dispatchers.gamePost) {
+            if (state.gameOver) return@launch
+            allTeam.singleOrNull()?.let {
+                state.gameOver = true
+                Events.fire(EventType.GameOverEvent(it))
+            }
         }
-    }
 }
 listen<EventType.ResetEvent> {
     if (keepTeamsOnce) {
