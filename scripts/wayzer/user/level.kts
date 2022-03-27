@@ -3,19 +3,13 @@
 package wayzer.user
 
 import cf.wayzer.placehold.DynamicVar
-import cf.wayzer.placehold.PlaceHoldApi.with
 import coreLibrary.lib.event.RequestPermissionEvent
-import mindustry.net.Administration
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-val customWelcome by config.key("customWelcome", false, "是否开启自定义进服信息(中文)") {
-    if (Core.settings != null)
-        Administration.Config.showConnectMessages.set(!it)
-}
 val showIcon by config.key(true, "是否显示等级图标")
 val userService = contextScript<UserService>()
 
@@ -57,16 +51,6 @@ registerVarForType<Player>().apply {
         if (!showIcon) return@obj ""
         "<${getIcon(level(PlayerData[it.uuid()].secureProfile(it)?.totalExp ?: 0))}>"
     })
-}
-
-listen<EventType.PlayerJoin> {
-    if (!customWelcome) return@listen
-    broadcast("[cyan][+]{player.name} [goldenrod]加入了服务器".with("player" to it.player))
-}
-
-listen<EventType.PlayerLeave> {
-    if (!customWelcome) return@listen
-    broadcast("[coral][-]{player.name} [brick]离开了服务器".with("player" to it.player))
 }
 
 listenTo<RequestPermissionEvent> {
