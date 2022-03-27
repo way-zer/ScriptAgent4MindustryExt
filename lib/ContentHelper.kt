@@ -71,7 +71,7 @@ fun Player?.sendMessage(text: PlaceHoldString, type: MsgType = MsgType.Message, 
 }
 
 fun PlaceHoldString.toPlayer(player: Player): String = ColorApi.handle(
-    "{text}".with("text" to text, "player" to player, "receiver" to player).toString(),
+    "{text}".with("text" to this, "player" to player, "receiver" to player).toString(),
     ContentHelper::mindustryColorHandler
 )
 
