@@ -55,7 +55,7 @@ object MapManager {
             current = info
             Vars.state.map = info.map
             try {
-                info.load(event.rules)
+                info.load(event.rules.copy())
             } catch (e: MapException) {
                 broadcast("[red]地图{info.map.name}无效:{reason}".with("info" to info, "reason" to (e.message ?: "")))
                 return@resetAndLoad loadMap()
