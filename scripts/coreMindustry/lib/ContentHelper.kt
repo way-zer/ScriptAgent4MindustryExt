@@ -12,6 +12,7 @@ import coreLibrary.lib.with
 import mindustry.Vars.netServer
 import mindustry.gen.Call
 import mindustry.gen.Groups
+import mindustry.gen.Iconc
 import mindustry.gen.Player
 
 object ContentHelper {
@@ -34,7 +35,7 @@ object ContentHelper {
     }
 }
 
-enum class MsgType { Message, InfoMessage, InfoToast }
+enum class MsgType { Message, InfoMessage, InfoToast, WarningToast, Announce }
 
 fun broadcast(
     text: PlaceHoldString,
@@ -57,18 +58,22 @@ fun Player?.sendMessage(text: PlaceHoldString, type: MsgType = MsgType.Message, 
     else {
         if (con == null) return
         MindustryDispatcher.runInMain {
-            val msg = ColorApi.handle(
-                "{text}".with("text" to text, "player" to this, "receiver" to this).toString(),
-                ContentHelper::mindustryColorHandler
-            )
+            val msg = text.toPlayer(this)
             when (type) {
                 MsgType.Message -> Call.sendMessage(this.con, msg, null, null)
                 MsgType.InfoMessage -> Call.infoMessage(this.con, msg)
                 MsgType.InfoToast -> Call.infoToast(this.con, msg, time)
+                MsgType.WarningToast -> Call.warningToast(this.con, Iconc.warning.code, msg)
+                MsgType.Announce -> Call.announce(this.con, msg)
             }
         }
     }
 }
+
+fun PlaceHoldString.toPlayer(player: Player): String = ColorApi.handle(
+    "{text}".with("text" to text, "player" to player, "receiver" to player).toString(),
+    ContentHelper::mindustryColorHandler
+)
 
 fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) =
     sendMessage(text.with(), type, time)
