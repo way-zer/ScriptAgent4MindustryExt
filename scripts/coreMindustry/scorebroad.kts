@@ -1,4 +1,4 @@
-package main
+package coreMindustry
 //WayZer 版权所有(请勿删除版权注解)
 import arc.util.Align
 import mindustry.gen.Groups
@@ -33,8 +33,8 @@ onEnable {
                     if (disabled.contains(it.uuid())) return@forEach
                     val mobile = it.con?.mobile == true
                     Call.infoPopup(
-                        it.con, msg.with("player" to it, "receiver" to it).toString(),
-                        2.013f, Align.topLeft, if (mobile) 210 else 155, 0, 0, 0
+                        it.con, msg.with().toPlayer(it), 2.013f,
+                        Align.topLeft, if (mobile) 210 else 155, 0, 0, 0
                     )
                 }
             }
