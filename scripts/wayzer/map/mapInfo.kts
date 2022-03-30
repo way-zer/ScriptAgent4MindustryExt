@@ -6,15 +6,18 @@ import mindustry.world.blocks.storage.CoreBlock
 
 fun CoreBlock.CoreBuild.showInfo(p: Player) {
     if (p.con == null) return
+    var lastChar = ' '
     var i = 0
     val desc = state.map.description().map {
-        if (i > 20 && it in charArrayOf(' ', '，', ',', '.', '。', '!', '！')) {
-            i = 0
-            '\n'
-        } else {
-            i++
-            it
-        }
+        if (i > 25 && it in charArrayOf(' ', '，', ',', '.', '。', '!', '！'))
+            if (it != '.' || lastChar.code !in '0'.code..'9'.code) {
+                i = 0
+                lastChar = it
+                return@map '\n'
+            }
+        lastChar = it
+        i++
+        return@map it
     }.joinToString("")
     Call.label(
         p.con, """
