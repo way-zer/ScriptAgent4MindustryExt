@@ -34,17 +34,26 @@ companion object Api {
         }
 
         /** @param coolDown in ms,  -1一局冷却 */
-        @SkillScopeMarker
-        fun checkOrSetCoolDown(coolDown: Int) {
+        fun checkCoolDown(coolDown: Int, set: Boolean = true): Boolean {
             val id = PlayerData[player.uuid()].profile?.id?.value ?: 0
             val key = "${name}@$id"
             if (key in used) {
-                if (coolDown < 0)
-                    returnReply("[red]该技能每局限用一次".with())
-                else if (used[key]!! >= System.currentTimeMillis())
-                    returnReply("[red]技能冷却，还剩{time:秒}".with("time" to Duration.ofMillis(used[key]!! - System.currentTimeMillis())))
+                if (coolDown < 0) {
+                    ctx.reply("[red]该技能每局限用一次".with())
+                    return false
+                } else if (used[key]!! >= System.currentTimeMillis()) {
+                    ctx.reply("[red]技能冷却，还剩{time:秒}".with("time" to Duration.ofMillis(used[key]!! - System.currentTimeMillis())))
+                    return false
+                }
             }
-            used[key] = System.currentTimeMillis() + coolDown
+            if (set) used[key] = System.currentTimeMillis() + coolDown
+            return true
+        }
+
+        /** @param coolDown in ms,  -1一局冷却 */
+        @SkillScopeMarker
+        fun checkOrSetCoolDown(coolDown: Int) {
+            if (!checkCoolDown(coolDown)) CommandInfo.Return()
         }
 
         @SkillScopeMarker
@@ -76,6 +85,7 @@ companion object Api {
         val write = DataOutputStream(outStream)
         builds.forEach {
             write.writeInt(it.pos())
+            write.writeShort(it.block.id.toInt())
             it.writeAll(Writes.get(write))
         }
         Call.blockSnapshot(builds.size.toShort(), outStream.toByteArray())
