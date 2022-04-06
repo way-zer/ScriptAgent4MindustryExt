@@ -24,8 +24,8 @@ listen<EventType.PlayEvent> {
         loop(Dispatchers.game) {
             delay(1000)
             Groups.unit.forEach {
-                if (it.isShooting() && it.inEnemyArea) {
-                    it.player?.sendMessage("[red]PVP保护时间,禁止在其他基地攻击".with())
+                if (it.inEnemyArea) {
+                    it.player?.sendMessage("[red]PVP保护时间,禁止进入敌方区域".with())
                     it.kill()
                 }
             }
