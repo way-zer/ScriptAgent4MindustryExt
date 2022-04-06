@@ -1,10 +1,14 @@
 @file:Depends("coreMindustry")
 @file:Depends("wayzer/maps", "获取地图信息")
+@file:Import("mapScript.lib.*", defaultImport = true)
 
 package mapScript
 
 import cf.wayzer.scriptAgent.events.ScriptEnableEvent
+import wayzer.MapInfo
 import wayzer.MapManager
+import wayzer.MapProvider
+import wayzer.MapRegistry
 
 val moduleId = id
 
@@ -29,6 +33,7 @@ listen<EventType.PlayEvent> {
     val script = ScriptManager.getScriptNullable("$moduleId/${MapManager.current.id}")?.scriptInfo
         ?: getScriptByTag() ?: return@listen
     inRunning = script
+    if (script.enabled) return@listen
     launch {
         ScriptManager.loadScript(script, true)
         broadcast("[yellow]加载地图特定脚本完成: {id}".with("id" to script.id))
@@ -36,6 +41,20 @@ listen<EventType.PlayEvent> {
 }
 
 listenTo<ScriptEnableEvent>(Event.Priority.Intercept) {
-    if (script.id.startsWith("$moduleId/") && script.id != inRunning?.id)
-        ScriptManager.disableScript(script, "按需关闭")
+    if (script.id.startsWith("$moduleId/")) {
+        GeneratorSupport.checkScript(script)
+        if (script.id != inRunning?.id)
+            ScriptManager.disableScript(script, "按需关闭")
+    }
 }
+
+MapRegistry.register(this, object : MapProvider() {
+    override val supportFilter: Set<String> get() = GeneratorSupport.knownMaps.flatMapTo(mutableSetOf()) { it.value.second }
+    override fun getMaps(filter: String) = GeneratorSupport.knownMaps.values
+        .filter { filter in it.second }
+        .map { it.first }
+
+    override suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)?): MapInfo? {
+        return GeneratorSupport.findGenerator(id)
+    }
+})
