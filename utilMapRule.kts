@@ -30,12 +30,12 @@ fun <T : Content, R : T> newContent(origin: T, block: (origin: T) -> R): R {
     }
 }
 
-fun <T> registerMapRule(field: KMutableProperty0<T>, valueFactory: (T) -> T) {
+fun <T> registerMapRule(field: KMutableProperty0<T>, checkRef: Boolean = true, valueFactory: (T) -> T) {
     synchronized(bakMap) {
         @Suppress("UNCHECKED_CAST")
         val old = (bakMap[field] as T?) ?: field.get()
         val new = valueFactory(old)
-        if (new === old)
+        if (field !in bakMap && checkRef && new is Any && new === old)
             error("valueFactory can't return the same instance for $field")
         field.set(new)
         bakMap[field] = old
