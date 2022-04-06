@@ -6,6 +6,7 @@ import coreLibrary.lib.util.loop
 import mindustry.game.Team
 
 /**@author xkldklp WayZer*/
+name = "尸潮PVP"
 
 onEnable {
     val startTime = Time.millis()

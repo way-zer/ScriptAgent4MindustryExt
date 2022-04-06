@@ -2,6 +2,7 @@ package mapScript
 
 import arc.util.Align
 /**@author WayZer*/
+name = "Boss挑战"
 onEnable {
     launch(Dispatchers.game) {
         while (true) {

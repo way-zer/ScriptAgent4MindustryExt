@@ -11,9 +11,10 @@ import mindustry.world.blocks.production.Pump
 import mindustry.world.blocks.production.SolidPump
 import kotlin.random.Random
 
-/**动态地貌脚本
+/**
  * Contributor(s): BlackDeluxeCat
  * */
+name = "动态地貌脚本"
 //自然转化
 val sporeGrowRate = 0.3     //孢子生油随机成熟：普通孢子->茂密孢子->孢子灌木丛->石油
 val sporeGrowList = mapOf(moss to sporeMoss, sporeMoss to tar)

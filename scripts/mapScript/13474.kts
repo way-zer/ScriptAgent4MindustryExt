@@ -5,6 +5,7 @@ import mindustry.game.Team
 import mindustry.gen.Unit
 
 /**@author WayZer*/
+name = "赛艇-初始化"
 
 onEnable {
     //origin js from map 13474

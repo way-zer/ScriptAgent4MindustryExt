@@ -17,6 +17,7 @@ import kotlin.random.Random
 /**
  * Contributors: BlackDeluxeCat, Wayzer
  * */
+name = "生长矿物"
 //process rate per run
 val growRate = 0.9     //if ore spreads to a pebbles
 val spreadRate = 0.2   //if ore spreads to a no-pebbles overlay
