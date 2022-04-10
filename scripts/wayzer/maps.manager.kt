@@ -51,15 +51,43 @@ object MapManager {
             }
         }).emit()
         if (event.cancelled) return
-        resetAndLoad {
-            current = info
-            Vars.state.map = info.map
+        MindustryDispatcher.runInMain {
+            if (!Vars.net.server()) Vars.netServer.openServer()
+            val players = Groups.player.toList()
+            players.forEach { it.clearUnit() }
             try {
-                info.load(event.rules.copy())
+                current.beforeReset?.invoke()
+            } catch (e: Throwable) {
+                thisContextScript().logger.log(Level.WARNING, "Error when do reset for $current", e)
+            }
+            Call.worldDataBegin()
+            current = info
+            try {
+//              Vars.logic.reset()
+                info.load()
+                Vars.state.map = info.map
+                Vars.state.rules = event.rules.copy()
+                if (isSave) {
+                    Vars.state.set(GameState.State.playing)
+                    Events.fire(EventType.PlayEvent())
+                } else {
+                    Vars.logic.play()
+                }
             } catch (e: MapException) {
                 broadcast("[red]地图{info.map.name}无效:{reason}".with("info" to info, "reason" to (e.message ?: "")))
-                return@resetAndLoad loadMap()
+                players.forEach { it.add() }
+                return@runInMain loadMap()
             }
+            players.forEach {
+                if (it.con == null) return@forEach
+                it.admin.let { was ->
+                    it.reset()
+                    it.admin = was
+                }
+                it.team(Vars.netServer.assignTeam(it, players))
+                Vars.netServer.sendWorldData(it)
+            }
+            players.forEach { it.add() }
         }
     }
 
@@ -67,9 +95,6 @@ object MapManager {
         val map = MapIO.createMap(file, true)
         val info = MapInfo(map.rules().idInTag, map, map.rules().mode()) {
             SaveIO.load(file)
-            Vars.state.rules = it
-            Vars.state.set(GameState.State.playing)
-            Events.fire(EventType.PlayEvent())
         }
         loadMap(info, true)
     }
@@ -92,30 +117,4 @@ object MapManager {
         set(value) {
             tags.put("id", value.toString())
         }
-
-    private fun resetAndLoad(callBack: () -> Unit) {
-        MindustryDispatcher.runInMain {
-            if (!Vars.net.server()) Vars.netServer.openServer()
-            val players = Groups.player.toList()
-            players.forEach { it.clearUnit() }
-            try {
-                current.beforeReset?.invoke()
-            } catch (e: Throwable) {
-                thisContextScript().logger.log(Level.WARNING, "Error when do reset for $current", e)
-            }
-//            Vars.logic.reset()
-            Call.worldDataBegin()
-            callBack()
-            players.forEach {
-                if (it.con == null) return@forEach
-                it.admin.let { was ->
-                    it.reset()
-                    it.admin = was
-                }
-                it.team(Vars.netServer.assignTeam(it, players))
-                Vars.netServer.sendWorldData(it)
-            }
-            players.forEach { it.add() }
-        }
-    }
 }

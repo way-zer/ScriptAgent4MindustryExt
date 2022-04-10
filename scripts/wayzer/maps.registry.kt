@@ -19,10 +19,8 @@ data class MapInfo(
     val id: Int, val map: Map, val mode: Gamemode,
     val beforeReset: (() -> Unit)? = null,
     /**use for generator or save*/
-    val load: ((Rules) -> Unit) = {
+    val load: (() -> Unit) = {
         Vars.world.loadMap(map)
-        Vars.state.rules = it
-        Vars.logic.play()
     }
 ) {
     override fun equals(other: Any?): Boolean {
