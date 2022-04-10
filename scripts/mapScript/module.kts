@@ -17,7 +17,8 @@ val moduleId = id
 var inRunning: ScriptInfo? = null
 
 listen<EventType.ResetEvent> {
-    inRunning?.let { ScriptManager.disableScript(it, "按需关闭") }
+    ScriptManager.allScripts { it.id.startsWith("$moduleId/") && it.enabled }
+        .forEach { ScriptManager.disableScript(it, "按需关闭") }
     inRunning = null
 }
 
@@ -35,15 +36,16 @@ listen<EventType.PlayEvent> {
     inRunning = script
     if (script.enabled) return@listen
     launch {
-        ScriptManager.loadScript(script, true)
+        ScriptManager.newLoadScript(script, true)
         broadcast("[yellow]加载地图特定脚本完成: {id}".with("id" to script.id))
     }
 }
 
+@OptIn(LoaderApi::class)
 listenTo<ScriptEnableEvent>(Event.Priority.Intercept) {
     if (script.id.startsWith("$moduleId/")) {
         GeneratorSupport.checkScript(script)
-        if (script.id != inRunning?.id)
+        if (script.id != inRunning?.id && inRunning?.dependsOn(script.scriptInfo, includeSoft = true) != true)
             ScriptManager.disableScript(script, "按需关闭")
     }
 }

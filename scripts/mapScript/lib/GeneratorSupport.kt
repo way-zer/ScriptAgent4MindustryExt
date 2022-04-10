@@ -2,7 +2,6 @@ package mapScript.lib
 
 import arc.struct.StringMap
 import cf.wayzer.scriptAgent.ScriptManager
-import cf.wayzer.scriptAgent.contextScript
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
@@ -25,7 +24,7 @@ object GeneratorSupport {
     fun findGenerator(id: Int): MapInfo? {
         if (id in knownMaps) return knownMaps[id]!!.first
         val script = ScriptManager.getScriptNullable("mapScript/$id")?.scriptInfo ?: return null
-        val loadedScript = ScriptManager.loadScript(script, true, enable = false)
+        val loadedScript = ScriptManager.newLoadScript(script, true, enable = false)
         if (loadedScript == null) {
             thisContextScript().logger.warning("加载地图脚本 ${script.id} 失败")
             return null
@@ -39,28 +38,24 @@ object GeneratorSupport {
         knownMaps.remove(id)
 
         val map = script.mapInfo ?: return
-        val info = MapInfo(id, map, script.mapMode, load = { loadMap(script.id, it) })
+        val info = MapInfo(id, map, script.mapMode, load = { loadMap(script.id) })
         knownMaps[id] = info to script.mapFilters
         thisContextScript().logger.info("Find generator script: ${script.id}")
     }
 
-    fun loadMap(scriptId: String, rules: Rules) {
+    fun loadMap(scriptId: String) {
         Vars.logic.reset()
 
         val script = ScriptManager.getScript(scriptId).scriptInfo
-        contextScript<mapScript.Module>().inRunning = script
-        val loadedScript = ScriptManager.loadScript(script, true, enable = false) ?: error("加载地图脚本 $scriptId 失败")
-
+        val loadedScript = ScriptManager.newLoadScript(script, true, enable = false) ?: error("加载地图脚本 $scriptId 失败")
         val map = loadedScript.mapInfo!!
+
         Vars.world.loadGenerator(map.width, map.height) { tiles ->
             loadedScript.genRound.forEach { (name, round) ->
                 val time = measureTimeMillis { round(tiles) }
                 loadedScript.logger.info("Do $name costs $time ms.")
             }
         }
-        Vars.state.rules = rules
-        ScriptManager.enableScript(loadedScript)
-        Vars.logic.play()
     }
 }
 
