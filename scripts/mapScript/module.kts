@@ -35,8 +35,8 @@ listen<EventType.PlayEvent> {
         ?: getScriptByTag() ?: return@listen
     inRunning = script
     if (script.enabled) return@listen
-    launch {
-        ScriptManager.newLoadScript(script, true)
+    ScriptManager.newLoadScript(script, true)
+    launch(Dispatchers.gamePost) {
         broadcast("[yellow]加载地图特定脚本完成: {id}".with("id" to script.id))
     }
 }

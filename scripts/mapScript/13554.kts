@@ -25,7 +25,6 @@ onEnable {
         registerMapRule((Blocks.coreNucleus as CoreBlock)::unitType) { UnitTypes.mono }
         registerMapRule((Blocks.conduit as Conduit)::health) { 1 }
     }
-    Groups.player.each { it.clearUnit() }
 
     val startTime = Time.millis()
     fun lvl() = Time.timeSinceMillis(startTime) / 1000f
