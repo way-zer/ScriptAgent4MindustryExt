@@ -2,40 +2,16 @@ package main
 
 import arc.graphics.Color
 import mindustry.content.Blocks
+import mindustry.game.Team
 import mindustry.type.Item
 import java.awt.Image
 import java.awt.image.BufferedImage
-import java.io.File
+import java.net.URL
 import javax.imageio.ImageIO
 
 //WayZer 版权所有(禁止删除版权声明)
 
-val pixelDir by config.key(Config.dataDirectory.resolve("pixels"), "像素画原图存放目录")
-val maxSize by config.key(32, "最大像素画大小")
-
-fun handle(file: File, body: (x: Int, y: Int, rgb: Int) -> Unit) {
-    var img = ImageIO.read(file)
-    fun resize(inImg: BufferedImage): BufferedImage {
-        var height = img.height
-        var width = img.width
-        while (height > maxSize || width > maxSize) {
-            height /= 2
-            width /= 2
-        }
-        val scaled = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-        scaled.createGraphics().apply {
-            drawImage(inImg.getScaledInstance(width, height, Image.SCALE_REPLICATE), 0, 0, null)
-        }
-        return scaled
-    }
-    img = resize(img)
-//    pixelDir.resolve(file.nameWithoutExtension + "min.png").outputStream().use { ImageIO.write(img, "png", it) }
-    for (x in 1..img.width)
-        for (y in 1..img.height)
-            body(x, y, img.getRGB(x - 1, y - 1))
-}
-
-fun draw(p: Player, file: File) {
+fun draw(x: Int, y: Int, rgb: Int) {
     fun getClosestColor(color: Color): Item {
         fun pow2(x: Float) = x * x
         return content.items().min { item ->
@@ -45,58 +21,72 @@ fun draw(p: Player, file: File) {
         }
     }
 
-    fun place(x: Int, y: Int, item: Item) {
-        val tile = world.tile(x, y) ?: return
-        if (tile.block() != Blocks.air) return
-        Call.constructFinish(tile, Blocks.sorter, p.unit(), 0, p.team(), true)
-        Call.tileConfig(p, tile.build, item.id.toInt())
-    }
-    //debug
-//    content.items().forEachIndexed { index, item ->
-//        p.sendMessage("[#${item.color}]${item.name}")
-//        place(p.tileX() + index + 1, p.tileY() + 1, item)
-//    }
-
     fun argb8888ToColor(value: Int): Color {
         val color = Color()
         color.a = (value and -16777216 ushr 24).toFloat() / 255.0f
         color.r = (value and 16711680 ushr 16).toFloat() / 255.0f
-        color.g = (value and '\uff00'.toInt() ushr 8).toFloat() / 255.0f
+        color.g = (value and '\uff00'.code ushr 8).toFloat() / 255.0f
         color.b = (value and 255).toFloat() / 255.0f
         return color
     }
-    handle(file) { x, y, rgba ->
-        val color = argb8888ToColor(rgba)
-        if (color.a < 0.001) return@handle //Pass alpha pixel
-        val closest = getClosestColor(color)
-        //debug
+
+    val color = argb8888ToColor(rgb)
+    if (color.a < 0.001) return //Pass alpha pixel
+    val closest = getClosestColor(color)
+    //debug
 //        p.sendMessage("Closest color for [#$color]$color is: [#${closest.color}]${closest.color}")
-        place(p.tileX() + x, p.tileY() - y, closest)
+    world.tiles.getc(x, y).apply {
+        if (block() != Blocks.air && block() != Blocks.sorter) return@apply
+        setNet(Blocks.sorter, Team.crux, 0)
+        Call.tileConfig(null, build, closest)
     }
 }
 
+fun BufferedImage.resize(maxSize: Int): BufferedImage {
+    var scale = 1
+    while (height / scale > maxSize || width / scale > maxSize) scale++
+    val height = height / scale
+    val width = width / scale
+    val scaled = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+    scaled.createGraphics().apply {
+        drawImage(getScaledInstance(width, height, Image.SCALE_REPLICATE), 0, 0, null)
+    }
+    return scaled
+}
+
 command("pixel", "绘制像素画") {
-    usage = "[fileName]"
+    usage = "[size=32] <url>"
     type = CommandType.Client
     permission = id.replace("/", ".")
     aliases = listOf("像素画")
     body {
-        if (arg.isEmpty()) {
-            val list = (pixelDir.listFiles() ?: emptyArray()).joinToString("\n") { it.name }
-            reply(
-                """
-            ==== 可用图片 ====
-            {list}
-        """.trimIndent().with("list" to list)
-            )
-        } else {
-            val file = pixelDir.resolve(arg[0])
-            if (!file.exists()) returnReply("[red]找不到对应文件".with())
+        if (arg.isEmpty()) replyUsage()
+        val size = arg.firstOrNull()?.toIntOrNull() ?: 32
+        val url = kotlin.runCatching { URL(arg.last()) }.getOrElse {
+            returnReply("[red]错误的URL: {error}".with("error" to it.message.orEmpty()))
+        }
+        val p = player!!
+        launch(CoroutineExceptionHandler { _, throwable ->
+            reply("[red]执行出错: {error}".with("error" to throwable.message.orEmpty()))
+        }) {
             reply("[yellow]准备开始绘制".with())
-            launch(Dispatchers.game) {
-                draw(player!!, file)
-                reply("[green]绘制完成".with())
+            var img = withContext(Dispatchers.IO) { ImageIO.read(url) }
+            reply("[yellow]原始图片尺寸{w}x{h}".with("w" to img.width, "h" to img.height))
+            img = img.resize(size)
+            reply("[yellow]缩放后比例{w}x{h}".with("w" to img.width, "h" to img.height))
+            withContext(Dispatchers.game) {
+                var i = 0
+                for (x in 1..img.width)
+                    for (y in 1..img.height) {
+                        i++
+                        draw(p.tileX() - img.width / 2 + x, p.tileY() + img.height / 2 - y, img.getRGB(x - 1, y - 1))
+                        if (i > 10) {
+                            i = 0
+                            yield()
+                        }
+                    }
             }
+            reply("[green]绘制完成".with())
         }
     }
 }
