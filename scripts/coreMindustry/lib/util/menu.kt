@@ -31,5 +31,5 @@ fun <E> CommandContext.sendMenuPhone(
             reply(getPage(it), MsgType.InfoMessage)
         }
     } else
-        reply(getPage(page ?: 1), MsgType.InfoMessage)
+        reply(getPage(page ?: 1))
 }
