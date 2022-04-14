@@ -5,10 +5,18 @@ import mindustry.core.NetServer
 import mindustry.game.Team
 import mindustry.gen.Groups
 import mindustry.world.blocks.storage.CoreBlock
+import wayzer.map.BetterTeam.AssignTeamEvent
 
 name = "更好的队伍"
 
-data class AssignTeamEvent(val player: Player, val group: Iterable<Player>, var team: Team?) : Event {
+data class AssignTeamEvent(val player: Player, val group: Iterable<Player>, val oldTeam: Team?) : Event {
+    var team: Team? = oldTeam
+    override val handler: Event.Handler get() = Companion
+
+    companion object : Event.Handler()
+}
+
+data class ChangeTeamEvent(val player: Player, var team: Team) : Event {
     override val handler: Event.Handler get() = Companion
 
     companion object : Event.Handler()
@@ -26,30 +34,11 @@ customLoad(::teams, teams::putAll)
 var bannedTeam = emptySet<Team>()
 var keepTeamsOnce = false
 
-fun updateBannedTeam(force: Boolean = false) {
-    if (force || bannedTeam.isEmpty())
-        bannedTeam = state.rules.tags.get("@banTeam")?.split(',').orEmpty()
-            .mapNotNull { Team.all.getOrNull(it.toIntOrNull() ?: -1) }.toSet()
-    Groups.player.filter { it.team() in bannedTeam }.forEach {
-        changeTeam(it)
-        it.sendMessage("[yellow]因为原队伍被禁用,你已自动切换队伍".with(), MsgType.InfoMessage)
-    }
-}
 onEnable {
     val backup = netServer.assigner
-    netServer.assigner = object : NetServer.TeamAssigner {
-        override fun assign(player: Player, p1: MutableIterable<Player>): Team {
-            val event = AssignTeamEvent(player, p1, null).emit()
-            event.team?.let {
-                teams[player.uuid()] = it
-                return it
-            }
-            if (teams[player.uuid()]?.run { (this != spectateTeam && !active()) || this in bannedTeam } == true)
-                teams.remove(player.uuid())
-            return teams.getOrPut(player.uuid()) {
-                //not use old,because it may assign to team without core
-                randomTeam(player, p1)
-            }
+    netServer.assigner = NetServer.TeamAssigner { p, g ->
+        ChangeTeamEvent(p, randomTeam(p, g)).emit().team.also {
+            teams[p.uuid()] = it
         }
     }
     onDisable { netServer.assigner = backup }
@@ -76,15 +65,34 @@ listen<EventType.ResetEvent> {
     teams.clear()
 }
 
+fun updateBannedTeam(force: Boolean = false) {
+    if (force || bannedTeam.isEmpty())
+        bannedTeam = state.rules.tags.get("@banTeam")?.split(',').orEmpty()
+            .mapNotNull { Team.all.getOrNull(it.toIntOrNull() ?: -1) }.toSet()
+    Groups.player.filter { it.team() in bannedTeam }.forEach {
+        changeTeam(it)
+        it.sendMessage("[yellow]因为原队伍被禁用,你已自动切换队伍".with(), MsgType.InfoMessage)
+    }
+}
+
+/**
+ * 1. 触发[AssignTeamEvent]
+ * 2. 尝试使用[teams]队伍
+ * 3. 从[allTeam]随机分配队伍
+ */
 fun randomTeam(player: Player, group: Iterable<Player> = Groups.player): Team {
+    if (teams[player.uuid()]?.run { (this != spectateTeam && !data().hasCore()) || this in bannedTeam } == true)
+        teams.remove(player.uuid())
+    val fromEvent = AssignTeamEvent(player, group, teams[player.uuid()]).emit().team
+    if (fromEvent != null) return fromEvent
     if (!state.rules.pvp) return state.rules.defaultTeam
     return allTeam.shuffled()
         .minByOrNull { group.count { p -> p.team() == it && player != p } }
         ?: state.rules.defaultTeam
 }
 
-fun changeTeam(p: Player, team: Team? = null) {
-    val newTeam = AssignTeamEvent(p, Groups.player, team).emit().team ?: randomTeam(p)
+fun changeTeam(p: Player, team: Team = randomTeam(p)) {
+    val newTeam = ChangeTeamEvent(p, team).emit().team
     teams[p.uuid()] = newTeam
     p.clearUnit()
     p.team(newTeam)
@@ -98,6 +106,7 @@ command("ob", "切换为观察者") {
     permission = "wayzer.ext.observer"
     body {
         if (player!!.team() == spectateTeam) {
+            teams.remove(player!!.uuid())
             changeTeam(player!!)
             if (state.rules.enemyLights.not())
                 Call.setRules(player!!.con, state.rules)
