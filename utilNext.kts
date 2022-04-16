@@ -57,38 +57,7 @@ data class MenuChooseEvent(
     companion object : Event.Handler()
 }
 
-/**
- * @param options 选项行,同行选项使用||分隔
- * @return 行,列 序号从0开始, 未选择返回-1,-1
- */
-suspend fun sendMenu(
-    player: Player,
-    timeoutMillis: Int,
-    title: String,
-    msg: String,
-    options: Array<String>
-): Pair<Int, Int> {
-    val id = Random.nextInt()
-    Call.menu(
-        player.con, id, title, msg,
-        options.map { it.split("||").toTypedArray() }.toTypedArray()
-    )
-    return withTimeoutOrNull(timeoutMillis.toLong()) {
-        val e = nextEvent<MenuChooseEvent> { it.player == player && it.menuId == id }
-        if (e.value != -1) {
-            var col = e.value
-            options.forEachIndexed { row, s ->
-                val len = s.split("||").size
-                if (col < len) {
-                    return@withTimeoutOrNull row to col
-                }
-                col -= len
-            }
-        }
-        return@withTimeoutOrNull null
-    } ?: (-1 to -1)
-}
-
+@Deprecated("use menuBuilder", ReplaceWith("this.menuBuilder(title,builder)"))
 suspend fun <T> sendMenuBuilder(
     player: Player,
     timeoutMillis: Int,
@@ -96,12 +65,50 @@ suspend fun <T> sendMenuBuilder(
     msg: String,
     builder: suspend MutableList<List<Pair<String, suspend () -> T>>>.() -> Unit
 ): T? {
-    val list = mutableListOf<List<Pair<String, suspend () -> T>>>()
-    list.builder()
-    val (row, col) = sendMenu(player, timeoutMillis, title, msg, list.map { line ->
-        line.joinToString("||") { it.first }
-    }.toTypedArray())
-    return list.getOrNull(row)?.getOrNull(col)?.second?.invoke()
+    return menuBuilder<T>(title) {
+        this.msg = msg
+        buildList { builder() }.forEachIndexed { i, l ->
+            if (i != 0) newRow()
+            l.forEach { option(it.first, it.second) }
+        }
+    }.sendTo(player, timeoutMillis)
+}
+
+inline fun <T> menuBuilder(
+    title: String,
+    block: MenuBuilder<T>.() -> Unit
+): MenuBuilder<T> = MenuBuilder<T>(title).apply(block)
+
+@DslMarker
+annotation class MenuBuilderDsl
+
+inner class MenuBuilder<T>(val title: String) {
+    private val menu = mutableListOf(mutableListOf<String>())
+    private val callback = mutableListOf<suspend () -> T>()
+
+    @MenuBuilderDsl
+    var msg = ""
+
+    @MenuBuilderDsl
+    fun newRow() = menu.add(mutableListOf())
+
+    @MenuBuilderDsl
+    fun option(name: String, body: suspend () -> T) {
+        menu.last().add(name)
+        callback.add(body)
+    }
+
+    suspend fun sendTo(player: Player, timeoutMillis: Int): T? {
+        val id = Random.nextInt()
+        Call.menu(
+            player.con, id, title, msg,
+            menu.map { it.toTypedArray() }.toTypedArray()
+        )
+        return withTimeoutOrNull(timeoutMillis.toLong()) {
+            val e = nextEvent<MenuChooseEvent> { it.player == player && it.menuId == id }
+            callback.getOrNull(e.value)?.invoke()
+        }
+    }
 }
 
 listenPacket2Server<MenuChooseCallPacket> { con, packet ->
