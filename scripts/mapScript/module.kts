@@ -49,6 +49,18 @@ listenTo<ScriptEnableEvent>(Event.Priority.Intercept) {
             ScriptManager.disableScript(script, "按需关闭")
     }
 }
+@OptIn(LoaderApi::class)
+listenTo<ScriptEnableEvent>(Event.Priority.After) {
+    if (script.id.startsWith("$moduleId/")) {
+        script.scriptInfo.dependsData.forEach {
+            if (it.name.startsWith("$moduleId/")) {
+                val d = ScriptManager.getScriptNullable(it.name)
+                    ?: return@forEach broadcast("[red]该服务器依赖地图脚本，请联系管理员: {id}".with("id" to it.name))
+                ScriptManager.loadScript(d, force = true)
+            }
+        }
+    }
+}
 
 MapRegistry.register(this, object : MapProvider() {
     override val supportFilter: Set<String> get() = GeneratorSupport.knownMaps.flatMapTo(mutableSetOf()) { it.value.second }
