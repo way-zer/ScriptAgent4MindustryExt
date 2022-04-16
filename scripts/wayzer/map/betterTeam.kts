@@ -9,8 +9,14 @@ import wayzer.map.BetterTeam.AssignTeamEvent
 
 name = "更好的队伍"
 
-data class AssignTeamEvent(val player: Player, val group: Iterable<Player>, val oldTeam: Team?) : Event {
+data class AssignTeamEvent(val player: Player, val group: Iterable<Player>, val oldTeam: Team?) : Event,
+    Event.Cancellable {
     var team: Team? = oldTeam
+        set(value) {
+            field = value
+            cancelled = true
+        }
+    override var cancelled: Boolean = false
     override val handler: Event.Handler get() = Companion
 
     companion object : Event.Handler()
