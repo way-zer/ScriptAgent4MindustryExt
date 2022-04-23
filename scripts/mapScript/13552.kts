@@ -30,9 +30,10 @@ onEnable {
     }
     loop {
         Call.infoPopup(
-            """[cyan] 欢迎来到<[red]害群之马[cyan]>模式'
-                请自由探索本模式的机制！
-                [red]千万不要打地图中间的灰队轰炸机""".trimIndent(), 10.05f,
+            """
+            [cyan] 欢迎来到<[red]害群之马[cyan]>模式
+            请自由探索本模式的机制！
+            [red]千万不要打地图中间的灰队轰炸机""".trimIndent(), 10.05f,
             Align.topLeft, 350, 0, 0, 0
         )
         delay(10_000)

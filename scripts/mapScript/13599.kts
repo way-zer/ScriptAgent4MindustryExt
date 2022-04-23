@@ -37,12 +37,13 @@ fun Player.upgrade(type: UnitType, cost: Int, coreCost: Float): mindustry.gen.Un
                 apply(StatusEffects.sapped, 999999f)
                 apply(StatusEffects.freezing, 999999f)
             }
-            if (type == UnitTypes.mega) {//你跑太快力
+            if (type == UnitTypes.mega || type == UnitTypes.quad) {//你跑太快力
                 apply(StatusEffects.sporeSlowed, 999999f)
             }
             apply(StatusEffects.unmoving, 5f * 60f)
             apply(StatusEffects.disarmed, 10f * 60f)
             apply(StatusEffects.invincible, 5f * 60f)
+            apply(StatusEffects.shielded, 10f * 60f)
         })
         core().items.remove(Items.copper, (core().items.get(Items.copper) * coreCost).toInt())
     }
@@ -230,12 +231,12 @@ onEnable {
         registerMapRule((Blocks.coreShard as CoreBlock)::unitType) { UnitTypes.flare }
         registerMapRule((Blocks.coreFoundation as CoreBlock)::unitType) { UnitTypes.flare }
         registerMapRule((Blocks.coreNucleus as CoreBlock)::unitType) { UnitTypes.flare }
-        registerMapRule(UnitTypes.flare::health) { 150f }
+        registerMapRule(UnitTypes.flare::health) { 1500f }
+        registerMapRule(UnitTypes.flare.weapons.get(0).bullet::damage) { 1f }
         registerMapRule(UnitTypes.cyerce::flying) { true }//t3海辅
         registerMapRule(UnitTypes.cyerce::health) { 400f }
         registerMapRule(UnitTypes.cyerce::armor) { 0f }
         registerMapRule(UnitTypes.cyerce.weapons.get(2).bullet::healPercent) { 0f }
-        registerMapRule(UnitTypes.cyerce.weapons.get(2).bullet.fragBullet::healPercent) { 0f }
         registerMapRule(UnitTypes.sei::flying) { true }//t4海战
         registerMapRule(UnitTypes.sei::health) { 1800f }
         registerMapRule(UnitTypes.sei.weapons.get(0).bullet::damage) { 15f }
@@ -245,6 +246,8 @@ onEnable {
         registerMapRule(UnitTypes.aegires::flying) { true }//t4海辅
         registerMapRule(UnitTypes.aegires::health) { 1200f }
         registerMapRule(UnitTypes.aegires::armor) { 0f }
+        registerMapRule(UnitTypes.aegires.weapons.get(0).bullet::damage) { 96f }
+        registerMapRule(UnitTypes.aegires.weapons.get(3).bullet::damage) { 96f }
         registerMapRule(UnitTypes.omura::flying) { true }//t5海战
         registerMapRule(UnitTypes.omura::health) { 5600f }
         registerMapRule(UnitTypes.omura::armor) { 0f }
@@ -265,7 +268,7 @@ onEnable {
         registerMapRule(UnitTypes.mega.weapons.get(0).bullet::damage) { 16f }
         registerMapRule(UnitTypes.mega.weapons.get(2).bullet::healPercent) { 0f }
         registerMapRule(UnitTypes.mega.weapons.get(2).bullet::damage) { 8f }
-        registerMapRule(UnitTypes.zenith::armor) { 0f }
+        registerMapRule(UnitTypes.zenith::armor) { 12f }
         registerMapRule(UnitTypes.antumbra::health) { 3600f }
         registerMapRule(UnitTypes.antumbra::armor) { 0f }
         registerMapRule(UnitTypes.antumbra.weapons.get(0).bullet::damage) { 9f }
@@ -273,7 +276,8 @@ onEnable {
         registerMapRule(UnitTypes.antumbra.weapons.get(5).bullet::damage) { 33f }
         registerMapRule(UnitTypes.quad::health) { 3600f }
         registerMapRule(UnitTypes.quad::armor) { 0f }
-        registerMapRule(UnitTypes.quad.weapons.get(0).bullet::splashDamage) { 110f }
+        registerMapRule(UnitTypes.quad.weapons.get(0).bullet::splashDamage) { 44f }
+        registerMapRule(UnitTypes.quad.weapons.get(0).bullet::splashDamageRadius) { 240f }
         registerMapRule(UnitTypes.quad.weapons.get(0).bullet::collidesAir) { true }
         registerMapRule(UnitTypes.eclipse::health) { 7200f }
         registerMapRule(UnitTypes.eclipse::armor) { 0f }
@@ -308,7 +312,7 @@ onEnable {
         }
     }
     //刷新区域半边长
-    val range = state.rules.tags.getInt("refreshRange", 50)
+    val range = state.rules.tags.getInt("@refreshRange", 50)
     loop(Dispatchers.game) {
         delay(1000)
         repeat(3) {
@@ -334,7 +338,7 @@ onEnable {
     }
 }
 
-val oreCostIncreaseTime = state.rules.tags.getInt("oreCostIncreaseTime", 240) * 1000f
+val oreCostIncreaseTime = state.rules.tags.getInt("@oreCostIncreaseTime", 240) * 1000f
 val startTime by lazy { Time.millis() }
 listen<EventType.BlockDestroyEvent> { t ->
     val time = (Time.timeSinceMillis(startTime) / oreCostIncreaseTime).toInt()
