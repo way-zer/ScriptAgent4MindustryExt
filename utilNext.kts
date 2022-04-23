@@ -4,7 +4,7 @@
 package coreMindustry
 
 import mindustry.gen.MenuChooseCallPacket
-import mindustry.net.Administration
+import mindustry.gen.SendChatMessageCallPacket
 import kotlin.coroutines.resume
 import kotlin.random.Random
 
@@ -32,16 +32,10 @@ data class OnChat(val player: Player, val text: String) : Event, WithHandled {
     companion object : Event.Handler()
 }
 
-onEnable {
-    val filter = Administration.ChatFilter { p, t ->
-        if (OnChat(p, t).emit().handled) null else t
-    }
-    netServer.admins.chatFilters.apply {
-        add(filter)
-        onDisable {
-            remove(filter)
-        }
-    }
+listenPacket2Server<SendChatMessageCallPacket> { con, p ->
+    con.player?.let {
+        OnChat(it, p.message).emit().handled.not()
+    } ?: true
 }
 
 suspend fun nextChat(player: Player, timeoutMillis: Int): String? = withTimeoutOrNull(timeoutMillis.toLong()) {
