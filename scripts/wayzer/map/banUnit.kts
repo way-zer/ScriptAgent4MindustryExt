@@ -3,27 +3,29 @@ package wayzer.map
 import mindustry.ctype.ContentType
 import mindustry.type.UnitType
 
-val list
-    get() = state.rules.tags["@banUnit"].orEmpty()
+var list = emptySet<UnitType>()
+
+listen<EventType.PlayEvent> {
+    val old = state.rules.tags["@banUnit"].orEmpty()
         .split(';')
         .filterNot { it.isEmpty() }
         .map { content.getByName<UnitType>(ContentType.unit, it) }
-
-listen<EventType.PlayEvent> {
-    list.takeIf { it.isNotEmpty() }?.let { list ->
-        broadcast("[red]本地图禁用单位:[yellow]{list}".with("list" to list))
+    list = state.rules.bannedUnits.toSet() + old
+    if (list.isNotEmpty()) {
+        state.rules.bannedUnits.addAll(*list.toTypedArray())
+        broadcast("[red]本地图禁用单位:[yellow]{list}".with("list" to list.map { "${it.emoji()}${it.localizedName}" }))
     }
 }
 
 listen<EventType.PlayerJoin> { e ->
-    list.takeIf { it.isNotEmpty() }?.let { list ->
-        e.player.sendMessage("[red]本地图禁用单位:[yellow]{list}".with("list" to list))
-    }
+    if (list.isNotEmpty())
+        e.player.sendMessage("[red]本地图禁用单位:[yellow]{list}".with("list" to list.map { "${it.emoji()}${it.localizedName}" }))
 }
 
 listen<EventType.UnitUnloadEvent> {
-    if (it.unit.type in list) {
-        Call.label("[red]本地图已禁用单位${it.unit.type.name}", 10f, it.unit.x, it.unit.y)
+    val type = it.unit.type
+    if (type in list) {
+        Call.label("[red]本地图已禁用单位${type.emoji()}${type.localizedName}}", 10f, it.unit.x, it.unit.y)
         it.unit.set(0f, 0f)
         it.unit.kill()
     }
