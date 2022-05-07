@@ -29,10 +29,12 @@ data class ChangeTeamEvent(val player: Player, var team: Team) : Event {
 }
 
 val spectateTeam = Team.all[255]!!
-val allTeam: List<Team>
-    get() = state.teams.active.asSequence().filter {
-        it.hasCore() && (it.team != Team.derelict && it.team !in bannedTeam)
-    }.map { it.team }.toList()
+val allTeam: Set<Team>
+    get() = state.teams.getActive().mapTo(mutableSetOf()) { it.team }.apply {
+        remove(Team.derelict)
+        removeIf { !it.data().hasCore() }
+        removeAll(bannedTeam)
+    }
 
 @Savable(false)
 val teams = mutableMapOf<String, Team>()
@@ -87,7 +89,8 @@ fun updateBannedTeam(force: Boolean = false) {
  * 3. 从[allTeam]随机分配队伍
  */
 fun randomTeam(player: Player, group: Iterable<Player> = Groups.player): Team {
-    if (teams[player.uuid()]?.run { (this != spectateTeam && !data().hasCore()) || this in bannedTeam } == true)
+    val allTeam = allTeam
+    if (teams[player.uuid()]?.run { this != spectateTeam && this !in allTeam } == true)
         teams.remove(player.uuid())
     val fromEvent = AssignTeamEvent(player, group, teams[player.uuid()]).emit().team
     if (fromEvent != null) return fromEvent
@@ -118,7 +121,7 @@ command("ob", "切换为观察者") {
                 Call.setRules(player!!.con, state.rules)
             broadcast(
                 "[yellow]玩家[green]{player.name}[yellow]重新投胎到{player.team.colorizeName}"
-                    .with("player" to player!!), quite = true
+                    .with("player" to player!!), type = MsgType.InfoToast, quite = true
             )
         } else {
             changeTeam(player!!, spectateTeam)
@@ -126,7 +129,10 @@ command("ob", "切换为观察者") {
                 Call.setRules(player!!.con, state.rules.copy().apply {
                     enemyLights = true
                 })
-            broadcast("[yellow]玩家[green]{player.name}[yellow]选择成为观察者".with("player" to player!!), quite = true)
+            broadcast(
+                "[yellow]玩家[green]{player.name}[yellow]选择成为观察者"
+                    .with("player" to player!!), type = MsgType.InfoToast, quite = true
+            )
             player!!.sendMessage("[green]再次输入指令可以重新投胎")
         }
     }
