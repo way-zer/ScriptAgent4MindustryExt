@@ -4,7 +4,8 @@ import cf.wayzer.placehold.PlaceHoldApi.with
 import mindustry.net.Administration
 
 val customWelcome by config.key("customWelcome", false, "是否开启自定义进服信息(中文)") {
-    Administration.Config.showConnectMessages.set(!it)
+    if (dataDirectory != null)
+        Administration.Config.showConnectMessages.set(!it)
 }
 val type by config.key(MsgType.InfoMessage, "发送方式")
 val template by config.key(
