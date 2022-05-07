@@ -9,7 +9,7 @@ listen<EventType.PlayEvent> {
     val old = state.rules.tags["@banUnit"].orEmpty()
         .split(';')
         .filterNot { it.isEmpty() }
-        .map { content.getByName<UnitType>(ContentType.unit, it) }
+        .mapNotNull { content.getByName<UnitType>(ContentType.unit, it) }
     list = state.rules.bannedUnits.toSet() + old
     if (list.isNotEmpty()) {
         state.rules.bannedUnits.addAll(*list.toTypedArray())
