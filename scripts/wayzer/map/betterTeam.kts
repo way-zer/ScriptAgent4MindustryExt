@@ -109,35 +109,6 @@ fun changeTeam(p: Player, team: Team = randomTeam(p)) {
 }
 
 export(::changeTeam)
-
-command("ob", "切换为观察者") {
-    type = CommandType.Client
-    permission = "wayzer.ext.observer"
-    body {
-        if (player!!.team() == spectateTeam) {
-            teams.remove(player!!.uuid())
-            changeTeam(player!!)
-            if (state.rules.enemyLights.not())
-                Call.setRules(player!!.con, state.rules)
-            broadcast(
-                "[yellow]玩家[green]{player.name}[yellow]重新投胎到{player.team.colorizeName}"
-                    .with("player" to player!!), type = MsgType.InfoToast, quite = true
-            )
-        } else {
-            changeTeam(player!!, spectateTeam)
-            if (state.rules.enemyLights.not())
-                Call.setRules(player!!.con, state.rules.copy().apply {
-                    enemyLights = true
-                })
-            broadcast(
-                "[yellow]玩家[green]{player.name}[yellow]选择成为观察者"
-                    .with("player" to player!!), type = MsgType.InfoToast, quite = true
-            )
-            player!!.sendMessage("[green]再次输入指令可以重新投胎")
-        }
-    }
-}
-
 command("team", "管理指令: 修改自己或他人队伍(PVP模式)") {
     usage = "[队伍,不填列出] [玩家3位id,默认自己]"
     permission = "wayzer.ext.team.change"
