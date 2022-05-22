@@ -2,19 +2,20 @@ package wayzer.ext
 
 import arc.util.Interval
 import arc.util.Log
-import arc.util.async.Threads
 import arc.util.serialization.Jval
 import mindustry.core.Version
 import mindustry.gen.Groups
 import mindustry.net.BeControl
 import java.io.File
 import java.net.URL
+import java.time.LocalDateTime
 import kotlin.system.exitProcess
 
 name = "自动更新"
 
 val enableUpdate by config.key(false, "是否开启自动更新")
 val source by config.key("Anuken/Mindustry", "服务端来源，Github仓库")
+val onlyInNight by config.key(false, "仅在凌晨自动更新", "本地时间1:00到7:00")
 
 var updateCallback: (() -> Unit)? = null
 
@@ -42,6 +43,7 @@ onEnable {
     launch {
         while (true) {
             if (enableUpdate) {
+                if (!onlyInNight || LocalDateTime.now().hour in 1..6)
                 try {
                     val txt = URL("https://api.github.com/repos/$source/releases").readText()
                     val json = Jval.read(txt).asArray().first()
@@ -50,19 +52,19 @@ onEnable {
                         .split(".").map { it.toInt() }
                     if (version > Version.build || revision > Version.revision) {
                         val asset = json.get("assets").asArray().find {
-                            it.getString("name", "").startsWith("server-release")
-                        }
+                                it.getString("name", "").contains("server", ignoreCase = true)
+                            } ?: error("New version $newBuild, but can't find asset")
                         val url = asset.getString("browser_download_url", "")
                         try {
                             update(newBuild, "https://gh.tinylake.cf/$url")
                             break
                         } catch (e: Throwable) {
-                            logger.warning("下载更新失败: " + e.message)
+                                logger.warning("下载更新失败: $e")
                             e.printStackTrace()
                         }
                     }
                 } catch (e: Throwable) {
-                    logger.warning("获取更新数据失败:" + e.message)
+                        logger.warning("获取更新数据失败: $e")
                 }
             }
             delay(5 * 60_000)//延时5分钟
@@ -85,7 +87,8 @@ suspend fun update(version: String, url: String) {
         Groups.player.forEach {
             it.kick("[yellow]服务器重启更新到新版本 $version")
         }
-        Threads.sleep(32L)
+
+        Thread.sleep(100L)
         dest.outputStream().use { output ->
             tmp.inputStream().use { it.copyTo(output) }
         }
@@ -98,4 +101,21 @@ suspend fun update(version: String, url: String) {
 
 listen<EventType.ResetEvent> {
     updateCallback?.invoke()
+}
+
+command("forceUpdate", "强制更新服务器版本") {
+    permission = dotId
+    usage = "<url>"
+    body {
+        arg.firstOrNull()?.let { kotlin.runCatching { URL(it) }.getOrNull() } ?: replyUsage()
+        launch {
+            reply("[green]正在后台处理中".with())
+            try {
+                update("管理员手动升级", arg.first())
+            } catch (e: Throwable) {
+                reply("[red]升级失败{e}".with("e" to e))
+                e.printStackTrace()
+            }
+        }
+    }
 }
