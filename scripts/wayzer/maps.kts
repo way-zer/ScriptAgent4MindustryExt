@@ -84,7 +84,7 @@ command("maps", "列出服务器地图") {
 onEnable {
     //hack to stop origin gameOver logic
     val control = Core.app.listeners.find { it.javaClass.simpleName == "ServerControl" }
-    val field = control.javaClass.getDeclaredField("inExtraRound")
+    val field = control.javaClass.getDeclaredField("inGameOverWait")
     field.apply {
         isAccessible = true
         logger.info("inExtraRound:" + get(control))

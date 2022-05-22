@@ -38,7 +38,7 @@ sealed class Listener<T : Any> : Cons<T> {
         }
 
         override fun unregister() {
-            Events.remove(cls, this)
+            map[cls]?.remove(this)
         }
     }
 
@@ -48,7 +48,7 @@ sealed class Listener<T : Any> : Cons<T> {
         override val handler: (T) -> Unit
     ) : Listener<T>() {
         override fun register() {
-            map.get(v, ::Seq).add(this)
+            map.get(v) { Seq(Cons::class.java) }.add(this)
         }
 
         override fun unregister() {

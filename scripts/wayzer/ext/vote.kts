@@ -106,7 +106,7 @@ fun VoteService.register() {
         canVote = canVote.let { default -> { default(it) && it.team() == team } }
         requireNum = { ceil(allCanVote().size * 2.0 / 5).toInt() }
         start(player!!, "清理建筑记录({team.colorizeName}[yellow]队|需要2/5同意)".with("team" to team)) {
-            team.data().blocks.clear()
+            team.data().plans.clear()
         }
     }
     addSubVote("自定义投票", "<内容>", "text", "文本", "t") {

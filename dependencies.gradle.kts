@@ -20,11 +20,11 @@ repositories {
 
 dependencies {
     val libraryVersion = "1.8.1.3"
-    val mindustryVersion = "v135"
+    val mindustryVersion = "914fcd90a5"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
     pluginImplementation("cf.wayzer:LibraryManager:1.4.1")
-    pluginImplementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
+    pluginImplementation("com.github.Anuken.MindustryJitpack:core:$mindustryVersion")
 
     val implementation by configurations
     implementation(kotlin("script-runtime"))
@@ -40,7 +40,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
 
     //coreMindustry
-    implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
+    implementation("com.github.Anuken.MindustryJitpack:core:$mindustryVersion")
     //coreMindustry/console
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.2.1")
     implementation("org.jline:jline-terminal:3.19.0")
