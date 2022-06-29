@@ -42,7 +42,7 @@ fun Duration.toConfigString(): String {
         (seconds % 60) != 0L -> seconds.toString() + "s"
         (seconds % (60 * 60)) != 0L -> (seconds / 60).toString() + "m"
         (seconds % (60 * 60 * 24)) != 0L -> (seconds / (60 * 60)).toString() + "h"
-        else -> (seconds / 60).toString() + "d"
+        else -> (seconds / 60 * 60 * 24).toString() + "d"
     }
 }
 registerCustomType(object : CustomType {
