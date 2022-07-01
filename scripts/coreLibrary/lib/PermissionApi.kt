@@ -12,8 +12,8 @@ import java.util.*
  * 权限系统Api
  * 架构:
  *   coreLib: 抽象接口[PermissionHandler] -> 全局String权限解析[Global]
- *          工具类 [StringPermissionHandler] [StringPermissionTree]
- *   coreLib/permissionCommand: 指令及持久化实现[Global.impl]
+ *   - 工具类 [StringPermissionHandler] [PermissionGroup]
+ *   coreLib/permissionCommand: 指令及持久化实现
  *   各子模块针对不同subject,代理至[Global.handleThoughEvent]解析
  */
 interface PermissionApi {
@@ -34,6 +34,7 @@ interface PermissionApi {
      */
     fun interface PermissionHandler<T> {
         fun T.invoke(permission: String): Result
+        val allKnownSubject: Set<T> get() = emptySet()
     }
 
     /**
@@ -42,10 +43,10 @@ interface PermissionApi {
      */
     companion object Global : PermissionHandler<List<String>> {
         val default = StringPermissionHandler()
-        val handlers = LinkedList<StringPermissionHandler>().apply {
+        val handlers = LinkedList<PermissionHandler<String>>().apply {
             addLast(default)
         }
-        val allKnownGroup: Set<String> get() = handlers.flatMapTo(mutableSetOf()) { it.allKnownGroup }
+        val allKnownGroup: Set<String> get() = handlers.flatMapTo(mutableSetOf()) { it.allKnownSubject }
 
         fun handleGroup(group: String, permission: String): Result {
             return handlers.fold(Result.Default) { it, handler ->
@@ -83,101 +84,115 @@ interface PermissionApi {
      * 支持查询“@group”或者其他用string表示的权限节点
      */
     class StringPermissionHandler : PermissionHandler<String> {
-        val allPermission = mutableMapOf<String, MutableSet<String>>()
-        val allKnownGroup get() = allPermission.keys
-        private val tree = StringPermissionTree(::hasGroup)
+        val groups = mutableMapOf<String, PermissionGroup.Mutable>()
+        override val allKnownSubject: Set<String> get() = groups.keys
+
         override fun String.invoke(permission: String): Result {
-            return tree.hasPermission(this, convertToInternal(permission))
-        }
-
-        private fun hasGroup(subject: String, group: String): Boolean {
-            return Global.handleGroup(subject, group).has
-        }
-
-        private fun convertToInternal(permission: String): String {
-            return when {
-                permission.startsWith("@") -> permission
-                permission.endsWith(".*") -> permission.removeSuffix(".*")
-                else -> "$permission$"
-            }
+            return groups[this]?.run {
+                extend.fold(get(permission)) { r, g ->
+                    r.fallback { Global.handleGroup(g, permission) }
+                }
+            } ?: Result.Default
         }
 
         fun registerPermission(subject: String, permission: Iterable<String>) {
-            allPermission.getOrPut(subject, ::mutableSetOf).addAll(permission)
-            permission.forEach {
-                val pp = convertToInternal(it)
-                if (pp.startsWith("-"))
-                    tree.setPermission(subject, pp.substring(1), Result.Reject)
-                else
-                    tree.setPermission(subject, pp, Result.Has)
-            }
+            groups.getOrPut(subject, PermissionGroup::Mutable)
+                .add(PermissionGroup(permission.map(PermissionGroup::convertToInternal)))
         }
 
         fun unRegisterPermission(subject: String, permission: Iterable<String>) {
-            permission.forEach {
-                val pp = convertToInternal(it).removeSuffix("-")
-                tree.setPermission(subject, pp, Result.Default)
+            groups[subject]?.apply {
+                remove(PermissionGroup(permission.map(PermissionGroup::convertToInternal)))
+                if (isEmpty()) groups.remove(subject)
             }
         }
 
         fun clear() {
-            allPermission.clear()
-            tree.clear()
+            groups.clear()
         }
     }
 
-    /**
-     * Use for implementing [Global.impl]
-     * @param hasGroup 由数根负责传递
-     */
-    class StringPermissionTree(private val hasGroup: ((subject: String, group: String) -> Boolean)) {
-        val map = mutableMapOf<String, StringPermissionTree>()
-        val allow = mutableSetOf<String>()
-        val reject = mutableSetOf<String>()
-        private fun Set<String>.match(subject: String): Boolean {
-            return any {
-                it == subject || (it.startsWith("@") && hasGroup(subject, it))
+    @Suppress("MemberVisibilityCanBePrivate")
+    open class PermissionGroup(
+        open val has: Set<String>,
+        open val reject: Set<String>,
+        open val extend: List<String>
+    ) {
+        class Mutable(
+            override val has: MutableSet<String> = mutableSetOf(),
+            override val reject: MutableSet<String> = mutableSetOf(),
+            override val extend: MutableList<String> = mutableListOf()
+        ) : PermissionGroup(has, reject, extend) {
+            fun add(group: PermissionGroup) {
+                has += group.has
+                reject += group.reject
+                extend += group.extend
+            }
+
+            fun remove(group: PermissionGroup) {
+                has -= group.has
+                reject -= group.reject
+                extend -= group.extend.toSet()
             }
         }
 
-        fun setPermission(subject: String, permission: String, result: Result) {
-            if (permission.isEmpty()) {
-                when (result) {
-                    Result.Has -> {
-                        allow.add(subject)
-                        reject.remove(subject)
-                    }
-                    Result.Reject -> {
-                        allow.remove(subject)
-                        reject.add(subject)
-                    }
-                    Result.Default -> {
-                        allow.remove(subject)
-                        reject.remove(subject)
-                    }
-                }
-            } else {
-                val sp = permission.split('.', limit = 2)
-                map.getOrPut(sp[0]) { StringPermissionTree(hasGroup) }
-                    .setPermission(subject, sp.getOrNull(1) ?: "", result)
-            }
-        }
+        /**@param nodes @开头为组, $结尾表示绝对权限,否则为通配权限 */
+        constructor(nodes: List<String>) : this(
+            nodes.asSequence()
+                .filter { it[0] != '-' }.toSet(),
+            nodes.asSequence()
+                .filter { it[0] == '-' }
+                .map { it.substring(1) }.toSet(),
+            nodes.filter { it[0] == '@' }
+        )
 
-        fun hasPermission(subject: String, permission: String): Result {
+        fun get(node: String): Result {
+            val prefix = allPrefix(node)
             return when {
-                reject.match(subject) -> Result.Reject
-                allow.match(subject) -> Result.Has
-                else -> {
-                    val sp = permission.split('.', limit = 2)
-                    map[sp[0]]?.hasPermission(subject, sp.getOrNull(1) ?: "") ?: Result.Default
-                }
+                prefix.any { it in reject } -> Result.Reject
+                prefix.any { it in has } -> Result.Has
+                else -> Result.Default
             }
         }
 
-        fun clear() {
-            map.clear()
-            allow.clear()
-            reject.clear()
+        fun allNodes(): List<String> = buildList {
+            addAll(has.asSequence().map(::convertFromInternal))
+            addAll(reject.asSequence().map(::convertFromInternal).map { "-$it" })
+        }
+
+        fun isEmpty() = has.isEmpty() && reject.isEmpty() //extend included in has
+
+
+        companion object {
+            fun convertToInternal(permission: String): String {
+                return when {
+                    permission.startsWith("@") -> permission
+                    permission.endsWith(".*") -> permission.removeSuffix(".*")
+                    else -> "$permission$"
+                }
+            }
+
+            fun convertFromInternal(permission: String): String {
+                return when {
+                    permission.startsWith("@") -> permission
+                    permission.endsWith("$") -> permission.removeSuffix("$")
+                    else -> "$permission.*"
+                }
+            }
+
+            /**
+             * Input a.b.c
+             * Output "a.b.c$" "a.b.c" "a.b" "a"
+             */
+            fun allPrefix(node: String) = buildList {
+                add("$node$")
+                var index = node.length
+                while (true) {
+                    add(node.substring(0, index))
+                    index = node.lastIndexOf('.', index - 1)
+                    if (index < 0) break
+                }
+            }
         }
     }
 }
