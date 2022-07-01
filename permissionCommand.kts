@@ -52,7 +52,7 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
             }
             "", "list" -> {
                 val now = groups[group].orEmpty()
-                val defaults = PermissionApi.default.allPermission[group].orEmpty()
+                val defaults = PermissionApi.default.groups[group]?.allNodes().orEmpty()
                 reply(
                     """
                         [green]组{group}当前拥有权限:[]
@@ -61,7 +61,7 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
                         {defaults}
                         [yellow]默认组权限仅可通过添加负权限修改
                     """.trimIndent().with(
-                        "group" to group, "list" to now.toString(), "defaults" to defaults
+                        "group" to group, "list" to now.toString(), "defaults" to defaults.toString()
                     )
                 )
             }
