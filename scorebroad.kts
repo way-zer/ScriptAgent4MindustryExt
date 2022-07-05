@@ -25,6 +25,9 @@ command("broad", "开关积分板显示") {
     }
 }
 
+//避免找不到 scoreBroad.ext.* 变量
+registerVar("scoreBroad.ext.null","空占位",null)
+
 onEnable {
     launch {
         while (true) {
