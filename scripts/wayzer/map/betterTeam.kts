@@ -129,5 +129,4 @@ command("team", "管理指令: 修改自己或他人队伍(PVP模式)") {
     }
 }
 
-PermissionApi.registerDefault("wayzer.ext.observer")
 PermissionApi.registerDefault("wayzer.ext.team.change", group = "@admin")
