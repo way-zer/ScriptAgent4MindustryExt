@@ -1,5 +1,6 @@
 package wayzer.map
 
+import coreLibrary.lib.util.loop
 import mindustry.content.Blocks
 import mindustry.game.EventType
 import mindustry.gen.Call
