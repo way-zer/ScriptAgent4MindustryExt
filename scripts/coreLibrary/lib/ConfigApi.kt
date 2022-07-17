@@ -173,6 +173,7 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
         val Script.configs by key_configs
         val all = mutableMapOf<String, ConfigKey<*>>()
         var configFile: File = cf.wayzer.scriptAgent.Config.dataDir.resolve("config.conf")
+        val overlayFile get() = configFile.resolveSibling(configFile.nameWithoutExtension + ".overlay.conf")
         private lateinit var fileConfig: Config
         private var lastLoad: Long = -1
 
@@ -187,6 +188,8 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
 
         fun reloadFile() {
             fileConfig = ConfigFactory.parseFile(configFile)
+            if (overlayFile.exists())
+                fileConfig = ConfigFactory.parseFile(overlayFile).withFallback(fileConfig)
             lastLoad = System.currentTimeMillis()
             all.values.forEach {
                 try {
@@ -198,7 +201,10 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
         }
 
         fun saveFile() {
-            configFile.writeText(fileConfig.root().render(renderConfig))
+            if (overlayFile.exists())
+                overlayFile.writeText(fileConfig.root().render(renderConfig))
+            else
+                configFile.writeText(fileConfig.root().render(renderConfig))
         }
 
         inline fun <reified T : Any> ClassContainer(): ClassContainer {
