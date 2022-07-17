@@ -168,8 +168,10 @@ fun onGameOver(winner: Team) {
             if (key == null || value.isEmpty()) return@forEach
             map[key] = value.maxByOrNull { it.second.score }!!.second
         }
-        map.forEach { (profile, data) ->
-            userService.updateExp(profile, data.exp, "游戏结算")
+        launch(Dispatchers.IO) {
+            map.forEach { (profile, data) ->
+                userService.updateExp(profile, data.exp, "游戏结算")
+            }
         }
         depends("wayzer/user/ext/rank")
             ?.import<(Map<PlayerProfile, Pair<Int, Boolean>>) -> Unit>("onGameOver")

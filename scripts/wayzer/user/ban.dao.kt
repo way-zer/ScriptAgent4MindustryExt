@@ -34,32 +34,24 @@ class PlayerBan(id: EntityID<Int>) : IntEntity(id) {
     }
 
     companion object : IntEntityClass<PlayerBan>(T) {
-        fun <T> transactionOrExisted(body: Transaction.() -> T): T {
-            val now = TransactionManager.currentOrNull()
-            return if (now != null) body(now)
-            else transaction { body() }
-        }
-
+        @NeedTransaction
         fun create(profile: PlayerProfile, time: Duration, reason: String, operator: PlayerProfile?): PlayerBan {
-            return transactionOrExisted {
-                findNotEnd(profile.id)?.let { return@transactionOrExisted it }
-                new {
-                    profileId = profile.id
-                    endTime = Instant.now() + time
-                    this.operator = operator?.id
-                    this.reason = reason
-                }
+            findNotEnd(profile.id)?.let { return it }
+            return new {
+                profileId = profile.id
+                endTime = Instant.now() + time
+                this.operator = operator?.id
+                this.reason = reason
             }
         }
 
         @NeedTransaction
         fun allNotEnd() = find(T.endTime.greater(CurrentTimestamp()))
 
+        @NeedTransaction
         fun findNotEnd(profileId: EntityID<Int>): PlayerBan? {
-            return transactionOrExisted {
-                find { (T.profile eq profileId) and (T.endTime.greater(CurrentTimestamp())) }
-                    .firstOrNull()
-            }
+            return find { (T.profile eq profileId) and (T.endTime.greater(CurrentTimestamp())) }
+                .firstOrNull()
         }
     }
 }

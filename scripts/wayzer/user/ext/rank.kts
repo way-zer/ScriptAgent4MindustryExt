@@ -22,7 +22,7 @@ fun onGameOver(data: Map<PlayerProfile, Pair<Int, Boolean>>) {
         state.rules.waveTimer -> state.wave > winWave
         else -> false
     }
-    transaction {
+    launch(Dispatchers.IO) {
         data.forEach { (p, d) ->
             if (d.first > 1200) {
                 RankData.update({ RankData.id eq p.id.value }) {

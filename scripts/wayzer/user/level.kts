@@ -28,6 +28,7 @@ registerVarForType<PlayerProfile>().apply {
     registerChild("nextLevel", "下一级的要求经验值", DynamicVar.obj { expByLevel(level(it.totalExp) + 1) })
 }
 
+/** Should call in [Dispatchers.IO] */
 fun updateExp(p: PlayerProfile, desc: String, dot: Int) {
     if (dot != 0) {
         userService.notify(

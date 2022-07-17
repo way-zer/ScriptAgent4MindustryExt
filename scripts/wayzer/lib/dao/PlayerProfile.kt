@@ -1,6 +1,8 @@
 package wayzer.lib.dao
 
 import com.google.common.cache.CacheBuilder
+import coreMindustry.lib.game
+import kotlinx.coroutines.Dispatchers
 import mindustry.gen.Player
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -8,8 +10,11 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.lib.dao.util.NeedTransaction
+import wayzer.lib.dao.util.TransactionHelper
+import wayzer.lib.dao.util.WithTransactionHelper
 import java.time.Duration
 import java.time.Instant
 
@@ -26,11 +31,11 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
     val controlling get() = online == Setting.serverId
     val players = mutableSetOf<Player>()
 
-    @NeedTransaction
+    @WithTransactionHelper
     fun onJoin(player: Player) {
-        if (players.add(player))
-            loopCheck()
         allOnline.add(this)
+        if (players.add(player))
+            TransactionHelper.lateUpdate { loopCheck() }
     }
 
     @NeedTransaction
@@ -45,25 +50,29 @@ class PlayerProfile(id: EntityID<Int>) : IntEntity(id) {
             players.firstOrNull()?.let {
                 name = PlayerData[it.uuid()].lastName
             }
-            players.forEach {
-                it.sendMessage("[green]登录成功！")
+            Dispatchers.game.runInMain {
+                players.forEach {
+                    it.sendMessage("[green]登录成功！")
+                }
             }
         } else if (old && !controlling) {
-            if (Setting.limitOne) players.toList().forEach {
-                it.kick("[red]你已经在其他服务器登录,禁止重复登录")
-            } else {
-                players.forEach {
-                    it.sendMessage("[yellow]你已经在其他服务器登录，不重复累计在线时长")
+            Dispatchers.game.runInMain {
+                if (Setting.limitOne) players.toList().forEach {
+                    it.kick("[red]你已经在其他服务器登录,禁止重复登录")
+                } else {
+                    players.forEach {
+                        it.sendMessage("[yellow]你已经在其他服务器登录，不重复累计在线时长")
+                    }
                 }
             }
         }
     }
 
     @Suppress("UNUSED_PARAMETER")
-    @NeedTransaction
+    @WithTransactionHelper
     fun onQuit(player: Player) {
         players.remove(player)
-        if (controlling) {
+        if (controlling) TransactionHelper.lateUpdate {
             online = null
         }
         if (players.isEmpty())

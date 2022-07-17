@@ -19,8 +19,10 @@ var Player.lang
     set(v) {
         if (lang == v) return
         PlayerData[uuid()].secureProfile(this)?.apply {
-            transaction {
-                lang = v
+            launch(Dispatchers.IO) {
+                transaction {
+                    lang = v
+                }
             }
         } ?: let {
             tempLang[uuid()] = v

@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 val userService = contextScript<UserService>()
 registerTable(AchievementEntity.T)
 
+/** Should call in [Dispatchers.IO] */
 fun finishAchievement(profile: PlayerProfile, name: String, exp: Int, broadcast: Boolean = false) {
     transaction {
         if (!AchievementEntity.newWithCheck(profile.id, name, exp)) return@transaction
@@ -33,7 +34,9 @@ command("achieve", "管理指令: 添加成就") {
         } ?: returnReply("[red]找不到该用户".with())
         val name = arg[1]
         val exp = arg[2].toIntOrNull() ?: returnReply("[red]请输入正确的数字".with())
-        finishAchievement(profile, name, exp, false)
-        reply("[green]添加成功".with())
+        launch(Dispatchers.IO) {
+            finishAchievement(profile, name, exp, false)
+            reply("[green]添加成功".with())
+        }
     }
 }
