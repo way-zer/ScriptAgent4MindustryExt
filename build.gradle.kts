@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "cf.wayzer"
-version = "v1.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
+version = "v3.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
 
 if (File(".git").isDirectory)
     gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
