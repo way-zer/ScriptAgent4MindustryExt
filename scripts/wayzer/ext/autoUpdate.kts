@@ -16,6 +16,7 @@ name = "自动更新"
 val enableUpdate by config.key(false, "是否开启自动更新")
 val source by config.key("Anuken/Mindustry", "服务端来源，Github仓库")
 val onlyInNight by config.key(false, "仅在凌晨自动更新", "本地时间1:00到7:00")
+val useMirror by config.key(false, "使用镜像加速下载")
 
 var updateCallback: (() -> Unit)? = null
 
@@ -44,28 +45,28 @@ onEnable {
         while (true) {
             if (enableUpdate) {
                 if (!onlyInNight || LocalDateTime.now().hour in 1..6)
-                try {
-                    val txt = URL("https://api.github.com/repos/$source/releases").readText()
-                    val json = Jval.read(txt).asArray().first()
-                    val newBuild = json.getString("tag_name", "")
-                    val (version, revision) = ("$newBuild.0").removePrefix("v")
-                        .split(".").map { it.toInt() }
-                    if (version > Version.build || revision > Version.revision) {
-                        val asset = json.get("assets").asArray().find {
+                    try {
+                        val txt = URL("https://api.github.com/repos/$source/releases").readText()
+                        val json = Jval.read(txt).asArray().first()
+                        val newBuild = json.getString("tag_name", "")
+                        val (version, revision) = ("$newBuild.0").removePrefix("v")
+                            .split(".").map { it.toInt() }
+                        if (version > Version.build || revision > Version.revision) {
+                            val asset = json.get("assets").asArray().find {
                                 it.getString("name", "").contains("server", ignoreCase = true)
                             } ?: error("New version $newBuild, but can't find asset")
-                        val url = asset.getString("browser_download_url", "")
-                        try {
-                            update(newBuild, "https://gh.tinylake.cf/$url")
-                            break
-                        } catch (e: Throwable) {
+                            val url = asset.getString("browser_download_url", "")
+                            try {
+                                update(newBuild, if (useMirror) "https://gh.tinylake.tk/$url" else url)
+                                break
+                            } catch (e: Throwable) {
                                 logger.warning("下载更新失败: $e")
-                            e.printStackTrace()
+                                e.printStackTrace()
+                            }
                         }
-                    }
-                } catch (e: Throwable) {
+                    } catch (e: Throwable) {
                         logger.warning("获取更新数据失败: $e")
-                }
+                    }
             }
             delay(5 * 60_000)//延时5分钟
         }
