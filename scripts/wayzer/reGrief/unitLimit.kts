@@ -2,8 +2,10 @@ package wayzer.reGrief
 
 import arc.Events
 import arc.util.Interval
+import mindustry.content.UnitTypes
 import mindustry.gen.Groups
 import mindustry.gen.Unit
+import mindustry.gen.BuildingTetherc
 import kotlin.math.min
 
 val unitToWarn by config.key(190, "开始警告的单位数")
@@ -25,6 +27,7 @@ listen<EventType.UnitUnloadEvent> { e ->
             launch(Dispatchers.gamePost) {
                 val toKill = count - unitToKill
                 val m = Groups.unit.filter { it.team == e.unit.team && it.maxHealth < 1000f && !it.isPlayer }
+                    .filterNot { it.type == UnitTypes.missile || it is BuildingTetherc }
                     .sortedBy { it.health }
                 if (m.isNotEmpty())
                     alert("[red]警告: 单位过多,可能造成服务器卡顿,随机杀死低级单位".with("count" to count))
