@@ -39,15 +39,20 @@ let changeFiles = compare.files.map(file => {
 
 // language=Markdown
 core.setOutput("releaseBody", `
-# 预发布版本，仅供测试使用
+## 预发布版本，仅供测试使用
 正式发布前，可能会多次更新(以标题build号为准)
+
 ---
+
 ## 更新日记
 ${changes}
 ## 文件变更
 <details>
 <summary>${compare.files.length} 文件</summary>
+
 ${changeFiles}
+
 </details>
+
 [完整对比](${compare.html_url}) [获取patch](${compare.patch_url})
 `)

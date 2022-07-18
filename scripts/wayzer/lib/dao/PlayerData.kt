@@ -15,6 +15,8 @@ import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.lib.dao.util.NeedTransaction
+import wayzer.lib.dao.util.TransactionHelper
+import wayzer.lib.dao.util.WithTransactionHelper
 import java.time.Duration
 import java.time.Instant
 
@@ -31,24 +33,26 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     var player: Player? = null
     var realName = "NotInit"
 
-    @NeedTransaction
+    @WithTransactionHelper
     fun onJoin(player: Player) {
         if (this.player == player) return
         if (this.player != null)
             return player.kick("[red]你已经在服务器中了")
         this.player = player
         if (secure(player)) {
-            lastName = Strings.stripColors(realName)
-            lastTime = Instant.now()
-            lastIp = player.con.address
+            TransactionHelper.lateUpdate {
+                lastName = Strings.stripColors(realName)
+                lastTime = Instant.now()
+                lastIp = player.con.address
+            }
             profile?.onJoin(player)
         } else player.sendMessage("[red]检测到账号不安全,请重新绑定进行验证".with())
     }
 
-    @NeedTransaction
+    @WithTransactionHelper
     fun onQuit(player: Player) {
         this.player = null
-        if (secure(player)) {
+        if (secure(player)) TransactionHelper.lateUpdate {
             lastTime = Instant.now()
             lastIp = player.con.address
         }
@@ -123,18 +127,30 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, PlayerData>(T) {
         private val cache = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofMinutes(1))
+            .removalListener<String, PlayerData> { (k, v) ->
+                if (v.player != null)
+                    reCache(k, v)
+            }
             .build<String, PlayerData>()
 
-        fun findOrCreate(p: Player) = findById(p.uuid()) ?: transaction {
-            new(p.uuid()) {
-                firstIP = p.con.address
-                lastIp = p.con.address
-                lastName = Strings.stripColors(p.name)
-            }.also { it.flush() }
-        }.also { cache.put(p.uuid(), it) }
+        private fun reCache(k: String, v: PlayerData): Unit = cache.put(k, v)
 
-        override fun findById(id: EntityID<String>): PlayerData? = cache.getIfPresent(id.value) ?: transaction {
-            super.findById(id)
-        }?.also { cache.put(id.value, it) }
+        @NeedTransaction
+        fun findOrCreate(uuid: String, address: String, name: String) =
+            findByIdWithTransaction(uuid) ?: transaction {
+                new(uuid) {
+                    firstIP = address
+                    lastIp = address
+                    lastName = Strings.stripColors(name)
+                }.also { it.flush() }
+            }.also { cache.put(uuid, it) }
+
+        /**Must call after findOrCreate or null*/
+        override fun findById(id: EntityID<String>): PlayerData? = cache.getIfPresent(id.value)
+
+        @NeedTransaction
+        fun findByIdWithTransaction(id: String) = findById(id) ?: transaction {
+            super.findById(EntityID(id, T))
+        }?.also { cache.put(id, it) }
     }
 }

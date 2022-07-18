@@ -19,9 +19,9 @@ listen<EventType.PlayEvent> {
 
 listenTo<RequestPermissionEvent>(Event.Priority.After) {
     if (permissions.isEmpty()) return@listenTo
+    //put @mapRule before all group permission
     val index = group.indexOfFirst { it.startsWith("@") }
-    if (index == -1)
-        group = group + "@mapRule"
-    else group = group.toMutableList()
+    group = if (index == -1) group + "@mapRule"
+    else group.toMutableList()
         .apply { add(index, "@mapRule") }
 }

@@ -22,8 +22,7 @@ listen<EventType.UnitUnloadEvent> { e ->
     val count = e.unit.team.data().unitCount
     when {
         count >= unitToKill -> {
-            launch(Dispatchers.game) {
-                yield()
+            launch(Dispatchers.gamePost) {
                 val toKill = count - unitToKill
                 val m = Groups.unit.filter { it.team == e.unit.team && it.maxHealth < 1000f && !it.isPlayer }
                     .sortedBy { it.health }

@@ -1,53 +1,35 @@
 @file:Depends("coreLibrary/DBApi")
-//1. 不同数据库的驱动Maven,根据选择注释
-@file:Import("com.h2database:h2:1.4.200", mavenDepends = true)
-//@file:Import("org.postgresql:postgresql:42.2.15", mavenDepends = true)
-//@file:Import("mysql:mysql-connector-java:8.0.28", mavenDepends = true)
-@file:Suppress("unused")
 
 package coreLibrary
 
+import cf.wayzer.scriptAgent.util.DependencyManager
+import cf.wayzer.scriptAgent.util.maven.Dependency
 import org.jetbrains.exposed.sql.Database
-import java.sql.Connection
 import java.sql.DriverManager
 
-//2. 修改对应类型中需要配置的项(地址，用户名，密码)
-fun h2(): () -> Connection {
-    sourceFile.parentFile.listFiles { _, n -> n.startsWith("h2DB.db") }?.takeIf { it.isNotEmpty() }?.forEach {
-        logger.info("检测到旧数据库文件,自动迁移到新目录")
-        val new = Config.dataDir.resolve(it.name)
-        if (new.exists()) {
-            logger.warning("目标文件$new 存在,不进行覆盖，请自行处理")
-        } else {
-            it.copyTo(new)
-            it.delete()
-        }
-    }
-    val file = Config.dataDir.resolve("h2DB.db")
-    Class.forName("org.h2.Driver")
-    return { DriverManager.getConnection("jdbc:h2:${file.absolutePath}") }
-}
+val driverMaven by config.key("com.h2database:h2:1.4.200", "驱动程序maven包")
+val driver by config.key("org.h2.Driver", "驱动程序类名")
+val url by config.key("jdbc:h2:H2DB_PATH", "数据库连接uri", "特殊变量H2DB_PATH 指向data/h2DB.db")
+val user by config.key("", "用户名")
+val password by config.key("", "密码")
 
-fun postgre(): () -> Connection {
-    Class.forName("org.postgresql.Driver")
-    //使用请修改此处连接方式与账号密码
-    return { DriverManager.getConnection("jdbc:postgresql://localhost:5432/mindustry", "mindustry", "") }
-}
-
-fun mysql(): () -> Connection {
-    //如果您使用的是Mysql 5.7+ 那么JDBC推荐8.x
-    // JDBC为 8.x时
-    Class.forName("com.mysql.cj.jdbc.Driver")
-    // JDBC为 8.x以下时
-    //Class.forName("com.mysql.jdbc.Driver")
-
-    //使用请修改此处连接方式与账号密码
-    return { DriverManager.getConnection("jdbc:mysql://localhost:3306/mindustry", "mindustry", "") }
-}
+//Postgres example
+// driverMaven: org.postgresql:postgresql:42.2.15
+// driver: org.postgresql.Driver
+// url: jdbc:postgresql://db:5432/postgres
+// user: postgres
+// password: your_password
 
 onEnable {
-    //3. 请重新注释此处
-    DBApi.DB.provide(this, Database.connect(h2()))
-//    DBApi.DB.provide(this, Database.connect(postgre()))
-//    DBApi.DB.provide(this, Database.connect(mysql()))
+    val cClassloader = javaClass.classLoader!!
+    DependencyManager {
+        requireWithChildren(Dependency.parse(driverMaven))
+        loadToClassLoader(cClassloader)
+    }
+    Class.forName(driver)
+
+    val url = url.replace("H2DB_PATH", Config.dataDir.resolve("h2DB.db").absolutePath)
+    DBApi.DB.provide(this, Database.connect({
+        DriverManager.getConnection(url, user, password)
+    }))
 }

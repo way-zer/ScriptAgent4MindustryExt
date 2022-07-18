@@ -6,8 +6,10 @@ import coreLibrary.DBApi
 import mindustry.gen.Groups
 import mindustry.net.Administration
 import mindustry.net.Packets
+import mindustry.net.Packets.ConnectPacket
 import org.jetbrains.exposed.sql.transactions.transaction
-import wayzer.lib.event.PlayerJoin
+import wayzer.lib.dao.util.TransactionHelper
+import wayzer.lib.event.ConnectAsyncEvent
 import java.time.Duration
 import java.util.*
 
@@ -49,36 +51,58 @@ fun Player.updateName() {
     ).toString()
 }
 
+listenPacket2ServerAsync<ConnectPacket> { con, packet ->
+    if (Groups.player.any { pp -> pp.uuid() == packet.uuid }) {
+        con.kick(Packets.KickReason.idInUse)
+        return@listenPacket2ServerAsync false
+    }
+    if (Strings.stripColors(packet.name).length > 24) {
+        con.kick("Name is too long")
+        return@listenPacket2ServerAsync false
+    }
+    return@listenPacket2ServerAsync withContext(Dispatchers.IO) {
+        val old = transaction { PlayerData.findById(packet.uuid) }
+        val event = ConnectAsyncEvent(packet, old).emit()
+        if (event.cancelled) {
+            withContext(Dispatchers.game) {
+                con.kick("[red]拒绝入服: ${event.reason}")
+            }
+            return@withContext false
+        }
+        transaction { PlayerData.findOrCreate(packet.uuid, con.address, packet.name) }
+        true
+    }
+}
 
 listen<EventType.PlayerConnect> {
     val p = it.player
-    if (Groups.player.any { pp -> pp.uuid() == p.uuid() }) return@listen p.con.kick(Packets.KickReason.idInUse)
-    if (Strings.stripColors(it.player.name).length > 24) return@listen p.con.kick("Name is too long")
-
-    val event = PlayerJoin(p, PlayerData.findById(p.uuid())).emit()
-    if (event.cancelled) return@listen p.kick("[red]拒绝入服: ${event.reason}")
-
-    val data = PlayerData.findOrCreate(p)
-    if (data.player != null) return@listen p.kick("[red]你已经在服务器中了")
+    val data = PlayerData[p.uuid()]
     data.realName = p.name
     p.updateName()
 }
 
 listen<EventType.PlayerJoin> {
-    transaction { PlayerData[it.player.uuid()].onJoin(it.player) }
+    TransactionHelper.withAsyncFlush(this) {
+        PlayerData[it.player.uuid()].onJoin(it.player)
+    }
 }
 
 listen<EventType.PlayerLeave> {
-    transaction { PlayerData[it.player.uuid()].onQuit(it.player) }
+    TransactionHelper.withAsyncFlush(this) {
+        PlayerData[it.player.uuid()].onQuit(it.player)
+    }
 }
 
 onEnable {
     launch {
         DBApi.DB.awaitInit()
-        Groups.player.toList().forEach {
-            transaction { PlayerData[it.uuid()].onJoin(it) }
+        val flusher = TransactionHelper.withScope {
+            Groups.player.toList().forEach {
+                PlayerData[it.uuid()].onJoin(it)
+            }
         }
         launch(Dispatchers.IO) {
+            transaction { flusher() }
             while (true) {
                 delay(5000)
                 val online = Groups.player.mapNotNull { PlayerData[it.uuid()].secureProfile(it) }

@@ -1,15 +1,17 @@
 package wayzer.lib.event
 
 import cf.wayzer.scriptAgent.Event
+import kotlinx.coroutines.Dispatchers
 import mindustry.gen.Player
+import mindustry.net.Packets.ConnectPacket
 import wayzer.lib.dao.PlayerData
 
 /**
- * Call when [mindustry.game.EventType.PlayerConnect] before new [PlayerData] create
- * use [reject] to reject player join server
+ * Call when [ConnectPacket] before new [PlayerData] create
+ * This Event is dispatch in [Dispatchers.IO]
  */
-class PlayerJoin(
-    val player: Player,
+class ConnectAsyncEvent(
+    val packet: ConnectPacket,
     /** null when new*/
     val data: PlayerData?
 ) : Event, Event.Cancellable {

@@ -5,13 +5,27 @@ import arc.struct.ObjectMap
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.util.DSLBuilder
+import coreLibrary.lib.util.reflectDelegate
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import mindustry.Vars
 import mindustry.game.EventType
 import mindustry.net.Administration
 import mindustry.net.Net
 import mindustry.net.NetConnection
 import mindustry.net.Packet
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.properties.ReadOnlyProperty
+
+val Net.serverListeners: ObjectMap<Class<*>, Cons2<NetConnection, *>> by reflectDelegate()
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T : Packet> getPacketHandle() =
+    (Vars.net.serverListeners[T::class.java] as Cons2<NetConnection, T>?) ?: Cons2 { con: NetConnection, p: T ->
+        p.handleServer(con)
+    }
 
 /**
  * @param handle return true to call old handler/origin
@@ -19,16 +33,31 @@ import kotlin.properties.ReadOnlyProperty
 @ScriptDsl
 inline fun <reified T : Packet> Script.listenPacket2Server(crossinline handle: (NetConnection, T) -> Boolean) {
     onEnable {
-        val old = Net::class.java.getDeclaredField("serverListeners").run {
-            isAccessible = true
-            @Suppress("UNCHECKED_CAST")
-            get(Vars.net) as ObjectMap<Class<*>, Cons2<NetConnection, T>>
-        }.get(T::class.java) ?: Cons2 { con: NetConnection, p: T ->
-            p.handleServer(con)
-        }
+        val old = getPacketHandle<T>()
         Vars.net.handleServer(T::class.java) { con, p ->
             if (handle(con, p))
                 old.get(con, p)
+        }
+        onDisable {
+            Vars.net.handleServer(T::class.java, old)
+        }
+    }
+}
+
+@ScriptDsl
+inline fun <reified T : Packet> Script.listenPacket2ServerAsync(
+    context: CoroutineContext = EmptyCoroutineContext,
+    crossinline handle: suspend (NetConnection, T) -> Boolean
+) {
+    onEnable {
+        val old = getPacketHandle<T>()
+        Vars.net.handleServer(T::class.java) { con, p ->
+            launch(context) {
+                if (handle(con, p))
+                    withContext(Dispatchers.game) {
+                        old.get(con, p)
+                    }
+            }
         }
         onDisable {
             Vars.net.handleServer(T::class.java, old)

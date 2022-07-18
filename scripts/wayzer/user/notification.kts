@@ -1,5 +1,3 @@
-@file:Depends("wayzer/user/userService")
-
 package wayzer.user
 
 import coreLibrary.DBApi
@@ -7,8 +5,8 @@ import coreLibrary.DBApi.DB.registerTable
 import org.jetbrains.exposed.sql.transactions.transaction
 
 name = "通知服务"
-val userService = contextScript<UserService>()
 
+/** Should call in [Dispatchers.IO] */
 fun notify(profile: PlayerProfile, message: String, params: Map<String, String>, broadcast: Boolean = false) {
     transaction {
         NotificationEntity.new(profile, message, params, broadcast)
@@ -32,7 +30,6 @@ fun List<NotificationEntity>.run(profile: PlayerProfile) {
             else players.forEach { p ->
                 p.sendMessage(it.message.with(*it.params.map { e -> e.key to e.value }.toTypedArray(), "player" to p))
             }
-            if ("dotExp" in it.params) userService.updateExp(profile, 0)//updateIcon
         }
     }
 }

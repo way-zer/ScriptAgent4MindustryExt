@@ -11,13 +11,13 @@ import java.time.Duration
 val userService = contextScript<UserService>()
 
 onEnable {
-    launch {
+    launch(Dispatchers.IO) {
         DBApi.DB.awaitInit()
         while (true) {
             delay(5000)
             transaction {
                 Groups.player
-                    .mapNotNull { p -> PlayerData.findOrCreate(p).profile }
+                    .mapNotNull { PlayerData.findById(it.uuid())?.profile }
                     .filter { it.controlling }
                     .toSet().forEach { it.totalTime += 5 }
             }
@@ -42,5 +42,7 @@ listen<EventType.PlayerChatEvent> {
     val profile = PlayerData[it.player.uuid()].profile
     if (profile == null || finishProfile.contains(profile.id.value)) return@listen
     finishProfile.add(profile.id.value)
-    userService.updateExp(profile, 3, "GoodGame")
+    launch(Dispatchers.IO) {
+        userService.updateExp(profile, 3, "GoodGame")
+    }
 }
