@@ -4,7 +4,6 @@ import arc.graphics.Color
 import cf.wayzer.placehold.PlaceHoldApi.with
 import mindustry.content.Blocks
 import mindustry.content.Fx
-import mindustry.game.Team
 import mindustry.type.Item
 import mindustry.world.Block
 import mindustry.world.blocks.storage.CoreBlock
@@ -58,12 +57,9 @@ sealed class Log(val uid: String?, private val desc: () -> String) {
 PermissionApi.registerDefault("wayzer.ext.history")
 val historyLimit by config.key(10, "单格最长日记记录")
 lateinit var logs: Array<Array<List<Log>>>
-var commandLogs = mutableMapOf<Team, MutableList<Log>>()
-val Team.commandLog get() = commandLogs.getOrPut(this) { mutableListOf() }
 
 //初始化
 fun initData() {
-    commandLogs.clear()
     logs = Array(world.width()) {
         Array(world.height()) {
             emptyList()
@@ -98,11 +94,6 @@ listen<EventType.BlockBuildEndEvent> {
 listen<EventType.ConfigEvent> {
     val log = Log.Config(it.player?.uuid(), it.value?.toString() ?: "null")
     log(it.tile.tileX(), it.tile.tileY(), log)
-    if (it.tile.block == Blocks.commandCenter)
-        it.tile.team.commandLog.apply {
-            while (size > historyLimit) removeLast()
-            add(log)
-        }
 }
 listen<EventType.DepositEvent> {
     log(it.tile.tileX(), it.tile.tileY(), Log.Deposit(it.player?.uuid(), it.item, it.amount))
@@ -152,10 +143,6 @@ command("history", "开关查询模式") {
         when (arg.getOrElse(0) { "" }) {
             "core" -> returnReply(
                 "[green]核心破坏周边情况:\n{list:\n}".with("list" to lastCoreLog)
-            )
-            "command" -> returnReply(
-                "[green]指挥中心操作\n{list:\n}"
-                    .with("list" to commandLogs[player?.team() ?: state.rules.defaultTeam].orEmpty())
             )
         }
         if (player == null) returnReply("[red]控制台仅可查询核心破坏记录".with())
