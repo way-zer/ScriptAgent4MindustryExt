@@ -1,4 +1,5 @@
-@file:Depends("coreMindustry/utilNext", "调用菜单") @file:Depends("coreMindustry/utilMapRule", "修改核心单位,单位属性")
+@file:Depends("coreMindustry/utilNext", "调用菜单") 
+@file:Depends("coreMindustry/utilMapRule", "修改核心单位,单位属性")
 
 package mapScript
 
