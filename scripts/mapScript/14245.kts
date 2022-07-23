@@ -26,6 +26,8 @@ import mindustry.world.blocks.storage.CoreBlock.CoreBuild
 import kotlin.reflect.KMutableProperty1
 import mindustry.world.blocks.production.Drill
 
+import java.lang.Math.pow
+
 /**@author xem8k5 miner
  */
 name = "PlanetWar"
@@ -62,7 +64,7 @@ fun getTechCost(cost: Int, count: Int): Int {
     return (count + 1) * cost + (count / 4f * cost).toInt()
 }
 
-fun getUnitCost(cost: Int, count: Int): Int = ((1 + count / 6f) * cost).toInt()
+fun getUnitCost(cost: Int, count: Int): Int = (Math.pow(1.1,count.toDouble()) * cost).toInt()
 
 fun Team.upgradeTech(cost: Int, field: KMutableProperty1<TeamRule, Float>): Boolean {
     val core = core()
@@ -234,6 +236,7 @@ suspend fun Player.sendMenu() {
 
         this += listOf(
             techUpgrade("单位攻击", 100, TeamRule::unitDamageMultiplier),
+            spawnUnit(UnitTypes.mono, Iconc.unitMono, defaultCost = 200) { (it + 1) * 50 + 200 },
         )
         
         
@@ -245,26 +248,26 @@ suspend fun Player.sendMenu() {
 
         this += listOf(
             spawnUnit(UnitTypes.locus, Iconc.unitLocus, 2f, 380),
-            spawnUnit(UnitTypes.cleroi, Iconc.unitCleroi, 2f, 340),
+            spawnUnit(UnitTypes.cleroi, Iconc.unitCleroi, 2f, 440),
             spawnUnit(UnitTypes.avert, Iconc.unitAvert, 2f, 530),
         )
 
         this += listOf(
-            spawnUnit(UnitTypes.precept, Iconc.unitPrecept, 8f, 800),
-            spawnUnit(UnitTypes.anthicus, Iconc.unitAnthicus, 12f, 1200),
-            spawnUnit(UnitTypes.obviate, Iconc.unitObviate, 9f, 1500),
+            spawnUnit(UnitTypes.precept, Iconc.unitPrecept, 8f, 1200),
+            spawnUnit(UnitTypes.anthicus, Iconc.unitAnthicus, 12f, 2000),
+            spawnUnit(UnitTypes.obviate, Iconc.unitObviate, 9f, 2500),
         )
 
         this += listOf(
             spawnUnit(UnitTypes.vanquish, Iconc.unitVanquish, 83f, 5_000),
-            spawnUnit(UnitTypes.tecta, Iconc.unitTecta, 100f, 5_000),
-            spawnUnit(UnitTypes.quell, Iconc.unitQuell, 133f, 6_000),
+            spawnUnit(UnitTypes.tecta, Iconc.unitTecta, 100f, 7_900),
+            spawnUnit(UnitTypes.quell, Iconc.unitQuell, 133f, 8_800),
         )
 
         this += listOf(
-            spawnUnit(UnitTypes.conquer, Iconc.unitConquer, 300f, 12_000),
-            spawnUnit(UnitTypes.collaris, Iconc.unitCollaris, 200f, 18_000),
-            spawnUnit(UnitTypes.disrupt, Iconc.unitDisrupt, 200f, 22_000),
+            spawnUnit(UnitTypes.conquer, Iconc.unitConquer, 300f, 14_600),
+            spawnUnit(UnitTypes.collaris, Iconc.unitCollaris, 200f, 22_600),
+            spawnUnit(UnitTypes.disrupt, Iconc.unitDisrupt, 200f, 18_400),
         )
 
         add(listOf("取消" to { }))
@@ -301,6 +304,17 @@ listen<EventType.TapEvent> {
 
 onEnable {
 
+
+    contextScript<coreMindustry.UtilMapRule>().apply {
+        registerMapRule(Blocks.coreShard::itemCapacity) { 1_000_000 }
+        registerMapRule(Blocks.coreFoundation::itemCapacity) { 1_000_000 }
+        registerMapRule(Blocks.coreNucleus::itemCapacity) { 1_000_000 }
+        
+        registerMapRule(Blocks.coreBastion::itemCapacity) { 1_000_000 }
+        registerMapRule(Blocks.coreCitadel::itemCapacity) { 1_000_000 }
+        registerMapRule(Blocks.coreAcropolis::itemCapacity) { 1_000_000 }
+    }
+    
 
     loop(Dispatchers.game) {
         delay(5000)
