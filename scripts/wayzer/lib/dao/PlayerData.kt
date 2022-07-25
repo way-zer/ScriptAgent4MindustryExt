@@ -60,9 +60,10 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     }
 
     @NeedTransaction
-    fun bind(player: Player, profile: PlayerProfile) {
+    fun bind(player: Player?, profile: PlayerProfile) {
         this.profileId = profile.id
-        Usid.put(this, player.usid())
+        if (player != null)
+            Usid.put(this, player.usid())
     }
 
     fun secure(player: Player): Boolean {
