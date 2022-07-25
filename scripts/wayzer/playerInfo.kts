@@ -69,7 +69,11 @@ listenPacket2ServerAsync<ConnectPacket> { con, packet ->
             }
             return@withContext false
         }
-        transaction { PlayerData.findOrCreate(packet.uuid, con.address, packet.name) }
+        transaction {
+            val data = PlayerData.findOrCreate(packet.uuid, con.address, packet.name)
+            data.refresh()
+            data.profile//warm up cache
+        }
         true
     }
 }
