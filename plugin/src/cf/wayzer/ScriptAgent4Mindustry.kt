@@ -8,7 +8,8 @@ import cf.wayzer.ConfigExt.clientCommands
 import cf.wayzer.ConfigExt.serverCommands
 import cf.wayzer.scriptAgent.*
 import cf.wayzer.scriptAgent.define.LoaderApi
-import cf.wayzer.scriptAgent.events.FinishLoadEvent
+import cf.wayzer.scriptAgent.define.ScriptState
+import kotlinx.coroutines.runBlocking
 import mindustry.Vars
 import mindustry.plugin.Plugin
 
@@ -35,18 +36,17 @@ class ScriptAgent4Mindustry : Plugin() {
     override fun init() {
         Config.rootDir = Vars.dataDirectory.child("scripts").file()
         ScriptRegistry.scanRoot()
-        System.getenv("SAMain")?.let { id ->
-            Log.info("发现环境变量SAMain=$id")
-            val script = ScriptManager.getScriptNullable(id)
-                ?: error("未找到脚本$id")
-            Log.info("发现脚本$id,开始加载")
-            ScriptManager.loadScript(script, enable = false, children = false)
-            FinishLoadEvent(false).emit()
-            ScriptManager.enableAll()
-        } ?: let {
-            @OptIn(LoaderApi::class)
-            ScriptManager.loadRoot()
-            ScriptManager.loadAll(true)
+        runBlocking {
+            System.getenv("SAMain")?.let { id ->
+                Log.info("发现环境变量SAMain=$id")
+                val script = ScriptManager.getScriptNullable(id)
+                    ?: error("未找到脚本$id")
+                Log.info("发现脚本$id,开始加载")
+                ScriptManager.loadScript(script, children = false, autoMark = true)
+                ScriptManager.enableScript(script, autoMark = true)
+            } ?: let {
+                ScriptManager.loadAll(true, autoMark = true)
+            }
         }
         Core.app.addListener(object : ApplicationListener {
             override fun pause() {
@@ -55,7 +55,9 @@ class ScriptAgent4Mindustry : Plugin() {
             }
 
             override fun exit() {
-                ScriptManager.disableAll()
+                runBlocking {
+                    ScriptManager.disableAll()
+                }
             }
         })
         Log.info("&y===========================")
@@ -63,8 +65,11 @@ class ScriptAgent4Mindustry : Plugin() {
         Log.info("&b           By &cWayZer    ")
         Log.info("&b插件官网: https://git.io/SA4Mindustry")
         Log.info("&bQQ交流群: 1033116078")
-        if (ScriptRegistry.allScripts { true }.isEmpty())
-            Log.warn("未在config/scripts下发现脚本,请下载安装脚本包,以发挥本插件功能")
+        val all = ScriptRegistry.allScripts { true }
+        if (all.isEmpty())
+            Log.warn("&c未在config/scripts下发现脚本,请下载安装脚本包,以发挥本插件功能")
+        else
+            Log.info("&b共找到${all.size}脚本,加载成功${all.count { it.scriptState.loaded }},启用成功${all.count { it.scriptState.enabled }},出错${all.count { it.failReason != null }}")
         Log.info("&y===========================")
     }
 }
