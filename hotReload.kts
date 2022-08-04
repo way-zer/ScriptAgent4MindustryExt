@@ -1,6 +1,7 @@
 package coreLibrary
 
 import cf.wayzer.placehold.PlaceHoldApi.with
+import cf.wayzer.scriptAgent.registry.DirScriptRegistry
 import java.nio.file.*
 
 var watcher: WatchService? = null
@@ -23,12 +24,29 @@ fun enableWatch() {
                 if (event.count() != 1) return@forEach
                 val file = (key.watchable() as Path).resolve(event.context() as? Path ?: return@forEach)
                 when {
-                    file.toString().endsWith(Config.contentScriptSuffix) -> { //处理子脚本重载
-                        val id = ScriptRegistry.getIdByFile(file.toFile())
-                        logger.info("脚本文件更新: ${event.kind().name()} $id")
+                    file.toString().endsWith(Config.contentScriptSuffix) -> { //处理子脚本
+                        val id = DirScriptRegistry.getIdByFile(file.toFile(), Config.rootDir)
+                        val script = ScriptRegistry.findScriptInfo(id) ?: return@forEach
+                        logger.info("脚本文件更新: ${event.kind().name()} ${script.id}")
                         delay(1000)
-                        ScriptManager.loadScript(ScriptManager.getScript(id), force = true, enable = true)
+                        val state = script.scriptState
+                        when {
+                            state == ScriptState.Found -> logger.info("  新脚本: 请使用sa load加载")
+                            state == ScriptState.ToEnable || state.enabled -> {
+                                ScriptManager.unloadScript(script)
+                                ScriptManager.loadScript(script)
+                                ScriptManager.enableScript(script, autoMark = true)
+                                logger.info("  新脚启用成功")
+                            }
+
+                            state == ScriptState.ToLoad || state.loaded -> {
+                                ScriptManager.unloadScript(script)
+                                ScriptManager.loadScript(script)
+                                logger.info("  新脚本加载成功: 请使用sa enable启用")
+                            }
+                        }
                     }
+
                     file.toFile().isDirectory -> {//添加子目录到Watch
                         file.register(
                             watcher!!,
@@ -61,5 +79,7 @@ onEnable {
 }
 
 onDisable {
-    watcher?.close()
+    withContext(Dispatchers.IO) {
+        watcher?.close()
+    }
 }
