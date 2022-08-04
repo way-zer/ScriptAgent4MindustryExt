@@ -54,6 +54,7 @@ object MyCompleter : Completer {
     }
 }
 
+@OptIn(LoaderApi::class)
 fun handleInput(reader: LineReader) {
     var last = 0
     while (!Thread.interrupted()) {
@@ -77,7 +78,9 @@ fun handleInput(reader: LineReader) {
                 continue
             }
             reader.printAbove("exit")
-            ScriptManager.disableAll()
+            runBlocking {
+                ScriptManager.disableAll()
+            }
             exitProcess(1)
         }
         last = 0
