@@ -5,13 +5,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object TransactionHelper {
     private val threadLocal = ThreadLocal<MutableList<Transaction.() -> Unit>>()
 
     fun begin() = threadLocal.set(mutableListOf())
-    fun lateUpdate(body: Transaction.() -> Unit) = threadLocal.get()!!.add(body)
+    fun lateUpdate(body: Transaction.() -> Unit) {
+        TransactionManager.currentOrNull()?.body()
+            ?: threadLocal.get()!!.add(body)
+    }
+
     fun end(): Transaction.() -> Unit {
         val list = threadLocal.get()
         threadLocal.remove()

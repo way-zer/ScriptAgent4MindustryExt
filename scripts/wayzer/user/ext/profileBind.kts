@@ -91,14 +91,16 @@ command("bind", "绑定用户") {
         PlayerData[player!!.uuid()].apply {
             if (profile != null && (profile!!.qq != qq || secure(player!!)))
                 returnReply("[red]你已经绑定用户，如需解绑，请联系管理员".with())
-            transaction {
-                bind(player!!, PlayerProfile.findOrCreate(qq).apply {
-                    this.onJoin(player!!)
-                })
+            launch(Dispatchers.IO) {
+                transaction {
+                    bind(player!!, PlayerProfile.findOrCreate(qq).apply {
+                        this.onJoin(player!!)
+                    })
+                }
+                userService.finishAchievement(profile!!, "绑定账号", 100, false)
+                userService.updateExp(profile!!, 0)
+                reply("[green]绑定账号[yellow]{qq}[green]成功.".with("qq" to qq))
             }
-            userService.finishAchievement(profile!!, "绑定账号", 100, false)
-            userService.updateExp(profile!!, 0)
         }
-        reply("[green]绑定账号[yellow]{qq}[green]成功.".with("qq" to qq))
     }
 }
