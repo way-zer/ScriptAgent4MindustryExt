@@ -2,14 +2,14 @@ package wayzer
 
 import arc.Events
 import arc.files.Fi
-import cf.wayzer.scriptAgent.Event
-import cf.wayzer.scriptAgent.contextScript
-import cf.wayzer.scriptAgent.emit
-import cf.wayzer.scriptAgent.thisContextScript
+import cf.wayzer.scriptAgent.*
 import coreLibrary.lib.config
 import coreLibrary.lib.with
-import coreMindustry.lib.MindustryDispatcher
 import coreMindustry.lib.broadcast
+import coreMindustry.lib.game
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import mindustry.Vars
 import mindustry.core.GameState
 import mindustry.game.EventType
@@ -30,8 +30,16 @@ class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val rules: Rules) :
     /** Should call other load*/
     override var cancelled: Boolean = false
 
-    override val handler = Companion
+    companion object : Event.Handler()
+}
 
+/**
+ * After MapChangeEvent and ResetEvent, will do world load
+ * Other Event
+ * * NormalF: ResetEvent SaveLoadEvent
+ * * NormalE: WorldLoadEvent PlayEvent
+ */
+class WorldLoadEvent(val info: MapInfo, val rules: Rules) : Event {
     companion object : Event.Handler()
 }
 
@@ -51,43 +59,62 @@ object MapManager {
             }
         }).emit()
         if (event.cancelled) return
-        MindustryDispatcher.runInMain {
+        thisContextScript().launch(Dispatchers.game) {
             if (!Vars.net.server()) Vars.netServer.openServer()
-            val players = Groups.player.toList()
-            players.forEach { it.clearUnit() }
             try {
                 current.beforeReset?.invoke()
             } catch (e: Throwable) {
                 thisContextScript().logger.log(Level.WARNING, "Error when do reset for $current", e)
             }
+            val players = Groups.player.toList()
             Call.worldDataBegin()
-            current = info
-            try {
-//              Vars.logic.reset()
-                info.load()
-                Vars.state.map = info.map
-                Vars.state.rules = event.rules.copy()
-                if (isSave) {
-                    Vars.state.set(GameState.State.playing)
-                    Events.fire(EventType.PlayEvent())
-                } else {
-                    Vars.logic.play()
+            Vars.logic.reset()
+
+            WorldLoadEvent(info, event.rules).emitAsync { priority ->
+                when (priority) {
+                    Event.Priority.NormalF -> {
+                        current = info
+                        try {
+                            info.load() // EventType.ResetEvent
+                            // EventType.SaveLoadEvent
+                            // EventType.WorldLoadEvent
+                        } catch (e: MapException) {
+                            broadcast(
+                                "[red]地图{info.map.name}无效:{reason}".with(
+                                    "info" to info,
+                                    "reason" to (e.message ?: "")
+                                )
+                            )
+                            players.forEach { it.add() }
+                            throw CancellationException()
+                        }
+                        Vars.state.map = info.map
+                        Vars.state.rules = event.rules.copy()
+                    }
+
+                    Event.Priority.NormalE -> {
+                        if (isSave) {
+                            Vars.state.set(GameState.State.playing)
+                            Events.fire(EventType.PlayEvent())
+                        } else {
+                            Vars.logic.play()
+                        }
+                        // EventType.PlayEvent
+                        players.forEach {
+                            if (it.con == null) return@forEach
+                            it.admin.let { was ->
+                                it.reset()
+                                it.admin = was
+                            }
+                            it.team(Vars.netServer.assignTeam(it, players))
+                            Vars.netServer.sendWorldData(it)
+                        }
+                        players.forEach { it.add() }
+                    }
+
+                    else -> {}
                 }
-            } catch (e: MapException) {
-                broadcast("[red]地图{info.map.name}无效:{reason}".with("info" to info, "reason" to (e.message ?: "")))
-                players.forEach { it.add() }
-                return@runInMain loadMap()
             }
-            players.forEach {
-                if (it.con == null) return@forEach
-                it.admin.let { was ->
-                    it.reset()
-                    it.admin = was
-                }
-                it.team(Vars.netServer.assignTeam(it, players))
-                Vars.netServer.sendWorldData(it)
-            }
-            players.forEach { it.add() }
         }
     }
 
