@@ -47,7 +47,7 @@ dependencies {
 //    compile("org.jline:jline-terminal-jansi:3.19.0")
     implementation("org.jline:jline-reader:3.19.0")
     //coreMindustry/utilContentsOverwrite
-    implementation("cf.wayzer.MindustryContents:contents:1.0.8")
+    implementation("cf.wayzer:ContentsTweaker:v2.0.1")
 
     //mirai
     implementation("net.mamoe:mirai-core-api-jvm:2.10.0")
