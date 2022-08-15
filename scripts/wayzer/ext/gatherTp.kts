@@ -20,6 +20,8 @@ command("gather", "发出集合请求") {
     body {
         if (state.rules.pvp)
             returnReply("[red]PVP模式禁用".with())
+        if (!player!!.unit().type.targetable)
+            returnReply("[red]当前单位无法使用 集合".with())
         if (Duration.between(lastTime, Instant.now()) < Duration.ofSeconds(30)) {
             returnReply("[red]刚刚有人发起请求,请稍等30s再试".with())
         }

@@ -3,6 +3,7 @@ package coreMindustry.lib
 import arc.Core
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
 import kotlin.coroutines.CoroutineContext
 
 object MindustryDispatcher : CoroutineDispatcher() {
@@ -15,7 +16,9 @@ object MindustryDispatcher : CoroutineDispatcher() {
     }
 
     override fun isDispatchNeeded(context: CoroutineContext): Boolean {
-        return Thread.currentThread() != mainThread && mainThread?.isAlive == true
+        if (Thread.currentThread() == mainThread || mainThread?.isAlive != true)
+            return false
+        return true
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
