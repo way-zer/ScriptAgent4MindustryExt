@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.9.0.1"
+    val libraryVersion = "1.9.1"
     val mindustryVersion = "v136"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
@@ -41,6 +41,7 @@ dependencies {
 
     //coreMindustry
     implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
+//    implementation("com.github.TinyLake.MindustryX:core:135.003")
     //coreMindustry/console
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.2.1")
     implementation("org.jline:jline-terminal:3.19.0")
@@ -58,4 +59,9 @@ dependencies {
 
     //docker
     implementation("com.amihaiemil.web:docker-java-api:0.0.13")
+    implementation("org.glassfish:javax.json:1.0.4")
+
+    //javalin
+    implementation("io.javalin:javalin:4.4.0")
+    implementation("gg.jte:jte:2.0.2")
 }

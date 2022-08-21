@@ -32,17 +32,15 @@ fun enableWatch() {
                         val state = script.scriptState
                         when {
                             state == ScriptState.Found -> logger.info("  新脚本: 请使用sa load加载")
-                            state == ScriptState.ToEnable || state.enabled -> {
-                                ScriptManager.unloadScript(script)
-                                ScriptManager.loadScript(script)
-                                ScriptManager.enableScript(script, autoMark = true)
-                                logger.info("  新脚启用成功")
-                            }
-
-                            state == ScriptState.ToLoad || state.loaded -> {
-                                ScriptManager.unloadScript(script)
-                                ScriptManager.loadScript(script)
-                                logger.info("  新脚本加载成功: 请使用sa enable启用")
+                            else -> {
+                                val oldEnable = state == ScriptState.ToEnable || state.enabled
+                                ScriptManager.transaction {
+                                    add(script)
+                                    unload(addAllAffect = true)
+                                    load()
+                                    if (oldEnable) enable()
+                                }
+                                logger.info(if (oldEnable) "  新脚本启用成功" else "  新脚本加载成功: 请使用sa enable启用")
                             }
                         }
                     }

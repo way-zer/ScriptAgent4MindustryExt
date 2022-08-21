@@ -72,12 +72,12 @@ onEnable {
                         reply("[yellow]清理cache文件{name}".with("name" to file.name))
                         file.delete()
                     }
-                    if (script.scriptState == ScriptState.Found)
-                        script.scriptInfo.stateUpdate(ScriptState.ToLoad)
-                    else
-                        ScriptManager.unloadScript(script)
-                    ScriptManager.loadScript(script)
-                    if (!noEnable) ScriptManager.enableScript(script, autoMark = true)
+                    ScriptManager.transaction {
+                        add(script)
+                        unload(addAllAffect = true)
+                        load()
+                        if (!noEnable) enable()
+                    }
                     val success = if (noEnable) script.scriptState.loaded else script.scriptState.enabled
                     reply((if (success) "[green]重载成功" else "[red]加载失败: ${script.scriptState}").with())
                 }
@@ -96,14 +96,13 @@ onEnable {
                 //not cancel when disable self
                 launch(Job()) {
                     reply("[yellow]异步处理中".with())
-                    val script = ScriptManager.getScriptNullable(arg[0])
+                    val script = ScriptRegistry.getScriptInfo(arg[0])
                         ?: return@launch reply("[red]找不到模块或者脚本".with())
-
-                    if (script.scriptState == ScriptState.Loaded)
-                        script.scriptInfo.stateUpdate(ScriptState.ToEnable)
-                    else
-                        ScriptManager.disableScript(script)
-                    ScriptManager.enableScript(script)
+                    ScriptManager.transaction {
+                        add(script)
+                        disable(addAllAffect = true)
+                        enable()
+                    }
                     val success = script.scriptState.enabled
                     reply((if (success) "[green]启用成功" else "[red]加载失败").with())
                 }

@@ -6,9 +6,11 @@ import arc.util.CommandHandler
 import arc.util.Log
 import cf.wayzer.ConfigExt.clientCommands
 import cf.wayzer.ConfigExt.serverCommands
-import cf.wayzer.scriptAgent.*
+import cf.wayzer.scriptAgent.Config
+import cf.wayzer.scriptAgent.ScriptAgent
+import cf.wayzer.scriptAgent.ScriptManager
+import cf.wayzer.scriptAgent.ScriptRegistry
 import cf.wayzer.scriptAgent.define.LoaderApi
-import cf.wayzer.scriptAgent.define.ScriptState
 import kotlinx.coroutines.runBlocking
 import mindustry.Vars
 import mindustry.plugin.Plugin
@@ -39,13 +41,18 @@ class ScriptAgent4Mindustry : Plugin() {
         runBlocking {
             System.getenv("SAMain")?.let { id ->
                 Log.info("发现环境变量SAMain=$id")
-                val script = ScriptManager.getScriptNullable(id)
+                val script = ScriptRegistry.getScriptInfo(id)
                     ?: error("未找到脚本$id")
                 Log.info("发现脚本$id,开始加载")
-                ScriptManager.loadScript(script, children = false, autoMark = true)
-                ScriptManager.enableScript(script, autoMark = true)
+                ScriptManager.transaction {
+                    add(script)
+                    load();enable()
+                }
             } ?: let {
-                ScriptManager.loadAll(true, autoMark = true)
+                ScriptManager.transaction {
+                    addAll()
+                    load();enable()
+                }
             }
         }
         Core.app.addListener(object : ApplicationListener {

@@ -26,4 +26,5 @@ onEnable {
             })
         }
     }
+    Commands.controlCommand.autoRemove(this)
 }
