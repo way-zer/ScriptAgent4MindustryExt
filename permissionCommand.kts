@@ -38,6 +38,7 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
                     )
                 )
             }
+
             "remove" -> {
                 if (arg.size < 3) returnReply("[red]请输入需要增减的权限".with())
                 if (group in groups) {
@@ -50,6 +51,7 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
                     )
                 )
             }
+
             "", "list" -> {
                 val now = groups[group].orEmpty()
                 val defaults = PermissionApi.default.groups[group]?.allNodes().orEmpty()
@@ -65,6 +67,7 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
                     )
                 )
             }
+
             "delGroup".lowercase() -> {
                 val now = groups[group].orEmpty()
                 if (group in groups)
@@ -75,10 +78,12 @@ Commands.controlCommand += CommandInfo(this, "permission", "权限系统配置")
                     )
                 )
             }
+
             else -> replyUsage()
         }
     }
 }
+Commands.controlCommand.autoRemove(this)
 
 val debug by config.key(false, "调试输出,如果开启,则会在后台打印权限请求")
 listenTo<RequestPermissionEvent>(Event.Priority.Watch) {
