@@ -1,15 +1,17 @@
-@file:Import("org.jline:jline-terminal-jansi:3.19.0", mavenDependsSingle = true)
-@file:Import("org.jline:jline-terminal:3.19.0", mavenDependsSingle = true)
-@file:Import("org.fusesource.jansi:jansi:2.1.0", mavenDependsSingle = true)
-@file:Import("org.jline:jline-reader:3.19.0", mavenDependsSingle = true)
+//@file:Import("org.jline:jline-terminal-jansi:3.21.0", mavenDependsSingle = true)
+@file:Import("org.jline:jline-terminal:3.21.0", mavenDependsSingle = true)
+//@file:Import("org.fusesource.jansi:jansi:2.4.0", mavenDependsSingle = true)
+@file:Import("org.jline:jline-reader:3.21.0", mavenDependsSingle = true)
 
 package coreMindustry
 
+import arc.util.OS
 import org.jline.reader.*
 import org.jline.utils.AttributedString
 import java.io.ByteArrayOutputStream
 import java.io.InterruptedIOException
 import java.io.PrintStream
+import java.nio.charset.Charset
 import java.util.logging.Level
 import kotlin.concurrent.thread
 import kotlin.system.exitProcess
@@ -37,7 +39,7 @@ class MyPrintStream(private val block: (String) -> Unit) : PrintStream(ByteArray
     @Synchronized
     override fun flush() {
         val str = try {
-            bufOut.toString()
+            bufOut.toString(Charset.defaultCharset())
         } finally {
             bufOut.reset()
         }
@@ -112,6 +114,7 @@ fun start() {
 }
 
 onEnable {
+    if (OS.isWindows) return@onEnable ScriptManager.disableScript(this, "不支持Windows")
     thread(true, isDaemon = true) {
         val arr = arrayOfNulls<Thread>(Thread.activeCount())
         Thread.enumerate(arr)
