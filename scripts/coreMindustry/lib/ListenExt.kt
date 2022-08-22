@@ -14,6 +14,8 @@ import cf.wayzer.scriptAgent.getContextScript
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreMindustry.lib.Listener.Companion.listener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 sealed class Listener<T : Any> : Cons<T> {
     abstract val script: Script?
@@ -68,10 +70,16 @@ sealed class Listener<T : Any> : Cons<T> {
         init {
             Listener::class.java.getContextScript().apply {
                 listenTo<ScriptEnableEvent>(Event.Priority.After) {
-                    key.run { script.get() }?.forEach { it.register() }
+                    if (!script.dslExists(key)) return@listenTo
+                    withContext(Dispatchers.game) {
+                        script.listener.forEach { it.register() }
+                    }
                 }
                 listenTo<ScriptDisableEvent>(Event.Priority.Before) {
-                    key.run { script.get() }?.forEach { it.unregister() }
+                    if (!script.dslExists(key)) return@listenTo
+                    withContext(Dispatchers.game) {
+                        script.listener.forEach { it.unregister() }
+                    }
                 }
             }
         }

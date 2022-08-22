@@ -4,7 +4,6 @@ import arc.func.Cons2
 import arc.struct.ObjectMap
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
-import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.util.reflectDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +16,6 @@ import mindustry.net.NetConnection
 import mindustry.net.Packet
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.properties.ReadOnlyProperty
 
 val Net.serverListeners: ObjectMap<Class<*>, Cons2<NetConnection, *>> by reflectDelegate()
 
@@ -50,17 +48,21 @@ inline fun <reified T : Packet> Script.listenPacket2ServerAsync(
     crossinline handle: suspend (NetConnection, T) -> Boolean
 ) {
     onEnable {
-        val old = getPacketHandle<T>()
-        Vars.net.handleServer(T::class.java) { con, p ->
-            launch(context) {
-                if (handle(con, p))
-                    withContext(Dispatchers.game) {
-                        old.get(con, p)
-                    }
+        withContext(Dispatchers.game) {
+            val old = getPacketHandle<T>()
+            Vars.net.handleServer(T::class.java) { con, p ->
+                launch(context) {
+                    if (handle(con, p))
+                        withContext(Dispatchers.game) {
+                            old.get(con, p)
+                        }
+                }
             }
-        }
-        onDisable {
-            Vars.net.handleServer(T::class.java, old)
+            onDisable {
+                withContext(Dispatchers.game) {
+                    Vars.net.handleServer(T::class.java, old)
+                }
+            }
         }
     }
 }
@@ -68,9 +70,13 @@ inline fun <reified T : Packet> Script.listenPacket2ServerAsync(
 @ScriptDsl
 fun Script.registerActionFilter(handle: Administration.ActionFilter) {
     onEnable {
-        Vars.netServer.admins.actionFilters.add(handle)
+        withContext(Dispatchers.game) {
+            Vars.netServer.admins.actionFilters.add(handle)
+        }
         onDisable {
-            Vars.netServer.admins.actionFilters.remove(handle)
+            withContext(Dispatchers.game) {
+                Vars.netServer.admins.actionFilters.remove(handle)
+            }
         }
     }
 }
@@ -81,12 +87,4 @@ fun Script.registerActionFilter(handle: Administration.ActionFilter) {
  */
 @ScriptDsl
 @Deprecated("no use ContentsLoader", ReplaceWith("lazy{ init() }"), DeprecationLevel.HIDDEN)
-inline fun <T : Any> Script.useContents(crossinline init: () -> T): ReadOnlyProperty<Any?, T> {
-    var v: T? = null
-    if (Vars.content != null)
-        v = init()
-    listen<EventType.ContentInitEvent> {
-        v = init()
-    }
-    return DSLBuilder.Companion.SimpleDelegate { v ?: error("No Vars.content") }
-}
+inline fun <T : Any> Script.useContents(crossinline init: () -> T) = lazy { init() }
