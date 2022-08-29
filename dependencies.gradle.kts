@@ -56,14 +56,4 @@ dependencies {
     implementation("net.mamoe:mirai-core-api-jvm:2.10.0")
     //wayzer
     implementation("com.google.guava:guava:30.1-jre")
-    //gbot
-    implementation("love.forte.simple-robot:component-tencent-guild:0.0.1")
-
-    //docker
-    implementation("com.amihaiemil.web:docker-java-api:0.0.13")
-    implementation("org.glassfish:javax.json:1.0.4")
-
-    //javalin
-    implementation("io.javalin:javalin:4.4.0")
-    implementation("gg.jte:jte:2.0.2")
 }
