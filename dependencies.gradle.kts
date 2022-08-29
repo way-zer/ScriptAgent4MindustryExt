@@ -29,6 +29,8 @@ dependencies {
     val implementation by configurations
     implementation(kotlin("script-runtime"))
     implementation("cf.wayzer:ScriptAgent:$libraryVersion")
+    val kotlinScriptDef by configurations
+    kotlinScriptDef("cf.wayzer:ScriptAgent:$libraryVersion")
 
     //coreLibrary
     implementation("cf.wayzer:PlaceHoldLib:5.2")
