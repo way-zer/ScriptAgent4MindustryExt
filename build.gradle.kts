@@ -9,7 +9,7 @@ plugins {
 group = "cf.wayzer"
 version = "v3.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
 
-if (File(".git").isDirectory)
+if (projectDir.resolve(".git").isDirectory)
     gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
         tag(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.VersionDescription> {
             pattern = "v(?<tagVersion>[0-9].*)"
