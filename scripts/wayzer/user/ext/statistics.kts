@@ -110,7 +110,7 @@ onEnable {
     }
 }
 listen<EventType.BlockBuildEndEvent> {
-    it.unit.player?.data?.apply {
+    it.unit?.player?.data?.apply {
         if (it.breaking)
             breakBlock++
         else

@@ -85,7 +85,7 @@ fun log(x: Int, y: Int, log: Log) {
     }
 }
 listen<EventType.BlockBuildEndEvent> {
-    val player = it.unit.player
+    val player = it.unit?.player ?: return@listen
     if (it.breaking)
         log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Break(player?.uuid()))
     else

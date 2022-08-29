@@ -36,8 +36,8 @@ class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val rules: Rules) :
 /**
  * After MapChangeEvent and ResetEvent, will do world load
  * Other Event
- * * NormalF: ResetEvent SaveLoadEvent
- * * NormalE: WorldLoadEvent PlayEvent
+ * * NormalF: ResetEvent SaveLoadEvent WorldLoadEvent
+ * * NormalE: PlayEvent
  */
 class WorldLoadEvent(val info: MapInfo, val rules: Rules) : Event {
     companion object : Event.Handler()
