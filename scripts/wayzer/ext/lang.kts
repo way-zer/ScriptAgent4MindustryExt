@@ -4,7 +4,6 @@ import cf.wayzer.placehold.TemplateHandler
 import cf.wayzer.placehold.TemplateHandlerKey
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
-import java.io.StringWriter
 import java.util.*
 
 name = "国际化多语言"
@@ -15,7 +14,10 @@ var console by config.key("default.console", "控制台语言(不发给玩家的
 val tempLang = mutableMapOf<String, String>()//uuid -> lang
 
 var Player.lang
-    get() = tempLang[uuid()] ?: PlayerData[uuid()].profile?.lang ?: default
+    get() = tempLang[uuid()]
+        ?: PlayerData[uuid()].profile?.lang
+        ?: locale.takeIf { it in cache }
+        ?: default
     set(v) {
         if (lang == v) return
         PlayerData[uuid()].secureProfile(this)?.apply {
@@ -26,7 +28,7 @@ var Player.lang
             }
         } ?: let {
             tempLang[uuid()] = v
-            sendMessage("[yellow]当前未绑定账,语言设置将在退出游戏后重置".with())
+            sendMessage("[yellow]当前未绑定账号,语言设置将在退出游戏后重置".with())
         }
     }
 
@@ -58,7 +60,7 @@ class Lang(private val lang: String) : Properties() {
     }
 
     companion object {
-        val dir = Config.dataDirectory.resolve("lang")
+        val dir = Config.dataDir.resolve("lang")
         val header = """
                 |# Auto generated(自动生成的文件)
                 |# backup before modify(修改前注意备份)
@@ -81,22 +83,22 @@ registerVar(TemplateHandlerKey, "多语言处理", TemplateHandler.new {
 
 //===commands===
 val commands = Commands()
-commands += CommandInfo(this, "reload", "重载语言文件") {
+commands += CommandInfo(this, "reload", "重载语言文件".with()) {
     permission = "wayzer.lang.reload"
     body {
         cache.clear()
         reply("[green]缓存已刷新".with())
     }
 }
-commands += CommandInfo(this, "setDefault", "设置玩家默认语言") {
+commands += CommandInfo(this, "setDefault", "设置玩家默认语言".with()) {
     permission = "wayzer.lang.setDefault"
     body {
         arg.getOrNull(0)?.let { default = it }
         reply("[green]玩家默认语言已设为 {v}".with("v" to default))
     }
 }
-commands += CommandInfo(this, "set", "设置当前使用语言") {
-    permission = "wayzer.lang.setDefault"
+commands += CommandInfo(this, "set", "设置当前使用语言".with()) {
+    permission = "wayzer.lang.set"
     body {
         val suffix = if (player == null) ".console" else ".user"
         if (arg.isEmpty())
