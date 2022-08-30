@@ -8,7 +8,11 @@
 
 package coreLibrary
 
+import coreLibrary.lib.Color
+
 name = "ScriptAgent 库模块"
 /*
 本模块实现一些平台无关的库
  */
+
+Color//ensure init
