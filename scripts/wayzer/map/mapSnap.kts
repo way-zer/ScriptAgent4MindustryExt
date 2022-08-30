@@ -83,9 +83,6 @@ onEnable {
         MapRenderer.drawAll(world)
 }
 registerVar("wayzer.ext.mapSnap._get", "地图快照截图接口", { MapRenderer.img })
-onDisable {
-    registerVar("wayzer.ext.mapSnap._get", "地图快照截图接口", null)
-}
 
 command("saveSnap", "保存当前服务器地图截图") {
     type = CommandType.Server

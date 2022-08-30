@@ -1,13 +1,10 @@
 //WayZer 版权所有(请勿删除版权注解)
 package coreMindustry
 
-import arc.util.Time
 import cf.wayzer.placehold.DynamicVar
 import mindustry.core.Version
-import mindustry.game.EventType
 import mindustry.game.Team
 import mindustry.gen.Groups
-import mindustry.gen.Player
 import mindustry.gen.Unit
 import mindustry.maps.Map
 import mindustry.net.Administration
@@ -49,6 +46,7 @@ registerVar("game.version", "当前游戏版本", DynamicVar.v { Version.build }
 
 //PlayerVars
 registerVarForType<Player>().apply {
+    registerChild("colorHandler", "颜色变量处理", DynamicVar.obj { { color: String -> "[$color]" } })
     registerChild("name", "名字", DynamicVar.obj { it.name })
     registerChild("uuid", "uuid", DynamicVar.obj { it.uuid() })
     registerChild("ip", "当前ip", DynamicVar.obj { it.con?.address })

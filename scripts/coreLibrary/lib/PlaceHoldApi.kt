@@ -13,6 +13,7 @@ import cf.wayzer.placehold.PlaceHoldApi
 import cf.wayzer.placehold.PlaceHoldContext
 import cf.wayzer.placehold.TypeBinder
 import cf.wayzer.scriptAgent.define.Script
+import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.PlaceHold.Updatable
 import kotlin.reflect.KProperty
@@ -111,6 +112,7 @@ fun String.with(vararg arg: Pair<String, Any>): PlaceHoldString = PlaceHoldApi.g
 /**
  * @see PlaceHold.register
  */
+@ScriptDsl
 fun Script.registerVar(name: String, desc: String, v: Any?) = PlaceHold.register(this, name, desc, v)
 
 /**
@@ -123,4 +125,5 @@ inline fun <reified T : Any> Script.registerVarForType(desc: String) = PlaceHold
 /**
  * @see PlaceHold.registerForType
  */
+@ScriptDsl
 inline fun <reified T : Any> Script.registerVarForType() = PlaceHold.registerForType<T>(this)
