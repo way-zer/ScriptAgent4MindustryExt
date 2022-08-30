@@ -3,6 +3,7 @@ package wayzer.ext
 import arc.util.Interval
 import arc.util.Log
 import arc.util.serialization.Jval
+import coreLibrary.lib.util.loop
 import mindustry.core.Version
 import mindustry.gen.Groups
 import mindustry.net.BeControl
@@ -41,35 +42,33 @@ suspend fun download(url: String, file: File): Int = withContext(Dispatchers.IO)
 }
 
 onEnable {
-    launch {
-        while (true) {
-            if (enableUpdate) {
-                if (!onlyInNight || LocalDateTime.now().hour in 1..6)
-                    try {
-                        val txt = URL("https://api.github.com/repos/$source/releases").readText()
-                        val json = Jval.read(txt).asArray().first()
-                        val newBuild = json.getString("tag_name", "")
-                        val (version, revision) = ("$newBuild.0").removePrefix("v")
-                            .split(".").map { it.toInt() }
-                        if (version > Version.build || revision > Version.revision) {
-                            val asset = json.get("assets").asArray().find {
-                                it.getString("name", "").contains("server", ignoreCase = true)
-                            } ?: error("New version $newBuild, but can't find asset")
-                            val url = asset.getString("browser_download_url", "")
-                            try {
-                                update(newBuild, if (useMirror) "https://gh.tinylake.tk/$url" else url)
-                                break
-                            } catch (e: Throwable) {
-                                logger.warning("下载更新失败: $e")
-                                e.printStackTrace()
-                            }
+    loop {
+        if (enableUpdate) {
+            if (!onlyInNight || LocalDateTime.now().hour in 1..6)
+                try {
+                    val txt = URL("https://api.github.com/repos/$source/releases").readText()
+                    val json = Jval.read(txt).asArray().first()
+                    val newBuild = json.getString("tag_name", "")
+                    val (version, revision) = ("$newBuild.0").removePrefix("v")
+                        .split(".").map { it.toInt() }
+                    if (version > Version.build || revision > Version.revision) {
+                        val asset = json.get("assets").asArray().find {
+                            it.getString("name", "").contains("server", ignoreCase = true)
+                        } ?: error("New version $newBuild, but can't find asset")
+                        val url = asset.getString("browser_download_url", "")
+                        try {
+                            update(newBuild, if (useMirror) "https://gh.tinylake.tk/$url" else url)
+                            cancel()
+                        } catch (e: Throwable) {
+                            logger.warning("下载更新失败: $e")
+                            e.printStackTrace()
                         }
-                    } catch (e: Throwable) {
-                        logger.warning("获取更新数据失败: $e")
                     }
-            }
-            delay(5 * 60_000)//延时5分钟
+                } catch (e: Throwable) {
+                    logger.warning("获取更新数据失败: $e")
+                }
         }
+        delay(5 * 60_000)//延时5分钟
     }
 }
 
@@ -109,14 +108,12 @@ command("forceUpdate", "强制更新服务器版本") {
     usage = "<url>"
     body {
         arg.firstOrNull()?.let { kotlin.runCatching { URL(it) }.getOrNull() } ?: replyUsage()
-        launch {
-            reply("[green]正在后台处理中".with())
-            try {
-                update("管理员手动升级", arg.first())
-            } catch (e: Throwable) {
-                reply("[red]升级失败{e}".with("e" to e))
-                e.printStackTrace()
-            }
+        reply("[green]正在后台处理中".with())
+        try {
+            update("管理员手动升级", arg.first())
+        } catch (e: Throwable) {
+            reply("[red]升级失败{e}".with("e" to e))
+            e.printStackTrace()
         }
     }
 }

@@ -3,6 +3,7 @@ package wayzer
 import arc.util.Strings
 import cf.wayzer.placehold.DynamicVar
 import coreLibrary.DBApi
+import coreLibrary.lib.util.loop
 import mindustry.gen.Groups
 import mindustry.net.Administration
 import mindustry.net.Packets
@@ -98,26 +99,21 @@ listen<EventType.PlayerLeave> {
 onEnable {
     launch {
         DBApi.DB.awaitInit()
-        val flusher = TransactionHelper.withScope {
+        TransactionHelper.withAsyncFlush(this) {
             Groups.player.toList().forEach {
                 PlayerData[it.uuid()].onJoin(it)
             }
         }
-        launch(Dispatchers.IO) {
-            transaction { flusher() }
-            while (true) {
-                delay(5000)
-                val online = Groups.player.mapNotNull { PlayerData[it.uuid()].secureProfile(it) }
-                transaction {
-                    online.forEach(PlayerProfile::loopCheck)
-                }
+        loop(Dispatchers.IO) {
+            delay(5000)
+            val online = Groups.player.mapNotNull { PlayerData[it.uuid()].secureProfile(it) }
+            transaction {
+                online.forEach(PlayerProfile::loopCheck)
             }
         }
-        launch(Dispatchers.game) {
-            while (true) {
-                delay(5000)
-                Groups.player.forEach { it.updateName() }
-            }
+        loop(Dispatchers.game) {
+            delay(5000)
+            Groups.player.forEach { it.updateName() }
         }
     }
 }

@@ -11,6 +11,7 @@ import coreLibrary.lib.*
 import coreMindustry.lib.util.sendMenuPhone
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import mindustry.gen.Player
 
 object RootCommands : Commands() {
@@ -95,15 +96,17 @@ object RootCommands : Commands() {
      */
     suspend fun handleInput(text: String, player: Player?, prefix: String = "") {
         if (text.isEmpty()) return
-        RootCommands.invoke(CommandContext().apply {
-            this.player = player
-            hasPermission = {
-                player == null || player.admin || player.hasPermission(it)
-            }
-            reply = { player.sendMessage(it, MsgType.Message) }
-            this.prefix = prefix.ifEmpty { "* " }
-            this.arg = text.removePrefix(prefix).split(' ')
-        })
+        withContext(Dispatchers.game) {
+            RootCommands.invoke(CommandContext().apply {
+                this.player = player
+                hasPermission = {
+                    player == null || player.admin || player.hasPermission(it)
+                }
+                reply = { player.sendMessage(it, MsgType.Message) }
+                this.prefix = prefix.ifEmpty { "* " }
+                this.arg = text.removePrefix(prefix).split(' ')
+            })
+        }
     }
 }
 

@@ -5,6 +5,7 @@ package wayzer.user.ext
 
 import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.PlaceHoldApi
+import coreLibrary.lib.util.loop
 import mindustry.game.Gamemode
 import mindustry.game.Team
 import mindustry.gen.Groups
@@ -96,15 +97,13 @@ listen<EventType.PlayEvent> {
 }
 
 onEnable {
-    launch {
-        while (true) {
-            delay(1000)
-            runCatching {
-                Groups.player.forEach {
-                    it.data.playedTime++
-                    if (it.dead() || !it.active)
-                        it.data.idleTime++
-                }
+    loop {
+        delay(1000)
+        runCatching {
+            Groups.player.forEach {
+                it.data.playedTime++
+                if (it.dead() || !it.active)
+                    it.data.idleTime++
             }
         }
     }

@@ -112,7 +112,8 @@ listen<EventType.GameOverEvent> { event ->
     )
     if (GameOverEvent(event.winner).emit().cancelled) return@listen
     val map = MapRegistry.nextMapInfo(MapManager.current)
-    val winnerMsg: Any = if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
+    val winnerMsg: Any =
+        if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
     val msg = """
                 | [SCARLET]游戏结束![]"
                 | {winnerMsg}
@@ -132,13 +133,11 @@ command("host", "管理指令: 换图") {
     usage = "[mapId]"
     permission = "wayzer.maps.host"
     body {
-        launch(Dispatchers.game) {
-            val map = if (arg.isEmpty()) MapRegistry.nextMapInfo(MapManager.current)
-            else arg[0].toIntOrNull()?.let { MapRegistry.findById(it, reply) }
-                ?: return@launch reply("[red]请输入正确的地图ID".with())
-            MapManager.loadMap(map)
-            broadcast("[green]强制换图为{info.map.name},模式{info.mode}".with("info" to map))
-        }
+        val map = if (arg.isEmpty()) MapRegistry.nextMapInfo(MapManager.current)
+        else arg[0].toIntOrNull()?.let { MapRegistry.findById(it, reply) }
+            ?: returnReply("[red]请输入正确的地图ID".with())
+        MapManager.loadMap(map)
+        broadcast("[green]强制换图为{info.map.name},模式{info.mode}".with("info" to map))
     }
 }
 command("load", "管理指令: 加载存档") {

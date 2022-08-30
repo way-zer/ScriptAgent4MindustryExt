@@ -34,9 +34,9 @@ command("achieve", "管理指令: 添加成就") {
         } ?: returnReply("[red]找不到该用户".with())
         val name = arg[1]
         val exp = arg[2].toIntOrNull() ?: returnReply("[red]请输入正确的数字".with())
-        launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             finishAchievement(profile, name, exp, false)
-            reply("[green]添加成功".with())
         }
+        reply("[green]添加成功".with())
     }
 }

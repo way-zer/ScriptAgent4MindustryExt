@@ -65,28 +65,23 @@ command("pixel", "绘制像素画") {
         val url = kotlin.runCatching { URL(arg.last()) }.getOrElse {
             returnReply("[red]错误的URL: {error}".with("error" to it.message.orEmpty()))
         }
+
+        reply("[yellow]准备开始绘制".with())
+        var img = withContext(Dispatchers.IO) { ImageIO.read(url) }
+        reply("[yellow]原始图片尺寸{w}x{h}".with("w" to img.width, "h" to img.height))
+        img = withContext(Dispatchers.Default) { img.resize(size) }
+        reply("[yellow]缩放后比例{w}x{h}".with("w" to img.width, "h" to img.height))
+        var i = 0
         val p = player!!
-        launch(CoroutineExceptionHandler { _, throwable ->
-            reply("[red]执行出错: {error}".with("error" to throwable.message.orEmpty()))
-        }) {
-            reply("[yellow]准备开始绘制".with())
-            var img = withContext(Dispatchers.IO) { ImageIO.read(url) }
-            reply("[yellow]原始图片尺寸{w}x{h}".with("w" to img.width, "h" to img.height))
-            img = img.resize(size)
-            reply("[yellow]缩放后比例{w}x{h}".with("w" to img.width, "h" to img.height))
-            withContext(Dispatchers.game) {
-                var i = 0
-                for (x in 1..img.width)
-                    for (y in 1..img.height) {
-                        i++
-                        draw(p.tileX() - img.width / 2 + x, p.tileY() + img.height / 2 - y, img.getRGB(x - 1, y - 1))
-                        if (i > 10) {
-                            i = 0
-                            yield()
-                        }
-                    }
+        for (x in 1..img.width)
+            for (y in 1..img.height) {
+                i++
+                draw(p.tileX() - img.width / 2 + x, p.tileY() + img.height / 2 - y, img.getRGB(x - 1, y - 1))
+                if (i > 10) {
+                    i = 0
+                    yield()
+                }
             }
-            reply("[green]绘制完成".with())
-        }
+        reply("[green]绘制完成".with())
     }
 }
