@@ -2,9 +2,8 @@
 
 package coreLibrary.lib
 
-import cf.wayzer.scriptAgent.emit
-import coreLibrary.lib.PermissionApi.Global
-import coreLibrary.lib.PermissionApi.PermissionHandler
+import cf.wayzer.scriptAgent.emitAsync
+import coreLibrary.lib.PermissionApi.*
 import coreLibrary.lib.event.RequestPermissionEvent
 import java.util.*
 
@@ -64,11 +63,11 @@ interface PermissionApi {
             default.registerPermission(group, permission.asIterable())
         }
 
-        fun <T : Any> handleThoughEvent(
+        suspend fun <T : Any> handleThoughEvent(
             subject: T, permission: String,
             defaultGroup: List<String> = emptyList()
         ): Result {
-            val event = RequestPermissionEvent(subject, permission, defaultGroup).emit()
+            val event = RequestPermissionEvent(subject, permission, defaultGroup).emitAsync()
             event.directReturn?.let { return it }
             return handle(event.group, permission)
         }

@@ -8,16 +8,16 @@ import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.*
 import coreMindustry.lib.util.sendMenuPhone
+import kotlinx.coroutines.runBlocking
 import mindustry.gen.Player
 
 object RootCommands : Commands() {
-    private var overwrite = true
     override fun getSubCommands(context: CommandContext?): Map<String, CommandInfo> {
-        if (!overwrite || context == null) return super.getSubCommands(context)
+        if (context == null) return super.getSubCommands(null)
         val origin =
             (if (context.player != null) Config.clientCommands else Config.serverCommands).let { originHandler ->
                 originHandler.commandList.associate {
-                    it.text.toLowerCase() to CommandInfo(null, it.text, it.description) {
+                    it.text.lowercase() to CommandInfo(null, it.text, it.description) {
                         usage = it.paramText
                         body {
                             prefix = prefix.removePrefix("* ")
@@ -33,43 +33,14 @@ object RootCommands : Commands() {
     }
 
     override fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
-        if (overwrite) {
-            if (command.type.server())
-                Config.serverCommands.removeCommand(name)
-            if (command.type.client())
-                Config.clientCommands.removeCommand(name)
-            return super.addSub(name, command, isAliases)
-        }
-        super.addSub(name, command, isAliases)
-        fun CommandHandler.register() {
-            removeCommand(name)
-            register(name, "[arg...]", command.description) { arg, player: Player? ->
-                command(CommandContext().apply {
-                    reply = { player.sendMessage(it) }
-                    this.player = player
-                    prefix = "/$name"
-                    this.arg = arg.getOrNull(0)?.split(' ') ?: emptyList()
-                })
-            }
-        }
         if (command.type.server())
-            Config.serverCommands.register()
+            Config.serverCommands.removeCommand(name)
         if (command.type.client())
-            Config.clientCommands.register()
+            Config.clientCommands.removeCommand(name)
+        return super.addSub(name, command, isAliases)
     }
 
-    override fun removeSub(name: String) {
-        if (overwrite) return super.removeSub(name)
-        subCommands[name]?.let {
-            if (it.type.server())
-                Config.serverCommands.removeCommand(name)
-            if (it.type.client())
-                Config.clientCommands.removeCommand(name)
-        }
-        super.removeSub(name)
-    }
-
-    fun tabComplete(player: Player?, args: List<String>): List<String> {
+    suspend fun tabComplete(player: Player?, args: List<String>): List<String> {
         var result: List<String> = emptyList()
         try {
             onComplete(CommandContext().apply {
@@ -78,14 +49,13 @@ object RootCommands : Commands() {
                 replyTabComplete = { result = it;CommandInfo.Return() }
                 arg = args
             })
-        } catch (e: CommandInfo.Return) {
+        } catch (_: CommandInfo.Return) {
         }
         return result
     }
 
-    override fun onHelp(context: CommandContext, explicit: Boolean) {
+    override suspend fun onHelp(context: CommandContext, explicit: Boolean) {
         if (!explicit) return context.reply("[red]无效指令,请使用/help查询".with())
-        assert(overwrite)
         val showDetail = context.arg.firstOrNull() == "-v"
         val page = context.arg.lastOrNull()?.toIntOrNull()
 
@@ -97,7 +67,7 @@ object RootCommands : Commands() {
     }
 
     init {
-        if (overwrite) arrayOf(Config.clientCommands, Config.serverCommands).forEach {
+        arrayOf(Config.clientCommands, Config.serverCommands).forEach {
             it.removeCommand("help")
         }
     }
@@ -121,7 +91,7 @@ object RootCommands : Commands() {
      * @param player 控制台为null
      * @param prefix 指令前缀,例如'/'
      */
-    fun handleInput(text: String, player: Player?, prefix: String = "") {
+    suspend fun handleInput(text: String, player: Player?, prefix: String = "") {
         if (text.isEmpty()) return
         RootCommands.invoke(CommandContext().apply {
             this.player = player
@@ -129,7 +99,7 @@ object RootCommands : Commands() {
                 player == null || player.admin || player.hasPermission(it)
             }
             reply = { player.sendMessage(it, MsgType.Message) }
-            this.prefix = if (prefix.isEmpty()) "* " else prefix
+            this.prefix = prefix.ifEmpty { "* " }
             this.arg = text.removePrefix(prefix).split(' ')
         })
     }
@@ -166,7 +136,7 @@ class MyCommandHandler(private var prefix0: String, val origin: CommandHandler) 
         if (message?.startsWith(prefix) != true || message.isEmpty())
             return CommandResponse(ResponseType.noCommand, null, null)
         assert(params is Player?)
-        RootCommands.handleInput(raw, params as Player?, prefix)
+        runBlocking { RootCommands.handleInput(raw, params as Player?, prefix) }
         return CommandResponse(ResponseType.valid, null, message)
     }
 }

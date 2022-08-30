@@ -14,11 +14,16 @@ import cf.wayzer.placehold.PlaceHoldContext
 import cf.wayzer.placehold.TypeBinder
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.util.DSLBuilder
+import coreLibrary.lib.PlaceHold.Updatable
 import kotlin.reflect.KProperty
 
 typealias PlaceHoldString = PlaceHoldContext
 
 object PlaceHold {
+    fun interface Updatable<T> {
+        fun update(v: T)
+    }
+
     class PlaceHoldKey<T>(val name: String, private val cls: Class<T>) {
         operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
             val v = PlaceHoldApi.GlobalContext.getVar(name)
@@ -41,11 +46,15 @@ object PlaceHold {
         private val namePrefix: String,
         private val binder: TypeBinder<T>
     ) {
-        fun registerToString(desc: String, body: DynamicVar<T, String>) = registerChildAny(PlaceHoldContext.ToString,desc,body)
+        fun registerToString(desc: String, body: DynamicVar<T, String>) =
+            registerChildAny(PlaceHoldContext.ToString, desc, body)
+
         fun registerChild(key: String, desc: String, body: DynamicVar<T, Any>) = registerChildAny(key, desc, body)
         fun registerChildAny(key: String, desc: String, body: Any?) {
             script.registeredVars["$namePrefix.$key"] = desc
-            binder.registerChildAny(key, body)
+            script.onEnable { binder.registerChildAny(key, body) }
+            if (body != null)
+                script.onDisable { binder.registerChildAny(key, null) }
         }
     }
 
@@ -55,9 +64,11 @@ object PlaceHold {
     /**
      * @param v support [cf.wayzer.placehold.DynamicVar] even [PlaceHoldString] or any value
      */
-    fun register(script: Script, name: String, desc: String, v: Any?) {
-        PlaceHoldApi.registerGlobalVar(name, v)
+    fun register(script: Script, name: String, desc: String, v: Any?): Updatable<Any?> {
         script.registeredVars[name] = desc
+        script.onEnable { PlaceHoldApi.registerGlobalVar(name, v) }
+        script.onDisable { PlaceHoldApi.registerGlobalVar(name, null) }
+        return Updatable { PlaceHoldApi.registerGlobalVar(name, it) }
     }
 
     /**

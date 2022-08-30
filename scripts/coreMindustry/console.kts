@@ -50,8 +50,10 @@ class MyPrintStream(private val block: (String) -> Unit) : PrintStream(ByteArray
 object MyCompleter : Completer {
     override fun complete(reader: LineReader, line: ParsedLine, candidates: MutableList<Candidate>) {
         val cmd = line.line().substring(0, line.cursor()).split(' ')
-        candidates += RootCommands.tabComplete(null, cmd).map {
-            Candidate(it)
+        runBlocking {
+            candidates += RootCommands.tabComplete(null, cmd).map {
+                Candidate(it)
+            }
         }
     }
 }
@@ -87,10 +89,12 @@ fun handleInput(reader: LineReader) {
         }
         last = 0
         if (line.isEmpty()) continue
-        try {
-            RootCommands.handleInput(line, null)
-        } catch (e: Throwable) {
-            logger.log(Level.SEVERE, "error when handle input", e)
+        runBlocking {
+            try {
+                RootCommands.handleInput(line, null)
+            } catch (e: Throwable) {
+                logger.log(Level.SEVERE, "error when handle input", e)
+            }
         }
     }
 }
