@@ -5,10 +5,7 @@ import arc.util.Log
 import arc.util.Strings
 import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.util.DSLBuilder
-import coreLibrary.lib.ColorApi
-import coreLibrary.lib.ConsoleColor
-import coreLibrary.lib.PlaceHoldString
-import coreLibrary.lib.with
+import coreLibrary.lib.*
 import mindustry.Vars.netServer
 import mindustry.gen.Call
 import mindustry.gen.Groups
@@ -16,8 +13,13 @@ import mindustry.gen.Iconc
 import mindustry.gen.Player
 
 object ContentHelper {
-    fun logToConsole(text: String) {
-        Log.info(Strings.stripColors(ColorApi.handle(text, ColorApi::consoleColorHandler)))
+    fun logToConsole(text: String) = logToConsole(text.with())
+    fun logToConsole(text: PlaceHoldString) {
+        val parsed = "{text}".with(
+            "text" to text,
+            "receiver" to "console", "receiver.colorHandler" to Color::convertToAnsiCode
+        ).toString()
+        Log.info(Strings.stripColors(ColorApi.handle(parsed, ColorApi::consoleColorHandler)))
     }
 
     fun mindustryColorHandler(color: ColorApi.Color): String {
@@ -44,7 +46,7 @@ fun broadcast(
     quite: Boolean = false,
     players: Iterable<Player> = Groups.player
 ) {
-    if (!quite) ContentHelper.logToConsole(text.toString())
+    if (!quite) ContentHelper.logToConsole(text)
     MindustryDispatcher.runInMain {
         players.forEach {
             if (it.con != null)
