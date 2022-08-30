@@ -115,6 +115,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
                     put(user, player.usid())
                     player.usid()
                 }
+
                 Setting.tempServer -> null
                 else -> transaction {
                     Usid.select { (Usid.user eq user.id) and (Usid.server eq Setting.serverId) }.singleOrNull()
@@ -129,8 +130,8 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
         private val cache = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofMinutes(1))
             .removalListener<String, PlayerData> { (k, v) ->
-                if (v.player != null)
-                    reCache(k, v)
+                if (v!!.player != null)
+                    reCache(k!!, v)
             }
             .build<String, PlayerData>()
 
