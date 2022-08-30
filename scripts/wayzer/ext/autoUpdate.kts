@@ -109,11 +109,13 @@ command("forceUpdate", "强制更新服务器版本") {
     body {
         arg.firstOrNull()?.let { kotlin.runCatching { URL(it) }.getOrNull() } ?: replyUsage()
         reply("[green]正在后台处理中".with())
-        try {
-            update("管理员手动升级", arg.first())
-        } catch (e: Throwable) {
-            reply("[red]升级失败{e}".with("e" to e))
-            e.printStackTrace()
+        launch {
+            try {
+                update("管理员手动升级", arg.first())
+            } catch (e: Throwable) {
+                reply("[red]升级失败{e}".with("e" to e))
+                e.printStackTrace()
+            }
         }
     }
 }

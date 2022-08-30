@@ -6,6 +6,10 @@ import coreLibrary.lib.CommandHandler
 import coreLibrary.lib.CommandInfo
 import mindustry.gen.Player
 
+/**
+ * 注册指令
+ * 所有body将在 Dispatchers.game下调用, 费时操作请注意launch并切换Dispatcher
+ */
 @ScriptDsl
 fun Script.command(name: String, description: String, init: CommandInfo.() -> Unit) {
     onEnable {
