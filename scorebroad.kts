@@ -1,6 +1,7 @@
 package coreMindustry
 //WayZer 版权所有(请勿删除版权注解)
 import arc.util.Align
+import coreLibrary.lib.util.loop
 import mindustry.gen.Groups
 import java.time.Duration
 
@@ -26,22 +27,18 @@ command("broad", "开关积分板显示") {
 }
 
 //避免找不到 scoreBroad.ext.* 变量
-registerVar("scoreBroad.ext.null","空占位",null)
+registerVar("scoreBroad.ext.null", "空占位", null)
 
 onEnable {
-    launch {
-        while (true) {
-            withContext(Dispatchers.game) {
-                Groups.player.forEach {
-                    if (disabled.contains(it.uuid())) return@forEach
-                    val mobile = it.con?.mobile == true
-                    Call.infoPopup(
-                        it.con, msg.with().toPlayer(it), 2.013f,
-                        Align.topLeft, if (mobile) 210 else 155, 0, 0, 0
-                    )
-                }
-            }
-            delay(Duration.ofSeconds(2).toMillis())
+    loop(Dispatchers.game) {
+        delay(Duration.ofSeconds(2).toMillis())
+        Groups.player.forEach {
+            if (disabled.contains(it.uuid())) return@forEach
+            val mobile = it.con?.mobile == true
+            Call.infoPopup(
+                it.con, msg.with().toPlayer(it), 2.013f,
+                Align.topLeft, if (mobile) 210 else 155, 0, 0, 0
+            )
         }
     }
 }
