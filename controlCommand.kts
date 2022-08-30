@@ -7,13 +7,10 @@ onEnable {
             permission = "scriptAgent.control.scan"
             aliases = listOf("扫描")
             body {
-                launch {
-                    reply("[yellow]异步处理中".with())
-                    val old = ScriptRegistry.allScripts { true }.size
-                    ScriptRegistry.scanRoot()
-                    val now = ScriptRegistry.allScripts { true }.size
-                    reply("[green]扫描完成,新发现{count}脚本".with("count" to (now - old)))
-                }
+                val old = ScriptRegistry.allScripts { true }.size
+                ScriptRegistry.scanRoot()
+                val now = ScriptRegistry.allScripts { true }.size
+                reply("[green]扫描完成,新发现{count}脚本".with("count" to (now - old)))
             }
         })
         addSub(CommandInfo(thisRef, "list", "列出所有模块或模块内所有脚本") {
@@ -61,17 +58,16 @@ onEnable {
                 val noCache = checkArg("--noCache")
                 val noEnable = checkArg("--noEnable")
                 if (arg.isEmpty()) replyUsage()
-
+                val script = ScriptRegistry.findScriptInfo(arg[0])
+                    ?: returnReply("[red]找不到模块或者脚本".with())
+                if (noCache) {
+                    val file = Config.cacheFile(script.id, script.isModule)
+                    reply("[yellow]清理cache文件{name}".with("name" to file.name))
+                    file.delete()
+                }
                 //not cancel when disable self
                 launch(Job()) {
                     reply("[yellow]异步处理中".with())
-                    val script = ScriptRegistry.findScriptInfo(arg[0])
-                        ?: return@launch reply("[red]找不到模块或者脚本".with())
-                    if (noCache) {
-                        val file = Config.cacheFile(script.id, script.isModule)
-                        reply("[yellow]清理cache文件{name}".with("name" to file.name))
-                        file.delete()
-                    }
                     ScriptManager.transaction {
                         add(script)
                         unload(addAllAffect = true)
@@ -92,12 +88,11 @@ onEnable {
             }
             body {
                 if (arg.isEmpty()) replyUsage()
-
+                val script = ScriptRegistry.getScriptInfo(arg[0])
+                    ?: returnReply("[red]找不到模块或者脚本".with())
                 //not cancel when disable self
                 launch(Job()) {
                     reply("[yellow]异步处理中".with())
-                    val script = ScriptRegistry.getScriptInfo(arg[0])
-                        ?: return@launch reply("[red]找不到模块或者脚本".with())
                     ScriptManager.transaction {
                         add(script)
                         disable(addAllAffect = true)
