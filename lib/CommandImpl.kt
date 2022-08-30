@@ -5,10 +5,12 @@ package coreMindustry.lib
 import arc.struct.Seq
 import arc.util.CommandHandler
 import cf.wayzer.scriptAgent.Config
+import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.*
 import coreMindustry.lib.util.sendMenuPhone
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import mindustry.gen.Player
 
 object RootCommands : Commands() {
@@ -136,7 +138,9 @@ class MyCommandHandler(private var prefix0: String, val origin: CommandHandler) 
         if (message?.startsWith(prefix) != true || message.isEmpty())
             return CommandResponse(ResponseType.noCommand, null, null)
         assert(params is Player?)
-        runBlocking { RootCommands.handleInput(raw, params as Player?, prefix) }
+        thisContextScript().launch(Dispatchers.game) {
+            RootCommands.handleInput(raw, params as Player?, prefix)
+        }
         return CommandResponse(ResponseType.valid, null, message)
     }
 }
