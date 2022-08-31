@@ -1,7 +1,7 @@
 package coreLibrary.lib.util
 
 import cf.wayzer.scriptAgent.define.Script
-import cf.wayzer.scriptAgent.emit
+import cf.wayzer.scriptAgent.emitAsync
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.event.ServiceProvidedEvent
 import kotlinx.coroutines.CoroutineScope
@@ -21,10 +21,10 @@ open class ServiceRegistry<T : Any> {
     private val impl = MutableSharedFlow<T>(1, 0, BufferOverflow.DROP_OLDEST)
     private val mutex = Mutex()
 
-    fun provide(script: Script, inst: T) {
+    suspend fun provide(script: Script, inst: T) {
         script.providedService.add(this to inst)
-        this.impl.tryEmit(inst)
-        ServiceProvidedEvent(inst, script).emit()
+        this.impl.emit(inst)
+        ServiceProvidedEvent(inst, script).emitAsync()
 
         @OptIn(ExperimentalCoroutinesApi::class)
         script.onDisable {
