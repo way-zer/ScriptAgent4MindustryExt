@@ -14,8 +14,6 @@ import mindustry.net.Administration
 import mindustry.net.Net
 import mindustry.net.NetConnection
 import mindustry.net.Packet
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 val Net.serverListeners: ObjectMap<Class<*>, Cons2<NetConnection, *>> by reflectDelegate()
 
@@ -44,18 +42,15 @@ inline fun <reified T : Packet> Script.listenPacket2Server(crossinline handle: (
 
 @ScriptDsl
 inline fun <reified T : Packet> Script.listenPacket2ServerAsync(
-    context: CoroutineContext = EmptyCoroutineContext,
     crossinline handle: suspend (NetConnection, T) -> Boolean
 ) {
     onEnable {
         withContext(Dispatchers.game) {
             val old = getPacketHandle<T>()
             Vars.net.handleServer(T::class.java) { con, p ->
-                launch(context) {
+                this@listenPacket2ServerAsync.launch(Dispatchers.game) {
                     if (handle(con, p))
-                        withContext(Dispatchers.game) {
-                            old.get(con, p)
-                        }
+                        old.get(con, p)
                 }
             }
             onDisable {

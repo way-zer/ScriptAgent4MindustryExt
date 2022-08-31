@@ -61,20 +61,20 @@ listenPacket2ServerAsync<ConnectPacket> { con, packet ->
         con.kick("Name is too long")
         return@listenPacket2ServerAsync false
     }
-    return@listenPacket2ServerAsync withContext(Dispatchers.game) {
-        val old = transaction { PlayerData.findById(packet.uuid) }
-        val event = ConnectAsyncEvent(con, packet, old).emitAsync {
-            if (it != Event.Priority.NormalE) return@emitAsync
-            withContext(Dispatchers.IO) {
-                data = PlayerData.findOrCreate(packet.uuid, con.address, packet.name).apply {
+    val old = transaction { PlayerData.findById(packet.uuid) }
+    val event = ConnectAsyncEvent(con, packet, old).emitAsync {
+        if (it != Event.Priority.NormalE) return@emitAsync
+        withContext(Dispatchers.IO) {
+            data = transaction {
+                PlayerData.findOrCreate(packet.uuid, con.address, packet.name).apply {
                     refresh(flush = true)
                     profile//warm up cache
                 }
             }
         }
-        if (event.cancelled) con.kick("[red]拒绝入服: ${event.reason}")
-        !event.cancelled
     }
+    if (event.cancelled) con.kick("[red]拒绝入服: ${event.reason}")
+    !event.cancelled
 }
 
 listen<EventType.PlayerConnect> {
