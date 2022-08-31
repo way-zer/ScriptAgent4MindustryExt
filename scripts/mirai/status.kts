@@ -1,9 +1,6 @@
 package mirai
 
 import cf.wayzer.placehold.PlaceHoldApi
-import coreLibrary.lib.config
-import net.mamoe.mirai.event.globalEventChannel
-import net.mamoe.mirai.event.subscribeGroupMessages
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import java.awt.image.BufferedImage
@@ -30,7 +27,9 @@ globalEventChannel().subscribeGroupMessages {
                 try {
                     ImageIO.write(getMapSnap(), "png", file)
                     file.toExternalResource("png").use {
-                        msg += subject.uploadImage(it)
+                        withTimeoutOrNull(3000) {
+                            msg += subject.uploadImage(it)
+                        } ?: { msg += "上传图片超时" }
                     }
                 } finally {
                     file.delete()
