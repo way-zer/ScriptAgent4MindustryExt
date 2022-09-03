@@ -31,7 +31,7 @@ protected var lastAction = 0L //最后一次玩家退出或投票成功时间,�
 protected lateinit var voteDesc: PlaceHoldContext
 
 fun allCanVote() = Groups.player.filter(canVote)
-fun start(player: Player, voteDesc: PlaceHoldContext, supportSingle: Boolean = false, onSuccess: () -> Unit) {
+fun start(player: Player, voteDesc: PlaceHoldContext, supportSingle: Boolean = false, onSuccess: suspend () -> Unit) {
     if (voting.get()) return
     voting.set(true)
     this.voteDesc = voteDesc
@@ -41,7 +41,9 @@ fun start(player: Player, voteDesc: PlaceHoldContext, supportSingle: Boolean = f
                 if (System.currentTimeMillis() - lastAction > 60_000) {
                     broadcast("[yellow]单人快速投票{type}成功".with("type" to voteDesc))
                     lastAction = System.currentTimeMillis()
-                    Core.app.post(onSuccess)
+                    withContext(Dispatchers.gamePost) {
+                        onSuccess()
+                    }
                     return@launch
                 } else
                     broadcast("[red]距离上一玩家离开或上一投票成功不足1分钟,快速投票失败".with())
@@ -62,7 +64,9 @@ fun start(player: Player, voteDesc: PlaceHoldContext, supportSingle: Boolean = f
                                 "all" to allCanVote().count(canVote)
                             )
                     )
-                    Core.app.post(onSuccess)
+                    withContext(Dispatchers.gamePost) {
+                        onSuccess()
+                    }
                     return@launch
                 }
             }
@@ -86,7 +90,7 @@ fun Script.addSubVote(
     desc: String,
     usage: String,
     vararg aliases: String,
-    body: CommandContext.() -> Unit
+    body: suspend CommandContext.() -> Unit
 ) {
     voteCommands += CommandInfo(this, aliases.first(), desc) {
         this.usage = usage
@@ -131,7 +135,7 @@ listen<EventType.PlayerLeave> {
 }
 
 inner class VoteCommands : Commands() {
-    override fun invoke(context: CommandContext) {
+    override suspend fun invoke(context: CommandContext) {
         if (voting.get()) return context.reply("[red]投票进行中".with())
         super.invoke(context)
         if (voting.get()) {//success
@@ -141,7 +145,7 @@ inner class VoteCommands : Commands() {
         }
     }
 
-    override fun onHelp(context: CommandContext, explicit: Boolean) {
+    override suspend fun onHelp(context: CommandContext, explicit: Boolean) {
         if (!explicit) context.reply("[red]错误投票类型,请检查输入是否正确".with())
         context.sendMenuPhone("可用投票类型", subCommands.values.toSet().filter {
             it.permission.isBlank() || context.hasPermission(it.permission)
