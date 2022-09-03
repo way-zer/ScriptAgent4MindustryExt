@@ -28,7 +28,7 @@ object GenerateMain {
     fun afterLoad(args: Array<String>) {
         DependencyManager {
             addRepository("https://www.jitpack.io/")
-            requireWithChildren(Dependency.parse("com.github.Anuken.Mindustry:core:v136"))
+            requireWithChildren(Dependency.parse("com.github.Anuken.Mindustry:core:v138"))
             loadToClassLoader(GenerateMain::class.java.classLoader)
         }
 
