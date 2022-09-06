@@ -11,8 +11,8 @@ command("spawn", "召唤单位") {
     permission = id.replace("/", ".")
     aliases = listOf("召唤")
     body {
-        val list = content.getBy<UnitType>(ContentType.unit)
-        val type = arg.getOrNull(0)?.toIntOrNull()?.let { list.items.getOrNull(it) } ?: returnReply(
+        val list = content.getBy<UnitType>(ContentType.unit).filterNot { it.internal }
+        val type = arg.getOrNull(0)?.toIntOrNull()?.let { list.getOrNull(it) } ?: returnReply(
             "[red]请输入类型ID: {list}"
                 .with("list" to list.mapIndexed { i, type -> "[yellow]$i[green]($type)" }.joinToString())
         )
