@@ -20,27 +20,43 @@ import kotlin.system.measureTimeMillis
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 object DB : ServiceRegistry<Database>() {
     object TableVersion : IdTable<String>("TableVersion") {
-        override val id: Column<EntityID<String>> = text("table").entityId()
+        // can't use `text` as h2db don't support for primaryKey
+        override val id: Column<EntityID<String>> = varchar("table", 64).entityId()
+        override val primaryKey: PrimaryKey = PrimaryKey(id) // h2database#2191
+
         val version = integer("version")
         val updateDate = timestamp("time")
 
         /**@return 0 if not exist */
-        fun get(table: Table) = with(TransactionManager.current()) {
-            select { TableVersion.id eq identity(table) }.firstOrNull()?.get(version) ?: 0
+        fun get(table: Table): Int {
+            val identity = TransactionManager.current().identity(table)
+            return select { id eq identity }.firstOrNull()?.get(version) ?: 0
         }
 
-        fun update(table: Table, versionV: Int) = with(TransactionManager.current()) {
+        fun update(table: Table, versionV: Int) {
+            val identity = TransactionManager.current().identity(table)
             if (get(table) == 0)
                 insert {
-                    it[id] = identity(table)
-                    it[version] = versionV
-                    it[updateDate] = Instant.now()
-                }.execute(this)
-            else
-                update({ TableVersion.id eq identity(table) }) {
+                    it[id] = identity
                     it[version] = versionV
                     it[updateDate] = Instant.now()
                 }
+            else
+                update({ id eq identity }) {
+                    it[version] = versionV
+                    it[updateDate] = Instant.now()
+                }
+        }
+
+        fun check(table: Table) {
+            val version = (table as? WithUpgrade)?.version ?: 1
+            val nowVersion = get(table)
+            if (nowVersion < version) {
+                exposedLogger.info("Do Database upgrade for $table: $nowVersion -> $version")
+                if (table is WithUpgrade) table.onUpgrade(nowVersion)
+                else SchemaUtils.createMissingTablesAndColumns(table)
+                update(table, version)
+            }
         }
     }
 
@@ -51,7 +67,7 @@ object DB : ServiceRegistry<Database>() {
         val version: Int
 
         /**will be call in transaction*/
-        fun onUpgrade(oldVersion: Int)
+        fun onUpgrade(oldVersion: Int) {}
     }
 
     /**
@@ -86,16 +102,7 @@ object DB : ServiceRegistry<Database>() {
     private fun initTable(tables0: Iterable<Table>) {
         val tables = SchemaUtils.sortTablesByReferences(tables0)
         val time = measureTimeMillis {
-            tables.forEach {
-                val version = (it as? WithUpgrade)?.version ?: 1
-                val nowVersion = TableVersion.get(it)
-                if (nowVersion < version) {
-                    exposedLogger.info("Do Database upgrade for $it: $nowVersion -> $version")
-                    if (it is WithUpgrade) it.onUpgrade(nowVersion)
-                    else SchemaUtils.createMissingTablesAndColumns(it)
-                    TableVersion.update(it, version)
-                }
-            }
+            tables.forEach { TableVersion.check(it) }
         }
         exposedLogger.info("Finish check upgrade for ${tables.size} tables, costs $time ms")
     }
