@@ -162,19 +162,20 @@ fun onGameOver(winner: Team) {
                 )
             )
         }
-        val map = mutableMapOf<PlayerProfile, StatisticsData>()
-        sortedData.groupBy { PlayerData.findById(it.first.id)?.profile }.forEach { (key, value) ->
-            if (key == null || value.isEmpty()) return@forEach
-            map[key] = value.maxByOrNull { it.second.score }!!.second
-        }
         launch(Dispatchers.IO) {
+            val map = mutableMapOf<PlayerProfile, StatisticsData>()
+            sortedData.groupBy { PlayerData.findByIdWithTransaction(it.first.id)?.profile }
+                .forEach { (key, value) ->
+                    if (key == null || value.isEmpty()) return@forEach
+                    map[key] = value.maxByOrNull { it.second.score }!!.second
+                }
             map.forEach { (profile, data) ->
                 userService.updateExp(profile, data.exp, "游戏结算")
             }
+            depends("wayzer/user/ext/rank")
+                ?.import<(Map<PlayerProfile, Pair<Int, Boolean>>) -> Unit>("onGameOver")
+                ?.invoke(map.mapValues { it.value.playedTime to it.value.win })
         }
-        depends("wayzer/user/ext/rank")
-            ?.import<(Map<PlayerProfile, Pair<Int, Boolean>>) -> Unit>("onGameOver")
-            ?.invoke(map.mapValues { it.value.playedTime to it.value.win })
     }
     statisticsData.clear()
 }
