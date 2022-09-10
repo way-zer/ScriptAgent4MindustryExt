@@ -53,7 +53,10 @@ export(::addPatch)
 listen<PlayEvent> {
     patchList.run {
         if (isEmpty()) return@run
-        forEach { PatchHandler.handle(JsonIO.read(null, it)) }
+        forEach {
+            val patch = patchMap[it] ?: return@forEach
+            PatchHandler.handle(JsonIO.read(null, patch))
+        }
         PatchHandler.doAfterHandle()
     }
 }
