@@ -32,10 +32,7 @@ sourceSets {
 }
 
 repositories {
-    mavenLocal()
-    if (System.getProperty("user.timezone") == "Asia/Shanghai") {
-//        maven(url = "https://maven.aliyun.com/repository/public")
-    }
+//    mavenLocal()
     mavenCentral()
     if (System.getProperty("user.timezone") != "Asia/Shanghai")//ScriptAgent
         maven("https://maven.wayzer.workers.dev/")
@@ -156,8 +153,11 @@ tasks {
             include("**/*.ktc")
         }
         from(file("scripts")) {
-            include("data/*")
-            include("*/res/*")
+            exclude("cache")
+            exclude("metadata")
+            exclude("**/*.kts")
+            exclude("**/*.kt")
+            exclude("**/lib")
         }
         archiveClassifier.set("precompile")
         doLast {
