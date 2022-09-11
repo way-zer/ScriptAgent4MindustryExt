@@ -60,10 +60,8 @@ dependencies {
     pluginImplementation("cf.wayzer:LibraryManager:1.4.1")
     pluginImplementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
 
-    val implementation by configurations
     implementation(kotlin("script-runtime"))
     implementation("cf.wayzer:ScriptAgent:$libraryVersion")
-    val kotlinScriptDef by configurations
     kotlinScriptDef("cf.wayzer:ScriptAgent:$libraryVersion")
 
     //coreLibrary
