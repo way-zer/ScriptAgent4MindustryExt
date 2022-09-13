@@ -34,17 +34,7 @@ sourceSets {
 repositories {
 //    mavenLocal()
     mavenCentral()
-    if (System.getProperty("user.timezone") != "Asia/Shanghai")//ScriptAgent
-        maven("https://maven.wayzer.workers.dev/")
-    else {
-        maven {
-            url = uri("https://packages.aliyun.com/maven/repository/2102713-release-0NVzQH/")
-            credentials {
-                username = "609f6fb4aa6381038e01fdee"
-                password = "h(7NRbbUWYrN"
-            }
-        }
-    }
+    maven("https://maven.wayzer.workers.dev/")//ScriptAgent
     maven(url = "https://www.jitpack.io") {
         content {
             excludeModule("cf.wayzer", "ScriptAgent")
@@ -53,7 +43,7 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.9.1.1"
+    val libraryVersion = "1.9.1.2"
     val mindustryVersion = "v138"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
