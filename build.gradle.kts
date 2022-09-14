@@ -58,7 +58,7 @@ dependencies {
     implementation("cf.wayzer:PlaceHoldLib:5.2")
     implementation("io.github.config4k:config4k:0.4.1")
     //coreLib/DBApi
-    val exposedVersion = "0.37.3"
+    val exposedVersion = "0.39.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
