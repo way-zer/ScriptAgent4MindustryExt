@@ -1,7 +1,7 @@
-@file:Import("org.jetbrains.exposed:exposed-core:0.37.3", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-dao:0.37.3", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-java-time:0.37.3", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-jdbc:0.37.3", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-core:0.39.2", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-dao:0.39.2", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-java-time:0.39.2", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-jdbc:0.39.2", mavenDepends = true)
 
 package coreLibrary
 
@@ -53,9 +53,14 @@ object DB : ServiceRegistry<Database>() {
             val nowVersion = get(table)
             if (nowVersion < version) {
                 exposedLogger.info("Do Database upgrade for $table: $nowVersion -> $version")
-                if (table is WithUpgrade) table.onUpgrade(nowVersion)
-                else SchemaUtils.createMissingTablesAndColumns(table)
-                update(table, version)
+                try {
+                    if (table is WithUpgrade) table.onUpgrade(nowVersion)
+                    else SchemaUtils.createMissingTablesAndColumns(table)
+
+                    update(table, version)
+                } catch (e: Throwable) {
+                    exposedLogger.error("Fail to do Database upgrade for $table: $nowVersion -> $version", e)
+                }
             }
         }
     }
