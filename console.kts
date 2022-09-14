@@ -11,7 +11,6 @@ import org.jline.utils.AttributedString
 import java.io.ByteArrayOutputStream
 import java.io.InterruptedIOException
 import java.io.PrintStream
-import java.nio.charset.Charset
 import java.util.logging.Level
 import kotlin.concurrent.thread
 import kotlin.system.exitProcess
@@ -39,7 +38,7 @@ class MyPrintStream(private val block: (String) -> Unit) : PrintStream(ByteArray
     @Synchronized
     override fun flush() {
         val str = try {
-            bufOut.toString(Charset.defaultCharset())
+            bufOut.toString()
         } finally {
             bufOut.reset()
         }
