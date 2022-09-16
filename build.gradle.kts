@@ -34,16 +34,16 @@ sourceSets {
 repositories {
 //    mavenLocal()
     mavenCentral()
-    maven("https://maven.wayzer.workers.dev/")//ScriptAgent
     maven(url = "https://www.jitpack.io") {
         content {
             excludeModule("cf.wayzer", "ScriptAgent")
         }
     }
+    maven("https://maven.wayzer.workers.dev/")//ScriptAgent
 }
 
 dependencies {
-    val libraryVersion = "1.9.1.2"
+    val libraryVersion = "1.9.1.3"
     val mindustryVersion = "v137"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
@@ -83,7 +83,8 @@ tasks {
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.freeCompilerArgs = listOf(
             "-Xinline-classes",
-            "-Xopt-in=kotlin.RequiresOptIn"
+            "-Xopt-in=kotlin.RequiresOptIn",
+            "-Xnullability-annotations=@arc.util:strict"
         )
     }
     withType<ProcessResources> {

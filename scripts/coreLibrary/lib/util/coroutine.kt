@@ -1,6 +1,7 @@
 package coreLibrary.lib.util
 
 import cf.wayzer.scriptAgent.define.Script
+import cf.wayzer.scriptAgent.define.ScriptUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -14,6 +15,7 @@ fun CoroutineScope.loop(context: CoroutineContext = EmptyCoroutineContext, block
     }
 }
 
+@ScriptUtil
 inline fun <T> Script.withContextClassloader(loader: ClassLoader = javaClass.classLoader, block: () -> T): T {
     val bak = Thread.currentThread().contextClassLoader
     return try {

@@ -63,9 +63,7 @@ companion object Api {
         )
     }
 
-    /**
-     *
-     */
+    @ScriptDsl
     fun Script.skill(name: String, desc: String, vararg aliases: String, body: SkillScope.() -> Unit) {
         command(name, desc) {
             permission = "wayzer.user.skills.$name"
