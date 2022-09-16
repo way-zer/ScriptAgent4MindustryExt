@@ -82,6 +82,7 @@ object DB : ServiceRegistry<Database>() {
      * 如果DB有版本变化,请实现[WithUpgrade]，未实现默认版本号1
      */
     @Synchronized
+    @ScriptDsl
     fun Script.registerTable(vararg t: Table) {
         registeredTable.addAll(t)
         if (DB.provided)
