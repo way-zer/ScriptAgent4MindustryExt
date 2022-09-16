@@ -6,13 +6,13 @@
 package coreMindustry
 
 import arc.util.OS
+import coreLibrary.lib.util.withContextClassloader
 import org.jline.reader.*
 import org.jline.utils.AttributedString
 import java.io.ByteArrayOutputStream
 import java.io.InterruptedIOException
 import java.io.PrintStream
 import java.util.logging.Level
-import kotlin.concurrent.thread
 import kotlin.system.exitProcess
 
 class MyPrintStream(private val block: (String) -> Unit) : PrintStream(ByteArrayOutputStream()) {
@@ -58,11 +58,13 @@ object MyCompleter : Completer {
 }
 
 @OptIn(LoaderApi::class)
-fun handleInput(reader: LineReader) {
+suspend fun handleInput(reader: LineReader) {
     var last = 0
-    while (!Thread.interrupted()) {
+    while (isActive) {
         val line = try {
-            reader.readLine("> ").let(RootCommands::trimInput)
+            runInterruptible {
+                reader.readLine("> ").let(RootCommands::trimInput)
+            }
         } catch (e: InterruptedIOException) {
             return
         } catch (e: UserInterruptException) {
@@ -81,29 +83,25 @@ fun handleInput(reader: LineReader) {
                 continue
             }
             reader.printAbove("exit")
-            runBlocking {
-                ScriptManager.disableAll()
-            }
+            ScriptManager.disableAll()
             exitProcess(1)
         }
         last = 0
         if (line.isEmpty()) continue
-        runBlocking {
-            try {
-                RootCommands.handleInput(line, null)
-            } catch (e: Throwable) {
-                logger.log(Level.SEVERE, "error when handle input", e)
-            }
+        try {
+            RootCommands.handleInput(line, null)
+        } catch (e: Throwable) {
+            logger.log(Level.SEVERE, "error when handle input", e)
         }
     }
 }
 
 lateinit var reader: LineReader
 fun start() {
-    thread(true, isDaemon = true, contextClassLoader = javaClass.classLoader, name = "Console Reader") {
-        reader = LineReaderBuilder.builder()
-            .completer(MyCompleter).build() as LineReader
-
+    launch(Dispatchers.IO + CoroutineName("Console Reader")) {
+        reader = withContextClassloader {
+            LineReaderBuilder.builder().completer(MyCompleter).build()
+        }
         val bakOut = System.out
         System.setOut(MyPrintStream {
             reader.printAbove(AttributedString.fromAnsi(it))
@@ -118,16 +116,14 @@ fun start() {
 
 onEnable {
     if (OS.isWindows) return@onEnable ScriptManager.disableScript(this, "不支持Windows")
-    thread(true, isDaemon = true) {
+    launch(Dispatchers.IO + CoroutineName("Console starter")) {
         val arr = arrayOfNulls<Thread>(Thread.activeCount())
         Thread.enumerate(arr)
-        arr.filter { ((it?.name == "Server Controls") || (it?.name == "Console Reader")) }.forEach {
+        arr.filter { it?.name == "Server Controls" }.forEach {
             it!!.interrupt()
-            if (it.name == "Server Controls") {
-                //Thread "Server Controls" don't have any point to interrupt. Only stop
-                @Suppress("DEPRECATION")
-                it.stop()
-            }
+            //Thread "Server Controls" don't have any point to interrupt. Only stop
+            @Suppress("DEPRECATION")
+            it.stop()
             it.join()
         }
         start()
