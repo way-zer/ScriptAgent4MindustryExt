@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.zip.ZipFile
 
 plugins {
     kotlin("jvm") version "1.6.10"
@@ -43,7 +44,7 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.9.1.3"
+    val libraryVersion = "1.9.1.4"
     val mindustryVersion = "v137"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
@@ -79,7 +80,7 @@ dependencies {
 }
 
 tasks {
-    withType<KotlinCompile> {
+    withType<KotlinCompile>().configureEach {
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.freeCompilerArgs = listOf(
             "-Xinline-classes",
@@ -126,18 +127,22 @@ tasks {
             println(archiveFile.get())
         }
     }
-    create<JavaExec>("precompile") {
+    val precompile = create<JavaExec>("precompile") {
+        dependsOn(buildPlugin)
         group = "plugin"
-        dependsOn("buildPlugin")
         inputs.files(sourceSets.main.get().allSource)
+        outputs.files("scripts/cache")
+
         classpath(buildPlugin.outputs.files)
         mainClass.set("cf.wayzer.scriptAgent.GenerateMain")
         if (javaVersion >= JavaVersion.VERSION_16)
             jvmArgs("--add-opens java.base/java.net=ALL-UNNAMED")
     }
-    create<Zip>("precompileZip") {
+    val precompileZip = create<Zip>("precompileZip") {
+        dependsOn(precompile)
         group = "plugin"
-        dependsOn("precompile")
+        archiveClassifier.set("precompile")
+
         from(file("scripts/cache")) {
             include("**/*.ktc")
         }
@@ -148,9 +153,32 @@ tasks {
             exclude("**/*.kt")
             exclude("**/lib")
         }
-        archiveClassifier.set("precompile")
         doLast {
             println(archiveFile.get())
+        }
+    }
+
+    create<Jar>("allInOneJar") {
+        dependsOn(buildPlugin, precompileZip)
+        group = "plugin"
+        archiveClassifier.set("allInOne")
+        includeEmptyDirs = false
+
+
+        val metaFile = temporaryDir.resolve("PACKED")
+        outputs.file(metaFile)
+        doFirst {
+            val ktcFiles = ZipFile(precompileZip.outputs.files.singleFile)
+                .entries().asSequence()
+                .filter { it.name.endsWith(".ktc") }
+                .map { it.name }
+            metaFile.writeText(ktcFiles.joinToString("\n"))
+        }
+
+        from(zipTree(buildPlugin.outputs.files.singleFile))
+        into("scripts") {
+            from(zipTree(precompileZip.outputs.files.singleFile))
+            from(metaFile)
         }
     }
 }

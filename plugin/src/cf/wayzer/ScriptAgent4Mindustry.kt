@@ -6,10 +6,7 @@ import arc.util.CommandHandler
 import arc.util.Log
 import cf.wayzer.ConfigExt.clientCommands
 import cf.wayzer.ConfigExt.serverCommands
-import cf.wayzer.scriptAgent.Config
-import cf.wayzer.scriptAgent.ScriptAgent
-import cf.wayzer.scriptAgent.ScriptManager
-import cf.wayzer.scriptAgent.ScriptRegistry
+import cf.wayzer.scriptAgent.*
 import cf.wayzer.scriptAgent.define.LoaderApi
 import kotlinx.coroutines.runBlocking
 import mindustry.Vars
@@ -37,6 +34,7 @@ class ScriptAgent4Mindustry : Plugin() {
     @OptIn(LoaderApi::class)
     override fun init() {
         Config.rootDir = Vars.dataDirectory.child("scripts").file()
+        ScriptRegistry.registries.add(JarScriptRegistry)
         ScriptRegistry.scanRoot()
         runBlocking {
             System.getenv("SAMain")?.let { id ->
