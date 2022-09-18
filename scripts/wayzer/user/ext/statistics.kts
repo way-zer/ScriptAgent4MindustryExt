@@ -181,5 +181,6 @@ fun onGameOver(winner: Team) {
 }
 export(::onGameOver)//Need in Dispatchers.game
 listenTo<MapChangeEvent>(Event.Priority.Before) {
+    if (statisticsData.isEmpty()) return@listenTo
     onGameOver(Team.derelict)
 }
