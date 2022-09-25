@@ -14,7 +14,7 @@ object JarScriptRegistry : ScriptRegistry.IRegistry {
 
         override fun resolveModuleRes(path: String): URL? {
             check(isModule)
-            return javaClass.classLoader.getResource("scripts/$id/$path")
+            return javaClass.classLoader.getResource("scripts/$id/res/$path")
         }
     }
 
