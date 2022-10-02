@@ -15,14 +15,15 @@ import net.mamoe.mirai.event.events.MessageEvent
  * 若让一个群中所有人可用，可以给"@default"对应权限
  */
 
-fun User.hasPermission(permission: String): Boolean {
+suspend fun User.hasPermission(permission: String): Boolean {
     val groupId = (this as? Member)?.group?.run { "group$id" } ?: "private"
-    return PermissionApi.handle(listOf("qq${id}"), "$permission.$groupId").has
+    return PermissionApi.handleThoughEvent(this, "$permission.$groupId").has
 }
 
-fun Group.hasPermission(permission: String) = PermissionApi.handle(emptyList(), "$permission.group${id}").has
+fun Group.hasPermission(permission: String) =
+    PermissionApi.handle(emptyList(), "$permission.group${id}").has
 
-fun MessageEvent.hasPermission(permission: String): Boolean {
+suspend fun MessageEvent.hasPermission(permission: String): Boolean {
     return (this is GroupAwareMessageEvent && group.hasPermission(permission))
             || sender.hasPermission(permission)
 }

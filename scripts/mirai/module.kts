@@ -10,6 +10,7 @@
 
 package mirai
 
+import coreLibrary.lib.event.RequestPermissionEvent
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import net.mamoe.mirai.BotFactory
@@ -77,4 +78,9 @@ Commands.controlCommand.let {
             channel.trySend(arg.joinToString(" "))
         }
     }
+}
+
+listenTo<RequestPermissionEvent> {
+    val subject = subject
+    if (subject is User) group += "qq${subject.id}"
 }
