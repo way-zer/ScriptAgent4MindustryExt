@@ -1,12 +1,12 @@
-@file:OptIn(ObsoleteCoroutinesApi::class)
+@file:Import("@coreMindustry/util/MenuBuilder.kt", sourceFile = true)
 @file:Suppress("unused")
 
 package coreMindustry
 
+import coreMindustry.util.MenuBuilder
 import mindustry.gen.MenuChooseCallPacket
 import mindustry.gen.SendChatMessageCallPacket
 import kotlin.coroutines.resume
-import kotlin.random.Random
 
 interface WithHandled {
     var handled: Boolean
@@ -32,9 +32,9 @@ data class OnChat(val player: Player, val text: String) : Event, WithHandled {
     companion object : Event.Handler()
 }
 
-listenPacket2Server<SendChatMessageCallPacket> { con, p ->
+listenPacket2ServerAsync<SendChatMessageCallPacket> { con, p ->
     con.player?.let {
-        OnChat(it, p.message).emit().handled.not()
+        OnChat(it, p.message).emitAsync().handled.not()
     } ?: true
 }
 
@@ -52,14 +52,14 @@ data class MenuChooseEvent(
 }
 
 @Deprecated("use menuBuilder", ReplaceWith("this.menuBuilder(title,builder)"))
-suspend fun <T> sendMenuBuilder(
+suspend fun <T : Any> sendMenuBuilder(
     player: Player,
     timeoutMillis: Int,
     title: String,
     msg: String,
     builder: suspend MutableList<List<Pair<String, suspend () -> T>>>.() -> Unit
 ): T? {
-    return menuBuilder<T>(title) {
+    return MenuBuilder<T>(title) {
         this.msg = msg
         buildList { builder() }.forEachIndexed { i, l ->
             if (i != 0) newRow()
@@ -68,45 +68,14 @@ suspend fun <T> sendMenuBuilder(
     }.sendTo(player, timeoutMillis)
 }
 
-inline fun <T> menuBuilder(
+@Deprecated("use MenuBuilder directly", ReplaceWith("MenuBuilder(title, block)", "coreMindustry.util.MenuBuilder"))
+fun <T : Any> menuBuilder(
     title: String,
     block: MenuBuilder<T>.() -> Unit
-): MenuBuilder<T> = MenuBuilder<T>(title).apply(block)
+): MenuBuilder<T> = MenuBuilder(title, block)
 
-@DslMarker
-annotation class MenuBuilderDsl
-
-inner class MenuBuilder<T>(val title: String) {
-    private val menu = mutableListOf(mutableListOf<String>())
-    private val callback = mutableListOf<suspend () -> T>()
-
-    @MenuBuilderDsl
-    var msg = ""
-
-    @MenuBuilderDsl
-    fun newRow() = menu.add(mutableListOf())
-
-    @MenuBuilderDsl
-    fun option(name: String, body: suspend () -> T) {
-        menu.last().add(name)
-        callback.add(body)
-    }
-
-    suspend fun sendTo(player: Player, timeoutMillis: Int): T? {
-        val id = Random.nextInt()
-        Call.menu(
-            player.con, id, title, msg,
-            menu.map { it.toTypedArray() }.toTypedArray()
-        )
-        return withTimeoutOrNull(timeoutMillis.toLong()) {
-            val e = nextEvent<MenuChooseEvent> { it.player == player && it.menuId == id }
-            callback.getOrNull(e.value)?.invoke()
-        }
-    }
-}
-
-listenPacket2Server<MenuChooseCallPacket> { con, packet ->
+listenPacket2ServerAsync<MenuChooseCallPacket> { con, packet ->
     con.player?.let { p ->
-        MenuChooseEvent(p, packet.menuId, packet.option).emit().handled.not()
+        MenuChooseEvent(p, packet.menuId, packet.option).emitAsync().handled.not()
     } ?: true
 }
