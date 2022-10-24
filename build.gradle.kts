@@ -73,7 +73,7 @@ dependencies {
     implementation("cf.wayzer:ContentsTweaker:v2.0.1")
 
     //mirai
-    implementation("net.mamoe:mirai-core-api-jvm:2.10.0")
+    implementation("net.mamoe:mirai-core-api-jvm:2.12.3")
     //wayzer
     implementation("com.google.guava:guava:30.1-jre")
 }
