@@ -11,6 +11,7 @@
 package mirai
 
 import coreLibrary.lib.event.RequestPermissionEvent
+import coreLibrary.lib.util.withContextClassloader
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import net.mamoe.mirai.BotFactory
@@ -66,7 +67,9 @@ onEnable {
         networkLoggerSupplier = { MyLoggerImpl("Net ${it.id}", false) }
     }
     launch {
-        bot.login()
+        withContextClassloader {
+            bot.login()
+        }
     }
 }
 
