@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.zip.ZipFile
 
 plugins {
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.7.20"
     id("me.qoomon.git-versioning") version "2.1.1"
     id("com.github.johnrengelman.shadow") version "5.2.0"
 }
@@ -33,19 +33,18 @@ sourceSets {
 }
 
 repositories {
-//    mavenLocal()
     mavenCentral()
     maven(url = "https://www.jitpack.io") {
         content {
             excludeModule("cf.wayzer", "ScriptAgent")
         }
     }
-    maven("https://maven.wayzer.workers.dev/")//ScriptAgent
+    maven("https://maven.tinylake.tk/")//ScriptAgent
 }
 
 dependencies {
-    val libraryVersion = "1.9.1.4"
-    val mindustryVersion = "v137"
+    val libraryVersion = "1.9.1.6"
+    val mindustryVersion = "v139"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
     pluginImplementation("cf.wayzer:LibraryManager:1.4.1")
