@@ -58,7 +58,7 @@ dependencies {
     implementation("cf.wayzer:PlaceHoldLib:5.2")
     implementation("io.github.config4k:config4k:0.4.1")
     //coreLib/DBApi
-    val exposedVersion = "0.39.2"
+    val exposedVersion = "0.40.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
@@ -67,8 +67,8 @@ dependencies {
     implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
 //    implementation("com.github.TinyLake.MindustryX:core:v138.001")
     //coreMindustry/console
-    implementation("org.jline:jline-terminal:3.19.0")
-    implementation("org.jline:jline-reader:3.19.0")
+    implementation("org.jline:jline-terminal:3.21.0")
+    implementation("org.jline:jline-reader:3.21.0")
     //coreMindustry/utilContentsOverwrite
     implementation("cf.wayzer:ContentsTweaker:v2.0.1")
 
