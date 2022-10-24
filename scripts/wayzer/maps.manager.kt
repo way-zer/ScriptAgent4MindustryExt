@@ -19,7 +19,6 @@ import mindustry.gen.Call
 import mindustry.gen.Groups
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
-import mindustry.maps.MapException
 import java.util.logging.Level
 
 /**
@@ -78,7 +77,7 @@ object MapManager {
                             info.load() // EventType.ResetEvent
                             // EventType.SaveLoadEvent
                             // EventType.WorldLoadEvent
-                        } catch (e: MapException) {
+                        } catch (e: Throwable) {
                             broadcast(
                                 "[red]地图{info.map.name}无效:{reason}".with(
                                     "info" to info,
@@ -86,6 +85,7 @@ object MapManager {
                                 )
                             )
                             players.forEach { it.add() }
+                            loadMap()
                             throw CancellationException()
                         }
                         Vars.state.map = info.map
