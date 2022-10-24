@@ -9,7 +9,11 @@ import mindustry.gen.Player
 import kotlin.random.Random
 
 /** You must depends on `coreMindustry/utilNext` */
-class MenuBuilder<T : Any>(val title: String, val block: suspend MenuBuilder<T>.() -> Unit) {
+open class MenuBuilder<T : Any>(private val block: suspend MenuBuilder<T>.() -> Unit = { }) {
+    constructor(title: String, block: suspend MenuBuilder<T>.() -> Unit) : this(block) {
+        this.title = title
+    }
+
     @DslMarker
     annotation class MenuBuilderDsl
     object RefreshReturn : Throwable("This method should only call in callback", null, false, false)
@@ -39,7 +43,14 @@ class MenuBuilder<T : Any>(val title: String, val block: suspend MenuBuilder<T>.
     private val callback = mutableListOf<suspend () -> T>()
 
     @MenuBuilderDsl
+    var title = ""
+
+    @MenuBuilderDsl
     var msg = ""
+
+    protected open suspend fun build() {
+        block()
+    }
 
     @MenuBuilderDsl
     fun newRow() = menu.add(mutableListOf())
@@ -76,7 +87,7 @@ class MenuBuilder<T : Any>(val title: String, val block: suspend MenuBuilder<T>.
     suspend fun sendTo(player: Player, timeoutMillis: Int): T? {
         menu.clear();newRow()
         callback.clear()
-        block()
+        build()
 
         val id = Random.nextInt()
         Call.menu(
