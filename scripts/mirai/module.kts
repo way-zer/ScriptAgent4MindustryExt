@@ -53,6 +53,8 @@ inner class MyLoggerImpl(override val identity: String, private val botLog: Bool
     }
 }
 
+withContextClassloader { globalEventChannel() }//init
+
 onEnable {
     if (!enable) {
         println("机器人未开启,请先修改配置文件")
