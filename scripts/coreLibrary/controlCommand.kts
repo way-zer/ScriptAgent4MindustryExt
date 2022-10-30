@@ -56,7 +56,7 @@ onEnable {
             }
             body {
                 val noCache = checkArg("--noCache")
-                val noEnable = checkArg("--noEnable")
+                var noEnable = checkArg("--noEnable")
                 if (arg.isEmpty()) replyUsage()
                 val script = ScriptRegistry.findScriptInfo(arg[0])
                     ?: returnReply("[red]找不到模块或者脚本".with())
@@ -70,12 +70,15 @@ onEnable {
                     reply("[yellow]异步处理中".with())
                     ScriptManager.transaction {
                         add(script)
+                        if (script.failReason == null && !script.enabled)//因为其他原因本来就保持loaded
+                            noEnable = true
                         unload(addAllAffect = true)
                         load()
                         if (!noEnable) enable()
                     }
-                    val success = if (noEnable) script.scriptState.loaded else script.scriptState.enabled
-                    reply((if (success) "[green]重载成功" else "[red]加载失败: ${script.scriptState}").with())
+                    script.failReason?.let {
+                        reply("[red]加载失败({state}): {reason}".with("state" to script.scriptState, "reason" to it))
+                    } ?: reply("[green]重载成功: {state}".with("state" to script.scriptState))
                 }
             }
         })
