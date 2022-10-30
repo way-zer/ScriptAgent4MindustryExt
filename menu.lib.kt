@@ -1,14 +1,11 @@
-package coreMindustry.util
+package coreMindustry
 
 import cf.wayzer.scriptAgent.contextScript
 import coreLibrary.lib.CommandInfo
-import coreMindustry.UtilNext
 import kotlinx.coroutines.withTimeoutOrNull
-import mindustry.gen.Call
 import mindustry.gen.Player
-import kotlin.random.Random
 
-/** You must depends on `coreMindustry/utilNext` */
+@Suppress("unused")
 open class MenuBuilder<T : Any>(private val block: suspend MenuBuilder<T>.() -> Unit = { }) {
     constructor(title: String, block: suspend MenuBuilder<T>.() -> Unit) : this(block) {
         this.title = title
@@ -39,7 +36,7 @@ open class MenuBuilder<T : Any>(private val block: suspend MenuBuilder<T>.() -> 
         }
     }
 
-    private val menu = mutableListOf(mutableListOf<String>())
+    private val menu = mutableListOf<MutableList<String>>()
     private val callback = mutableListOf<suspend () -> T>()
 
     @MenuBuilderDsl
@@ -85,19 +82,15 @@ open class MenuBuilder<T : Any>(private val block: suspend MenuBuilder<T>.() -> 
 
     /** @param timeoutMillis note this is only timeout for player select, not timeout for this function (due to callback and refresh)*/
     suspend fun sendTo(player: Player, timeoutMillis: Int): T? {
-        menu.clear();newRow()
-        callback.clear()
-        build()
+        menu.clear();callback.clear()
+        newRow();build()
 
-        val id = Random.nextInt()
-        Call.menu(
-            player.con, id, title, msg,
-            menu.map { it.toTypedArray() }.toTypedArray()
-        )
         return withTimeoutOrNull(timeoutMillis.toLong()) {
-            val e = contextScript<UtilNext>()
-                .nextEvent<UtilNext.MenuChooseEvent> { it.player == player && it.menuId == id }
-            callback.getOrNull(e.value)
+            val ret = utilScript.menuAsync(
+                player, title, msg,
+                menu.map { it.toTypedArray() }.toTypedArray()
+            )
+            callback.getOrNull(ret)
         }?.let {
             try {
                 it.invoke()
@@ -105,5 +98,9 @@ open class MenuBuilder<T : Any>(private val block: suspend MenuBuilder<T>.() -> 
                 return sendTo(player, timeoutMillis)
             }
         }
+    }
+
+    companion object {
+        private val utilScript = contextScript<Menu>()
     }
 }
