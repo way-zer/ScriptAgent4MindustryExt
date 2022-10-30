@@ -156,17 +156,7 @@ open class Commands : CommandHandler, TabCompleter {
             ?: onHelp(context, false)
     }
 
-    open suspend fun onHelp(context: CommandContext, explicit: Boolean) {
-        val showDetail = context.checkArg("-v")
-        if (showDetail && !context.hasPermission("command.detail"))
-            return context.reply("[red]必须拥有command.detail权限才能查看完整help".with())
-        val page = context.arg.firstOrNull()?.toIntOrNull() ?: 1
-        context.reply(menu(context.prefix, getSubCommands(context).values.toSet().filter {
-            showDetail || it.permission.isBlank() || context.hasPermission(it.permission)
-        }, page, 10) {
-            context.helpInfo(it, showDetail)
-        })
-    }
+    open suspend fun onHelp(context: CommandContext, explicit: Boolean) = defaultHelpImpl(context, explicit)
 
     protected open fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
         val existed = subCommands[name.lowercase()]?.takeIf { it.script?.enabled == true } ?: let {
@@ -257,5 +247,20 @@ open class Commands : CommandHandler, TabCompleter {
                 "usage" to it.usage, "desc" to it.description, "detail" to detail
             )
         }
+
+        var defaultHelpImpl: suspend Commands.(CommandContext, explicit: Boolean) -> Unit =
+            impl@{ context, explicit ->
+                if (!explicit) return@impl context.reply("[red]无效指令,请使用/help查询".with())
+                val showDetail = context.checkArg("-v")
+                if (showDetail && !context.hasPermission("command.detail"))
+                    return@impl context.reply("[red]必须拥有command.detail权限才能查看完整help".with())
+
+                val page = context.arg.firstOrNull()?.toIntOrNull() ?: 1
+                context.reply(menu(context.prefix, getSubCommands(context).values.toSet().filter {
+                    showDetail || it.permission.isBlank() || context.hasPermission(it.permission)
+                }, page, 10) {
+                    context.helpInfo(it, showDetail)
+                })
+            }
     }
 }

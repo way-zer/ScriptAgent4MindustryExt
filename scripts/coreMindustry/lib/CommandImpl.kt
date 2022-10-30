@@ -8,7 +8,6 @@ import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.*
-import coreMindustry.lib.util.sendMenuPhone
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -17,15 +16,15 @@ import mindustry.gen.Player
 object RootCommands : Commands() {
     override fun getSubCommands(context: CommandContext?): Map<String, CommandInfo> {
         if (context == null) return super.getSubCommands(null)
-        val origin =
-            (if (context.player != null) Config.clientCommands else Config.serverCommands).let { originHandler ->
+        //合并原版指令
+        val origin = (if (context.player != null) Config.clientCommands else Config.serverCommands)
+            .let { originHandler ->
                 originHandler.commandList.associate {
                     it.text.lowercase() to CommandInfo(null, it.text, it.description) {
                         usage = it.paramText
                         body {
-                            prefix = prefix.removePrefix("* ")
                             (if (originHandler is MyCommandHandler) originHandler.origin else originHandler).handleMessage(
-                                prefix + arg.joinToString(" "),
+                                originHandler.prefix + it.text + " " + arg.joinToString(" "),
                                 player
                             )
                         }
@@ -41,32 +40,6 @@ object RootCommands : Commands() {
         if (command.type.client())
             Config.clientCommands.removeCommand(name)
         return super.addSub(name, command, isAliases)
-    }
-
-    suspend fun tabComplete(player: Player?, args: List<String>): List<String> {
-        var result: List<String> = emptyList()
-        try {
-            onComplete(CommandContext().apply {
-                this.player = player
-                reply = {}
-                replyTabComplete = { result = it;CommandInfo.Return() }
-                arg = args
-            })
-        } catch (_: CommandInfo.Return) {
-        }
-        return result
-    }
-
-    override suspend fun onHelp(context: CommandContext, explicit: Boolean) {
-        if (!explicit) return context.reply("[red]无效指令,请使用/help查询".with())
-        val showDetail = context.arg.firstOrNull() == "-v"
-        val page = context.arg.lastOrNull()?.toIntOrNull()
-
-        context.sendMenuPhone("帮助", getSubCommands(context).values.toSet().filter {
-            (it.permission.isBlank() || context.hasPermission(it.permission))
-        }, page, 10) {
-            context.helpInfo(it, showDetail)
-        }
     }
 
     init {
@@ -87,6 +60,20 @@ object RootCommands : Commands() {
                 append(text[i])
             lastBlank = nowBlank
         }
+    }
+
+    suspend fun tabComplete(player: Player?, args: List<String>): List<String> {
+        var result: List<String> = emptyList()
+        try {
+            onComplete(CommandContext().apply {
+                this.player = player
+                reply = {}
+                replyTabComplete = { result = it;CommandInfo.Return() }
+                arg = args
+            })
+        } catch (_: CommandInfo.Return) {
+        }
+        return result
     }
 
     /**
