@@ -1,6 +1,6 @@
 @file:Depends("coreLibrary")
 @file:Import("-Xjvm-default=enable", compileArg = true)
-@file:Import("net.mamoe:mirai-core-jvm:2.12.3", mavenDepends = true)
+@file:Import("net.mamoe:mirai-core-jvm:2.10.0", mavenDepends = true)
 @file:Import("mirai.lib.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.events.*", defaultImport = true)
@@ -61,8 +61,10 @@ onEnable {
         return@onEnable
     }
     val bot = BotFactory.newBot(qq, password) {
+        cacheDir = Config.cacheDir.resolve("mirai_cache")
+        workingDir = Config.dataDir.resolve("mirai").apply { mkdirs() }
+        fileBasedDeviceInfo()
         protocol = qqProtocol
-        fileBasedDeviceInfo(Config.dataDir.resolve("miraiDeviceInfo.json").absolutePath)
         parentCoroutineContext = coroutineContext
         loginSolver = StandardCharImageLoginSolver(channel::receive)
         botLoggerSupplier = { MyLoggerImpl("Bot ${it.id}", true) }
