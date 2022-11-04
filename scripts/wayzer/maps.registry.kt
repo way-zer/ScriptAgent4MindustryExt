@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import mindustry.Vars
 import mindustry.game.Gamemode
-import mindustry.game.Rules
 import mindustry.io.SaveIO
 import mindustry.maps.Map
 
@@ -20,7 +19,10 @@ data class MapInfo(
     val beforeReset: (() -> Unit)? = null,
     /**use for generator or save*/
     val load: (() -> Unit) = {
-        Vars.world.loadMap(map)
+        @Suppress("INACCESSIBLE_TYPE")
+        SaveIO.load(map.file, Vars.world.filterContext(map))
+        if (Vars.state.teams.getActive().none { it.hasCore() })
+            error("Map has no cores!")
     }
 ) {
     override fun equals(other: Any?): Boolean {
