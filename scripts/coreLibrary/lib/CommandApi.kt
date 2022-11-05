@@ -9,7 +9,9 @@ import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.util.ServiceRegistry
 import coreLibrary.lib.util.menu
+import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.coroutines.cancellation.CancellationException
 
 class CommandContext : DSLBuilder(), Cloneable {
     // Should init if not empty
@@ -105,7 +107,11 @@ class CommandInfo(
             if (permission.isNotBlank() && !context.hasPermission(permission))
                 context.replyNoPermission()
             body(context)
-        } catch (_: Return) {
+        } catch (e: CancellationException) {
+            if (e !is Return)
+                thisContextScript().logger.log(
+                    Level.WARNING, "You should not cancel command. If you need exit, using CommandInfo.Return()", e
+                )
         } catch (e: Exception) {
             context.reply("[red]执行命令出现异常: {msg}".with("msg" to (e.message ?: "")))
             e.printStackTrace()
@@ -124,7 +130,7 @@ class CommandInfo(
         Return()
     }
 
-    object Return : Throwable("Direct return command") {
+    object Return : CancellationException("Direct return command") {
         @CommandBuilder
         operator fun invoke(): Nothing {
             throw this
