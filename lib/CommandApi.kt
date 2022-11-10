@@ -2,11 +2,13 @@
 
 package coreLibrary.lib
 
+import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.events.ScriptDisableEvent
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
+import coreLibrary.lib.PlaceHold.registerForType
 import coreLibrary.lib.util.ServiceRegistry
 import coreLibrary.lib.util.menu
 import java.util.logging.Level
@@ -54,6 +56,17 @@ class CommandContext : DSLBuilder(), Cloneable {
     fun returnReply(msg: PlaceHoldString): Nothing {
         reply(msg)
         CommandInfo.Return()
+    }
+
+    /** receiver for reply */
+    object ConsoleReceiver {
+        init {
+            registerForType<ConsoleReceiver>(thisContextScript()).apply {
+                registerChild("colorHandler", "颜色变量处理", DynamicVar.obj {
+                    Color::convertToAnsiCode
+                })
+            }
+        }
     }
 }
 

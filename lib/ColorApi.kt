@@ -32,7 +32,7 @@ enum class Color(val ansiCode: String) {
 
         init {
             thisContextScript().apply {
-                registerVar("receiver", "消息接收者(仅定义)", null)
+                registerVar("receiver.colorHandler", "颜色处理器(仅定义)", null)
                 registerVar("C", "颜色变量", DynamicVar.params {
                     it?.let { color ->
                         getVar("receiver.colorHandler")?.let { handler ->
