@@ -15,10 +15,7 @@ import mindustry.gen.Player
 object ContentHelper {
     fun logToConsole(text: String) = logToConsole(text.with())
     fun logToConsole(text: PlaceHoldString) {
-        val parsed = "{text}".with(
-            "text" to text,
-            "receiver" to "console", "receiver.colorHandler" to Color::convertToAnsiCode
-        ).toString()
+        val parsed = text.with("receiver" to CommandContext.ConsoleReceiver).toString()
         Log.info(Strings.stripColors(ColorApi.handle(parsed, ColorApi::consoleColorHandler)))
     }
 
@@ -73,10 +70,11 @@ fun Player?.sendMessage(text: PlaceHoldString, type: MsgType = MsgType.Message, 
 }
 
 fun PlaceHoldString.toPlayer(player: Player): String = ColorApi.handle(
-    "{text}".with("text" to this, "player" to player, "receiver" to player).toString(),
+    with("player" to player, "receiver" to player).toString(),
     ContentHelper::mindustryColorHandler
 )
 
+@Deprecated("use PlaceHoldString", ReplaceWith("sendMessage(text.with(), type, time)", "coreLibrary.lib.with"))
 fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) =
     sendMessage(text.with(), type, time)
 

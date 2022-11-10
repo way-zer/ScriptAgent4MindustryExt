@@ -4,7 +4,7 @@ package wayzer.user.ext
 
 import coreLibrary.DBApi.DB.registerTable
 import coreLibrary.lib.util.loop
-import mindustry.gen.Groups
+import mindustry.Vars
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -55,7 +55,7 @@ fun Player?.showRank(name: String, field: Column<Int>, week: Boolean, display: B
         val x = pos?.getOrNull(0)?.toFloatOrNull() ?: 0f
         val y = pos?.getOrNull(1)?.toFloatOrNull() ?: 0f
         launch(Dispatchers.game) {
-            val text = "{text}".with("text" to msg, "player" to this, "receiver" to this).toString()
+            val text = "{text}".with("text" to msg).toPlayer(Vars.player)
             Call.label(con, text, 5f, x, y)
         }
     }

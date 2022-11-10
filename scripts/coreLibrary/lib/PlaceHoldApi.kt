@@ -8,10 +8,7 @@ package coreLibrary.lib
  * 暴露数据或接口时,注意类型所在的生命周期
  */
 
-import cf.wayzer.placehold.DynamicVar
-import cf.wayzer.placehold.PlaceHoldApi
-import cf.wayzer.placehold.PlaceHoldContext
-import cf.wayzer.placehold.TypeBinder
+import cf.wayzer.placehold.*
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.util.DSLBuilder
@@ -102,12 +99,16 @@ object PlaceHold {
      * player.money //get variable
      */
     inline fun <reified R> referenceForType(name: String) = TypePlaceHoldKey(name, R::class.java)
+
+    internal val dumbTemplateHandler = TemplateHandler { _, text -> text }
 }
 
 /**
  * @param arg values support [cf.wayzer.placehold.DynamicVar] even [PlaceHoldString] or any value
  */
 fun String.with(vararg arg: Pair<String, Any>): PlaceHoldString = PlaceHoldApi.getContext(this, arg.toMap())
+fun PlaceHoldString.with(vararg arg: Pair<String, Any>): PlaceHoldString =
+    "{text}".with("text" to this, TemplateHandlerKey to PlaceHold.dumbTemplateHandler, *arg)
 
 /**
  * @see PlaceHold.register

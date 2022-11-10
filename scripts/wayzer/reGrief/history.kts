@@ -2,8 +2,6 @@ package wayzer.reGrief
 
 import arc.graphics.Color
 import cf.wayzer.placehold.PlaceHoldApi.with
-import mindustry.content.Blocks
-import mindustry.content.Fx
 import mindustry.type.Item
 import mindustry.world.Block
 import mindustry.world.blocks.storage.CoreBlock
@@ -116,9 +114,7 @@ fun Player.showLog(xf: Float, yf: Float) {
     val logs = logs[x][y]
     if (logs.isEmpty()) Call.label(
         con,
-        "[yellow]位置({x},{y})无记录".with(
-            "x" to x, "y" to y, "receiver" to this
-        ).toString(),
+        "[yellow]位置({x},{y})无记录".with("x" to x, "y" to y).toPlayer(this),
         3f, xf, yf
     )
     else {
@@ -126,8 +122,8 @@ fun Player.showLog(xf: Float, yf: Float) {
         Call.label(
             con,
             "====[gold]操作记录({x},{y})[]====\n{list:\n}"
-                .with("x" to x, "y" to y, "list" to list, "receiver" to this)
-                .toString(),
+                .with("x" to x, "y" to y, "list" to list)
+                .toPlayer(this),
             10f, xf, yf
         )
     }
