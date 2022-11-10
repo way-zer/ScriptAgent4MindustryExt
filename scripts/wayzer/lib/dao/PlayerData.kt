@@ -68,7 +68,14 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
 
     fun secure(player: Player): Boolean {
         if (!Setting.checkUsid || profileId == null) return true
-        return Usid.get(this, player) == player.usid()
+        val secure = Usid.get(this, player)
+        if (secure == null) {
+            transaction {
+                Usid.put(this@PlayerData, player.usid())
+            }
+            return true
+        }
+        return secure == player.usid()
     }
 
     fun secureProfile(player: Player) = if (secure(player)) profile else null
@@ -91,11 +98,12 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
         val usid = varchar("sid", 12)
 
         private val cache = CacheBuilder.newBuilder()
-            .expireAfterAccess(Duration.ofMinutes(10))
+            .expireAfterAccess(Duration.ofMinutes(60))
             .build<String, String>()//uuid -> usid
 
         @NeedTransaction
         fun put(user: PlayerData, usid: String) {
+            if (!Setting.checkUsid) return
             if (!Setting.tempServer) {
                 val found = Usid.update({ (Usid.user eq user.id) and (Usid.server eq Setting.serverId) }) {
                     it[Usid.usid] = usid
@@ -129,9 +137,9 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, PlayerData>(T) {
         private val cache = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofMinutes(1))
-            .removalListener<String, PlayerData> { (k, v) ->
-                if (v!!.player != null)
-                    reCache(k!!, v)
+            .removalListener<String, PlayerData> {
+                if (it.wasEvicted() && it.value!!.player != null)
+                    reCache(it.key!!, it.value!!)
             }
             .build<String, PlayerData>()
 

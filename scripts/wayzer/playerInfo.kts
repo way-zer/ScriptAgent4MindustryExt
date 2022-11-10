@@ -4,7 +4,6 @@ import arc.util.Strings
 import cf.wayzer.placehold.DynamicVar
 import coreLibrary.DBApi
 import coreLibrary.lib.util.loop
-import mindustry.gen.Groups
 import mindustry.net.Administration
 import mindustry.net.Packets
 import mindustry.net.Packets.ConnectPacket
@@ -99,9 +98,9 @@ listen<EventType.PlayerLeave> {
 onEnable {
     launch {
         DBApi.DB.awaitInit()
-        TransactionHelper.withAsyncFlush(this) {
+        transaction {
             Groups.player.toList().forEach {
-                PlayerData[it.uuid()].onJoin(it)
+                PlayerData.findByIdWithTransaction(it.uuid())?.onJoin(it)
             }
         }
         loop(Dispatchers.IO) {
