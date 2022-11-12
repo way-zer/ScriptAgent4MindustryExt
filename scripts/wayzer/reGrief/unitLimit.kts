@@ -3,7 +3,6 @@ package wayzer.reGrief
 import arc.Events
 import arc.util.Interval
 import mindustry.gen.BuildingTetherc
-import mindustry.gen.Groups
 import mindustry.gen.TimedKillc
 import mindustry.gen.Unit
 import kotlin.math.min
@@ -59,6 +58,19 @@ listen<EventType.UnitSpawnEvent> { e ->
 }
 
 var gameOverWave = -1
+listen<EventType.ResetEvent> { gameOverWave = -1 }
+fun checkNextWave() {
+    val flySpawn = spawner.countFlyerSpawns()
+    val groundSpawn = spawner.countGroundSpawns()
+    val sum = state.rules.spawns.sum {
+        it.getSpawned(state.wave) * if (it.type.flying) flySpawn else groundSpawn
+    }
+    if (sum >= 3000) {
+        state.rules.spawns.clear()
+        gameOverWave = state.wave
+    }
+}
+listen<EventType.PlayEvent> { checkNextWave() }
 listen<EventType.WaveEvent> {
     if (gameOverWave > 0 && state.wave > gameOverWave && !state.gameOver) {
         broadcast("[red]到达终结波,自动投降".with())
@@ -66,17 +78,5 @@ listen<EventType.WaveEvent> {
         Events.fire(EventType.GameOverEvent(state.rules.waveTeam))
         return@listen
     }
-    val flySpawn = spawner.countFlyerSpawns()
-    val groundSpawn = spawner.countGroundSpawns()
-    val sum = state.rules.spawns.sum {
-        it.getSpawned(state.wave - 1) * if (it.type.flying) flySpawn else groundSpawn
-    }
-    if (sum >= 3000) {
-        state.rules.spawns.clear()
-        gameOverWave = state.wave
-    }
-}
-
-listen<EventType.ResetEvent> {
-    gameOverWave = -1
+    checkNextWave()
 }
