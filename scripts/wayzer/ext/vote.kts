@@ -6,51 +6,19 @@
 
 package wayzer.ext
 
-import arc.Core
 import arc.util.Time
-import coreLibrary.lib.PermissionApi
-import coreLibrary.lib.PlaceHold
-import coreLibrary.lib.config
-import coreLibrary.lib.with
-import coreMindustry.lib.*
-import mindustry.Vars.logic
-import mindustry.Vars.state
+import kotlinx.coroutines.channels.broadcast
+import mindustry.Vars
+import mindustry.gen.Groups
 import mindustry.io.SaveIO
 import wayzer.MapManager
 import wayzer.MapRegistry
 import wayzer.VoteService
-import wayzer.lib.dao.PlayerData
 import java.time.Instant
-import kotlin.math.ceil
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
-import arc.Events
-import coreLibrary.lib.with
-import coreMindustry.lib.*
-import mindustry.Vars.netServer
-import mindustry.core.NetServer
-import mindustry.game.EventType
-import mindustry.game.Team
-import mindustry.gen.Groups
-import mindustry.gen.Player
-import mindustry.world.blocks.storage.CoreBlock
-
-suspend fun Player.hasPermission(permission: String): Boolean {
-    return PermissionApi.handleThoughEvent(this, permission, listOf(uuid())).has
-}
-
-suspend fun sendMenu(p: Player) {
-    menu.sendMenuBuilder<Unit>(
-        p, 30_000, "[red]警告","[sky]此玩家为cong\n禁止踢出\n[cyan]“操你妈踢我干嘛??有事上q()”".with().toString()
-    ) {
-        add(listOf("确定" to {}))
-    }
-}
 
 val voteService = contextScript<VoteService>()
-val menu = contextScript<coreMindustry.UtilNext>()
-
 
 fun VoteService.register() {
     addSubVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图") {
@@ -120,38 +88,48 @@ fun VoteService.register() {
             broadcast("[green]回档成功".with(), quite = true)
         }
     }
-    addSubVote("踢出某人15分钟", "<玩家名/3位id> <踢人理由>", "kick", "踢出") {
 
-        val target = arg.getOrNull(2)?.let {
-            depends("wayzer/user/shortID")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(it)
-                ?.let { id -> Groups.player.find { it.uuid() == id } }
-                ?: returnReply("[red]找不到玩家,请使用/list查询正确的3位id".with())
-        } ?: player ?: returnReply("[red]请输入玩家ID".with())
-
-        //val target = Groups.player.find { it.name == arg.joinToString(" ") } ?: returnReply("[red]请输入正确的玩家名，或到列表点击投票".with())
-
-        start(player!!, "踢人(踢出[red]{target.name}[yellow])".with("target" to target)) {
-            /*
-            if (target.hasPermission(permission = "wayzer.admin.skipKick")) {
-                return@start broadcast(text = "[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target))
-            }
-            */
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            /**/if (target.uuid()=="FzCaAjh/Do8AAAAA9LRoUA==") {                                                                                               /**/
-            /**/    launch{sendMenu(player!!)}                                                                                                                 /**/
-            /**/    return@start broadcast("[sky]错误: {target.name}[sky]为cong,有问题请群内对线\n[acid]“操你妈踢我干嘛??有事上q()”".with("target" to target))   /**/
-            /**/}                                                                                                                                              /**/
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            target.info.lastKicked = Time.millis() + (15 * 60 * 1000) //Kick for 15 Minutes
-            target.con?.kick("[yellow]你被投票踢出15分钟")
-            val secureLog = depends("wayzer/admin")?.import<(String, String) -> Unit>("secureLog") ?: return@start
-            secureLog(
-                "Kick",
-                "${target.name}(${target.uuid()},${target.con.address}) is kicked By ${player!!.name}(${player!!.uuid()})"
-            )
+    fun ban(uuid: String, time: Int, reason: String) {
+        launch(Dispatchers.IO) {
+                withContext(Dispatchers.game) {
+                    Groups.player.find { it.uuid() == uuid }?.let {
+                        if (it.uuid()=="FzCaAjh/Do8AAAAA9LRoUA=="){
+                            broadcast("[sky]被踢的对象是cong,由于测试用途,无法踢出".with())
+                            return@let
+                        }
+                        it.kick( if(reason != ""){reason}else{"你已被投票踢出"}, time.toLong())
+                        if (reason == "") {broadcast("[red]投票禁封了{target.name}".with("target" to it))}
+                        else {broadcast("[red]投票禁封了{target.name},原因: [yellow]{reason}".with("target" to it, "reason" to reason))}
+                    }
+                }
         }
     }
+    fun uname(uuid: String): String? {
+        Groups.player.find { it.uuid() == uuid }?.let {
+            return it.name
+        }
+        return ""
+    }
 
+    fun up(uuid: String): Player {
+        Groups.player.find { it.uuid() == uuid }?.let {
+            return it
+        }
+        return Vars.player
+    }
+
+    addSubVote("踢出某人15分钟", "<玩家名/3位id> <踢人理由>", "kick", "踢出") {
+        val uuid = netServer.admins.getInfoOptional(arg[0])?.id
+            ?: depends("wayzer/user/shortID")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(arg[0])
+            ?: Groups.player.find { it.name == arg.joinToString(" ") }.uuid()
+            ?: returnReply("[red]请输入目标正确的3位ID，位于名字后面".with())
+        val time: Int = 15 * 60 * 1000
+        val reason = arg.slice(1 until arg.size).joinToString("")
+        start(player!!,if(reason == ""){"踢人(踢出[red]{name}[yellow]"}else{"\n踢出[red]{name}[yellow]\n原因是[sky]{reason}\n"}.with("reason" to reason,"name" to uname(uuid).toString())) {
+            ban(uuid, time, reason)
+            reply("[green]已禁封{name},[sky]原因：{reason}".with("name" to uname(uuid).toString(), "reason" to reason))
+        }
+    }
     /*
         addSubVote("踢出某人15分钟", "<玩家名>", "kick", "踢出") {
             val target = Groups.player.find { it.name == arg.joinToString(" ") }
@@ -192,18 +170,4 @@ onEnable {
 }
 
 PermissionApi.registerDefault("wayzer.vote.*")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
