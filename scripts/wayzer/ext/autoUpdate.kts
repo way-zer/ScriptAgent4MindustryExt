@@ -3,8 +3,14 @@ package wayzer.ext
 import arc.util.Interval
 import arc.util.Log
 import arc.util.serialization.Jval
+import coreLibrary.lib.config
 import coreLibrary.lib.util.loop
+import coreLibrary.lib.with
+import coreMindustry.lib.broadcast
+import coreMindustry.lib.command
+import coreMindustry.lib.listen
 import mindustry.core.Version
+import mindustry.game.EventType
 import mindustry.gen.Groups
 import mindustry.net.BeControl
 import java.io.File
@@ -14,10 +20,10 @@ import kotlin.system.exitProcess
 
 name = "自动更新"
 
-val enableUpdate by config.key(false, "是否开启自动更新")
-val source by config.key("Anuken/Mindustry", "服务端来源，Github仓库")
+val enableUpdate by config.key(true, "是否开启自动更新")
+val source by config.key("TinyLake/MindustryX", "服务端来源，Github仓库")
 val onlyInNight by config.key(false, "仅在凌晨自动更新", "本地时间1:00到7:00")
-val useMirror by config.key(false, "使用镜像加速下载")
+val useMirror by config.key(true, "使用镜像加速下载")
 
 var updateCallback: (() -> Unit)? = null
 
@@ -57,7 +63,7 @@ onEnable {
                         } ?: error("New version $newBuild, but can't find asset")
                         val url = asset.getString("browser_download_url", "")
                         try {
-                            update(newBuild, if (useMirror) "https://gh.tinylake.tk/$url" else url)
+                            update(newBuild, if (useMirror) "https://ghproxy.com/$url" else url)
                             cancel()
                         } catch (e: Throwable) {
                             logger.warning("下载更新失败: $e")
@@ -119,3 +125,4 @@ command("forceUpdate", "强制更新服务器版本") {
         }
     }
 }
+
