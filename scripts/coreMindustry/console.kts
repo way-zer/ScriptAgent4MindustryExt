@@ -1,11 +1,10 @@
-//@file:Import("org.jline:jline-terminal-jansi:3.21.0", mavenDependsSingle = true)
+@file:Import("org.jline:jline-terminal-jansi:3.21.0", mavenDependsSingle = true)
 @file:Import("org.jline:jline-terminal:3.21.0", mavenDependsSingle = true)
-//@file:Import("org.fusesource.jansi:jansi:2.4.0", mavenDependsSingle = true)
+@file:Import("org.fusesource.jansi:jansi:2.4.0", mavenDependsSingle = true)
 @file:Import("org.jline:jline-reader:3.21.0", mavenDependsSingle = true)
 
 package coreMindustry
 
-import arc.util.OS
 import coreLibrary.lib.util.withContextClassloader
 import org.jline.reader.*
 import org.jline.utils.AttributedString
@@ -96,8 +95,11 @@ suspend fun handleInput(reader: LineReader) {
     }
 }
 
+var started = false
 lateinit var reader: LineReader
 fun start() {
+    if (started) return
+    started = true
     launch(Dispatchers.IO + CoroutineName("Console Reader")) {
         reader = withContextClassloader {
             LineReaderBuilder.builder().completer(MyCompleter).build()
@@ -115,17 +117,12 @@ fun start() {
 }
 
 onEnable {
-    if (OS.isWindows) return@onEnable ScriptManager.disableScript(this, "不支持Windows")
-    launch(Dispatchers.IO + CoroutineName("Console starter")) {
-        val arr = arrayOfNulls<Thread>(Thread.activeCount())
-        Thread.enumerate(arr)
-        arr.filter { it?.name == "Server Controls" }.forEach {
-            it!!.interrupt()
-            //Thread "Server Controls" don't have any point to interrupt. Only stop
-            @Suppress("DEPRECATION")
-            it.stop()
-            it.join()
-        }
-        start()
+    Core.app.listeners.find { it.javaClass.simpleName == "ServerControl" }?.apply {
+        javaClass.getDeclaredField("serverInput")
+            .set(this, Runnable {
+                logger.info("Overwrite ServerControl.serverInput")
+                start()
+            })
     }
+    start()
 }
