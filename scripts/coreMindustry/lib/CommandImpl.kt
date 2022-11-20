@@ -97,12 +97,7 @@ object RootCommands : Commands() {
     }
 }
 
-class MyCommandHandler(private var prefix0: String, val origin: CommandHandler) : CommandHandler("") {
-    override fun setPrefix(prefix: String) {
-        prefix0 = prefix
-    }
-
-    override fun getPrefix(): String = prefix0
+class MyCommandHandler(prefix: String, val origin: CommandHandler) : CommandHandler(prefix) {
     override fun <T : Any?> register(
         text: String,
         params: String,
