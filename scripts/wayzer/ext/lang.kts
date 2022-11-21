@@ -8,8 +8,8 @@ import java.util.*
 
 name = "国际化多语言"
 
-var default by config.key("default.user", "默认语言")
-var console by config.key("default.console", "控制台语言(不发给玩家的语句)")
+var default by config.key("default", "默认语言")
+var console by config.key("default", "控制台语言(不发给玩家的语句)")
 
 val tempLang = mutableMapOf<String, String>()//uuid -> lang
 
@@ -48,7 +48,8 @@ class Lang(private val lang: String) : Properties() {
     private fun save() {
         file.parentFile.mkdirs()
         file.writer().use {
-            it.write(header)
+            it.write("# Auto generated(自动生成的文件)\n")
+            it.write("# backup before modify(修改前注意备份)\n")
             store(it, null)
         }
     }
@@ -61,11 +62,6 @@ class Lang(private val lang: String) : Properties() {
 
     companion object {
         val dir = Config.dataDir.resolve("lang")
-        val header = """
-                |# Auto generated(自动生成的文件)
-                |# backup before modify(修改前注意备份)
-                |
-            """.trimMargin()
         private val String.asKey get() = "HASH" + hashCode().toString()
     }
 }
@@ -100,11 +96,10 @@ commands += CommandInfo(this, "setDefault", "设置玩家默认语言".with()) {
 commands += CommandInfo(this, "set", "设置当前使用语言".with()) {
     permission = "wayzer.lang.set"
     body {
-        val suffix = if (player == null) ".console" else ".user"
         if (arg.isEmpty())
             returnReply("[yellow]可用语言: {list}".with(
-                "list" to Lang.dir.listFiles { it -> it.nameWithoutExtension.endsWith(suffix) }.orEmpty().map {
-                    it.nameWithoutExtension.removeSuffix(suffix)
+                "list" to Lang.dir.listFiles().orEmpty().map {
+                    it.nameWithoutExtension
                 }
             ))
         else {
