@@ -40,6 +40,18 @@ command("gather", "发出集合请求") {
     }
 }
 
+command("tp", "传送到鼠标坐标") {
+    type = CommandType.Client
+    permission = "wayzer.ext.tp"
+    body {
+        val player = player!!
+        player.unit().apply {
+            set(player.mouseX, player.mouseY)
+            snapInterpolation()
+        }
+    }
+}
+
 fun check(unit: Unit, x: Float, y: Float): Boolean {
     unit.solidity()?.let {
         if (it.solid(World.toTile(x), World.toTile(y)))
@@ -53,19 +65,13 @@ fun check(unit: Unit, x: Float, y: Float): Boolean {
 }
 listen<EventType.PlayerChatEvent> {
     if (it.message.equals("go", true) && lastPos != Vec2.ZERO) {
-        val unit = it.player.unit()
-        var i = 0
-        launch(Dispatchers.game) {
-            while (!unit.within(lastPos, 8 * 5f) && i < 10) {
-                i++
-                if (!check(unit, lastPos.x, lastPos.y)) {
-                    it.player.sendMessage("[yellow]目标位置无法安全传送")
-                    return@launch
-                }
-                unit.set(lastPos.x, lastPos.y)
-                delay(1)
+        it.player.unit().apply {
+            if (!check(this, lastPos.x, lastPos.y)) {
+                it.player.sendMessage("[yellow]目标位置无法安全传送")
+                return@listen
             }
-            it.player.sendMessage("[red]传送失败,请重试")
+            set(lastPos)
+            snapInterpolation()
         }
     }
 }
