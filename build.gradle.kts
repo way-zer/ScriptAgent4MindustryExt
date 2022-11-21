@@ -74,6 +74,8 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
+    //coreLib/redisApi
+    implementation("redis.clients:jedis:4.3.1")
 
     //coreMindustry
 //    implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
