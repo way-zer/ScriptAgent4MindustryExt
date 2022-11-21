@@ -12,9 +12,9 @@ object JarScriptRegistry : ScriptRegistry.IRegistry {
             return url.openStream()
         }
 
-        override fun resolveModuleRes(path: String): URL? {
-            check(isModule)
-            return javaClass.classLoader.getResource("scripts/$id/res/$path")
+        override fun resolveRes(path: String): URL? {
+            return if (isModule) javaClass.classLoader.getResource("scripts/$id/res/$path")
+            else javaClass.classLoader.getResource("scripts/$id.$path")
         }
     }
 

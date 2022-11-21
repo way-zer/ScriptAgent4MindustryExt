@@ -39,11 +39,22 @@ repositories {
             excludeModule("cf.wayzer", "ScriptAgent")
         }
     }
-    maven("https://maven.tinylake.tk/")//ScriptAgent
+
+    if (System.getProperty("user.timezone") != "Asia/Shanghai")//ScriptAgent
+        maven("https://maven.tinylake.tk/")
+    else {
+        maven {
+            url = uri("https://packages.aliyun.com/maven/repository/2102713-release-0NVzQH/")
+            credentials {
+                username = "609f6fb4aa6381038e01fdee"
+                password = "h(7NRbbUWYrN"
+            }
+        }
+    }
 }
 
 dependencies {
-    val libraryVersion = "1.9.2"
+    val libraryVersion = "1.9.2.6"
     val mindustryVersion = "v140.101"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
@@ -84,7 +95,7 @@ tasks {
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.freeCompilerArgs = listOf(
             "-Xinline-classes",
-            "-Xopt-in=kotlin.RequiresOptIn",
+            "-opt-in=kotlin.RequiresOptIn",
             "-Xnullability-annotations=@arc.util:strict"
         )
     }

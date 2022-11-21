@@ -19,5 +19,6 @@ gradle-app.setting
 
 # ScriptAgent
 /scripts/cache
+/scripts/data
 /libs
 /branches/
