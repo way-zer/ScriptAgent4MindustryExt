@@ -269,7 +269,8 @@ open class Commands : CommandHandler, TabCompleter {
 
         var defaultHelpImpl: suspend Commands.(CommandContext, explicit: Boolean) -> Unit =
             impl@{ context, explicit ->
-                if (!explicit) return@impl context.reply("[red]无效指令,请使用/help查询".with())
+                if (context.arg.isNotEmpty() && !explicit)
+                    return@impl context.reply("[red]无效指令,请使用/help查询".with())
                 val showDetail = context.checkArg("-v")
                 if (showDetail && !context.hasPermission("command.detail"))
                     return@impl context.reply("[red]必须拥有command.detail权限才能查看完整help".with())

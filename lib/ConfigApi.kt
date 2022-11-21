@@ -10,9 +10,8 @@ package coreLibrary.lib
  * val welcomeMsg by config.key("Hello Steve","The message show when player join")
  * println(welcomeMsg)
  */
-import cf.wayzer.scriptAgent.Event
 import cf.wayzer.scriptAgent.define.Script
-import cf.wayzer.scriptAgent.events.ScriptDisableEvent
+import cf.wayzer.scriptAgent.events.ScriptStateChangeEvent
 import cf.wayzer.scriptAgent.getContextScript
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
@@ -178,10 +177,12 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
         private var lastLoad: Long = -1
 
         init {
-            ConfigBuilder::class.java.getContextScript().listenTo<ScriptDisableEvent>(Event.Priority.Before) {
-                key_configs.apply {
-                    script.get()?.forEach { all.remove(it.path) }
-                }
+            ConfigBuilder::class.java.getContextScript().listenTo<ScriptStateChangeEvent> {
+                //when unload
+                if (script.scriptState.loaded && !next.loaded)
+                    key_configs.apply {
+                        script.inst?.get()?.forEach { all.remove(it.path) }
+                    }
             }
             reloadFile()
         }
