@@ -19,8 +19,10 @@ name = "基础: 玩家数据"
 registerVarForType<Player>().apply {
     registerChild("ext", "模块扩展数据", DynamicVar.obj { PlayerData[it.uuid()] })
     registerChild("profile", "统一账号信息(可能不存在)", DynamicVar.obj { PlayerData[it.uuid()].profile })
-    registerChild("prefix", "名字前缀,可通过prefix.xxx变量注册", DynamicVar.obj { resolveVar(it, "prefix.*.toString", "") })
-    registerChild("suffix", "名字后缀,可通过suffix.xxx变量注册", DynamicVar.obj { resolveVar(it, "suffix.*.toString", "") })
+    registerChild(
+        "prefix", "名字前缀,可通过prefix.xxx变量注册", DynamicVar.obj { resolveVar(it, "prefix.*.toString", "") })
+    registerChild(
+        "suffix", "名字后缀,可通过suffix.xxx变量注册", DynamicVar.obj { resolveVar(it, "suffix.*.toString", "") })
 }
 
 registerVarForType<Administration.PlayerInfo>().apply {
@@ -96,7 +98,7 @@ listen<EventType.PlayerLeave> {
 }
 
 onEnable {
-    launch {
+    launch(Dispatchers.game) {
         DBApi.DB.awaitInit()
         transaction {
             Groups.player.toList().forEach {

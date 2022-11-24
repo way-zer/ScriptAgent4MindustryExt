@@ -135,15 +135,19 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     }
 
     companion object : EntityClass<String, PlayerData>(T) {
+        private val realCache = mutableMapOf<String, PlayerData>()
         private val cache = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofMinutes(1))
             .removalListener<String, PlayerData> {
-                if (it.wasEvicted() && it.value!!.player != null)
-                    reCache(it.key!!, it.value!!)
+                if (it.value!!.player == null)
+                    realCache.remove(it.key)
             }
             .build<String, PlayerData>()
 
-        private fun reCache(k: String, v: PlayerData): Unit = cache.put(k, v)
+        private fun putCache(id: String, v: PlayerData) {
+            realCache[id] = v
+            cache.put(id, v)
+        }
 
         @NeedTransaction
         fun findOrCreate(uuid: String, address: String, name: String) =
@@ -153,14 +157,15 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
                     lastIp = address
                     lastName = Strings.stripColors(name)
                 }.also { it.flush() }
-            }.also { cache.put(uuid, it) }
+            }.also { putCache(uuid, it) }
 
         /**Must call after findOrCreate or null*/
         override fun findById(id: EntityID<String>): PlayerData? = cache.getIfPresent(id.value)
+            ?: realCache[id.value]?.also { cache.put(id.value, it) }
 
         @NeedTransaction
         fun findByIdWithTransaction(id: String) = findById(id) ?: transaction {
             super.findById(EntityID(id, T))
-        }?.also { cache.put(id, it) }
+        }?.also { putCache(id, it) }
     }
 }
