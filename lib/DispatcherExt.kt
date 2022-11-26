@@ -1,13 +1,16 @@
 package coreMindustry.lib
 
 import arc.Core
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.coroutines.CoroutineContext
 
 object MindustryDispatcher : CoroutineDispatcher() {
     private var mainThread: Thread? = null
+    private var blockingQueue = ConcurrentLinkedQueue<Runnable>()
+
+    @Volatile
+    private var inBlocking = false
 
     init {
         Core.app.post {
@@ -22,7 +25,16 @@ object MindustryDispatcher : CoroutineDispatcher() {
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
+        if (inBlocking) {
+            blockingQueue.add(block)
+            return
+        }
         Core.app.post(block)//Already has catcher in coroutine
+    }
+
+    @OptIn(InternalCoroutinesApi::class)
+    override fun dispatchYield(context: CoroutineContext, block: Runnable) {
+        Core.app.post(block)
     }
 
     /**
@@ -46,6 +58,21 @@ object MindustryDispatcher : CoroutineDispatcher() {
                 block.run()
             } catch (e: Throwable) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    fun <T> safeBlocking(block: suspend CoroutineScope.() -> T): T {
+        return if (inBlocking) runBlocking(Dispatchers.game, block)
+        else runBlocking {
+            inBlocking = true
+            launch {
+                while (inBlocking || blockingQueue.isNotEmpty()) {
+                    blockingQueue.poll()?.run() ?: yield()
+                }
+            }
+            withContext(Dispatchers.game, block).also {
+                inBlocking = false
             }
         }
     }
