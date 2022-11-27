@@ -1,0 +1,390 @@
+[11-27-2022 14:32:30] [I] Server loaded. Type 'help' for help.
+[11-27-2022 14:32:38] [I] Commands:
+[11-27-2022 14:32:38] [I]    help [command] - Display the command list, or get help for a specific command.
+[11-27-2022 14:32:38] [I]    version - Displays server version info.
+[11-27-2022 14:32:38] [I]    exit - Exit the server application.
+[11-27-2022 14:32:38] [I]    stop - Stop hosting the server.
+[11-27-2022 14:32:38] [I]    host [mapname] [mode] - Open the server. Will default to survival and a random map if not specified.
+[11-27-2022 14:32:38] [I]    maps [all/custom/default] - Display available maps. Displays only custom maps by default.
+[11-27-2022 14:32:38] [I]    reloadmaps - Reload all maps from disk.
+[11-27-2022 14:32:38] [I]    status - Display server status.
+[11-27-2022 14:32:38] [I]    mods - Display all loaded mods.
+[11-27-2022 14:32:38] [I]    mod <name...> - Display information about a loaded plugin.
+[11-27-2022 14:32:38] [I]    js <script...> - Run arbitrary Javascript.
+[11-27-2022 14:32:38] [I]    say <message...> - Send a message to all players.
+[11-27-2022 14:32:38] [I]    pause <on/off> - Pause or unpause the game.
+[11-27-2022 14:32:38] [I]    rules [remove/add] [name] [value...] - List, remove or add global rules. These will apply regardless of map.
+[11-27-2022 14:32:38] [I]    fillitems [team] - Fill the core with items.
+[11-27-2022 14:32:38] [I]    playerlimit [off/somenumber] - Set the server player limit.
+[11-27-2022 14:32:38] [I]    config [name] [value...] - Configure server settings.
+[11-27-2022 14:32:38] [I]    subnet-ban [add/remove] [address] - Ban a subnet. This simply rejects all connections with IPs starting with some string.
+[11-27-2022 14:32:38] [I]    whitelist [add/remove] [ID] - Add/remove players from the whitelist using their ID.
+[11-27-2022 14:32:38] [I]    shuffle [none/all/custom/builtin] - Set map shuffling mode.
+[11-27-2022 14:32:38] [I]    nextmap <mapname...> - Set the next map to be played after a game-over. Overrides shuffling.
+[11-27-2022 14:32:38] [I]    kick <username...> - Kick a person by name.
+[11-27-2022 14:32:38] [I]    ban <type-id/name/ip> <username/IP/ID...> - Ban a person.
+[11-27-2022 14:32:38] [I]    bans - List all banned IPs and IDs.
+[11-27-2022 14:32:38] [I]    unban <ip/ID> - Completely unban a person by IP or ID.
+[11-27-2022 14:32:38] [I]    pardon <ID> - Pardons a votekicked player by ID and allows them to join again.
+[11-27-2022 14:32:38] [I]    admin <add/remove> <username/ID...> - Make an online user admin
+[11-27-2022 14:32:38] [I]    admins - List all admins.
+[11-27-2022 14:32:38] [I]    players - List all players currently in game.
+[11-27-2022 14:32:38] [I]    runwave - Trigger the next wave.
+[11-27-2022 14:32:38] [I]    load <slot> - Load a save from a slot.
+[11-27-2022 14:32:38] [I]    save <slot> - Save game state to a slot.
+[11-27-2022 14:32:38] [I]    saves - List all saves in the save directory.
+[11-27-2022 14:32:38] [I]    gameover - Force a game over.
+[11-27-2022 14:32:38] [I]    info <IP/UUID/name...> - Find player info(s). Can optionally check for all names or IPs a player has had.
+[11-27-2022 14:32:38] [I]    search <name...> - Search players who have used part of a name.
+[11-27-2022 14:32:38] [I]    gc - Trigger a garbage collection. Testing only.
+[11-27-2022 14:32:38] [I]    yes - Run the last suggested incorrect command.
+[11-27-2022 14:32:39] [I] Randomized next map to be Archipelago.
+[11-27-2022 14:32:39] [I] Loading map...
+[11-27-2022 14:32:40] [I] Map loaded.
+[11-27-2022 14:32:40] [I] Opened a server on port 6567.
+[11-27-2022 14:32:42] [I] cong0707_PC_#6380 has connected. [FzCaAjh/Do8AAAAA9LRoUA==]
+[11-27-2022 14:32:44] [I] cong0707_PC_#6380: hi
+[11-27-2022 14:34:33] [I] 1 mods loaded.
+[11-27-2022 14:39:37] [I] [wayzer/ext/mapSnap]加载方块颜色集成功
+[11-27-2022 14:39:38] [I] ===========================
+[11-27-2022 14:39:38] [I]      ScriptAgent          
+[11-27-2022 14:39:38] [I]            By WayZer    
+[11-27-2022 14:39:38] [I] 插件官网: https://git.io/SA4Mindustry
+[11-27-2022 14:39:38] [I] QQ交流群: 1033116078
+[11-27-2022 14:39:38] [I] 共找到106脚本,加载成功104,启用成功83,出错4
+[11-27-2022 14:39:38] [I] ===========================
+[11-27-2022 14:39:38] [I] Server loaded. Type 'help' for help.
+[11-27-2022 14:39:38] [I] Auto Host after 5 seconds
+[11-27-2022 14:39:38] [I]  [32m==== [37m* sa [32m ====
+ [93m* sa help[91m(帮助) [37m[-v] [page]  [96m帮助指令[36m
+[93m* sa permission[91m(pm) [37m<group> <add/list/remove/delGroup> [permission]  [96m权限系统配置[36m
+[93m* sa mirai[91m [37m[args...]  [96m重定向输入到mirai[36m
+[93m* sa config[91m [37m[help/arg...]  [96m查看或修改配置[36m
+[93m* sa scan[91m(扫描) [37m  [96m重新扫描脚本[36m
+[93m* sa list[91m(ls, 列出) [37m[module/fail]  [96m列出所有模块或模块内所有脚本[36m
+[93m* sa load[91m(reload, 加载, 重载) [37m<module[/script]> [--noCache] [--noEnable]  [96m(重新)加载一个脚本或者模块[36m
+[93m* sa enable[91m(启用) [37m<module[/script]>  [96m(重新)启用一个脚本或者模块[36m
+[93m* sa unload[91m(卸载) [37m<module[/script]> [--save]  [96m卸载一个脚本或者模块[36m
+[93m* sa disable[91m(关闭) [37m<module[/script]>  [96m关闭一个脚本或者模块[36m
+ [32m==== [37m1/2[32m ====
+[11-27-2022 14:39:43] [I] [33m本局游戏时长: 4.33分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 14:39:43] [I] Opened a server on port 6567.
+[11-27-2022 14:40:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m104
+[11-27-2022 14:41:43] [I] [36m[+]野生的 [37m<>cong0707_[32mPC_[36m#6380[37m|paG 突然出现了
+[11-27-2022 14:42:53] [I] [31m无效指令,请使用/help查询
+[11-27-2022 14:43:59] [I] 1 mods loaded.
+[11-27-2022 14:46:21] [I] Loaded private info.
+[11-27-2022 14:47:28] [I] Hello world!
+[11-27-2022 14:47:28] [I] Hello world!
+[11-27-2022 14:47:28] [I] Hello world!
+[11-27-2022 14:47:28] [I] Hello world!
+[11-27-2022 14:47:28] [I] 5
+[11-27-2022 14:47:28] [I] 5
+[11-27-2022 14:48:10] [I] [wayzer/ext/mapSnap]加载方块颜色集成功
+[11-27-2022 14:48:11] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 14:48:11] [I] 开始延时
+[11-27-2022 14:48:11] [I] ===========================
+[11-27-2022 14:48:11] [I]      ScriptAgent          
+[11-27-2022 14:48:11] [I]            By WayZer    
+[11-27-2022 14:48:11] [I] 插件官网: https://git.io/SA4Mindustry
+[11-27-2022 14:48:11] [I] QQ交流群: 1033116078
+[11-27-2022 14:48:11] [I] 共找到117脚本,加载成功113,启用成功92,出错6
+[11-27-2022 14:48:11] [I] ===========================
+[11-27-2022 14:48:11] [I] Server loaded. Type 'help' for help.
+[11-27-2022 14:48:11] [I] Auto Host after 5 seconds
+[11-27-2022 14:48:16] [I] [33m本局游戏时长: 2.33分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 14:48:16] [I] Opened a server on port 6567.
+[11-27-2022 14:50:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m105
+[11-27-2022 14:58:11] [I] 结束延时
+[11-27-2022 14:58:11] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 14:58:11] [I] 开始延时
+[11-27-2022 15:00:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m100
+[11-27-2022 15:00:25] [I] Game over! Reached wave 3 with 0 players online on map Domain.
+[11-27-2022 15:00:25] [I] Next Map is Debris Field(ID:3)
+[11-27-2022 15:00:25] [I] [33m本局游戏时长: 12.13分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:00:35] [I] [33m本局游戏时长: 12.30分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:02:15] [I] [36m[+]野生的 [37m<>cong0707_[32mPC_[36m#6380[37m|paG 突然出现了
+[11-27-2022 15:02:18] [I] <>cong0707_PC_#6380|paG: hi
+[11-27-2022 15:02:48] [I] [33m==== [93m已加载模块[33m ====
+[35m[Enabled] coreLibrary          [34mScriptAgent 库模块
+[35m[Enabled] coreMindustry        [34mMindustry 核心脚本模块
+[35m[Enabled] main                 [34mMain Module
+[35m[Enabled] mapScript            [34mModule Module
+[35m[Enabled] mirai                [34mModule Module
+[35m[Enabled] private/map/floodV2  [34mModule Module
+[35m[Enabled] private              [34m私有模块
+[35m[Enabled] teaching             [34mteaching Module
+[35m[Enabled] towerDefend          [34mTowerDefend
+[35m[Enabled] wayzer               [34mWayZer Mindustry Plugin
+[11-27-2022 15:03:31] [I] 1 mods loaded.
+[11-27-2022 15:06:06] [I] Loaded private info.
+[11-27-2022 15:07:29] [I] Hello world!
+[11-27-2022 15:07:30] [I] Hello world!
+[11-27-2022 15:07:30] [I] Hello world!
+[11-27-2022 15:07:30] [I] Hello world!
+[11-27-2022 15:07:30] [I] 5
+[11-27-2022 15:07:30] [I] 5
+[11-27-2022 15:08:31] [I] [wayzer/ext/mapSnap]加载方块颜色集成功
+[11-27-2022 15:08:32] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 15:08:32] [I] 开始延时
+[11-27-2022 15:08:32] [I] ===========================
+[11-27-2022 15:08:32] [I]      ScriptAgent          
+[11-27-2022 15:08:32] [I]            By WayZer    
+[11-27-2022 15:08:32] [I] 插件官网: https://git.io/SA4Mindustry
+[11-27-2022 15:08:32] [I] QQ交流群: 1033116078
+[11-27-2022 15:08:32] [I] 共找到117脚本,加载成功113,启用成功92,出错6
+[11-27-2022 15:08:32] [I] ===========================
+[11-27-2022 15:08:32] [I] Server loaded. Type 'help' for help.
+[11-27-2022 15:08:32] [I] Auto Host after 5 seconds
+[11-27-2022 15:08:37] [I] [33m本局游戏时长: 3.18分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:08:37] [I] Opened a server on port 6567.
+[11-27-2022 15:09:34] [I] [36m[+]野生的 [37m<>cong0707_[32mPC_[36m#6380[37m|paG 突然出现了
+[11-27-2022 15:09:38] [I] <>cong0707_PC_#6380|paG: 'hi
+[11-27-2022 15:10:01] [I] [32m自动存档完成(整10分钟一次),存档号 [31m101
+[11-27-2022 15:14:42] [I] 1 mods loaded.
+[11-27-2022 15:14:42] [I] ===========================
+[11-27-2022 15:14:42] [I]      ScriptAgent          
+[11-27-2022 15:14:42] [I]            By WayZer    
+[11-27-2022 15:14:42] [I] 插件官网: https://git.io/SA4Mindustry
+[11-27-2022 15:14:42] [I] QQ交流群: 1033116078
+[11-27-2022 15:14:42] [W] 未在config/scripts下发现脚本,请下载安装脚本包,以发挥本插件功能
+[11-27-2022 15:14:42] [I] ===========================
+[11-27-2022 15:14:42] [I] Server loaded. Type 'help' for help.
+[11-27-2022 15:15:01] [I] Randomized next map to be Maze.
+[11-27-2022 15:15:01] [I] Loading map...
+[11-27-2022 15:15:02] [I] Map loaded.
+[11-27-2022 15:15:02] [I] Opened a server on port 6567.
+[11-27-2022 15:15:07] [I] cong0707_PC_#6380: 1
+[11-27-2022 15:15:47] [I] 1 mods loaded.
+[11-27-2022 15:16:37] [I] ===========================
+[11-27-2022 15:16:37] [I]      ScriptAgent          
+[11-27-2022 15:16:37] [I]            By WayZer    
+[11-27-2022 15:16:37] [I] 插件官网: https://git.io/SA4Mindustry
+[11-27-2022 15:16:37] [I] QQ交流群: 1033116078
+[11-27-2022 15:16:37] [I] 共找到16脚本,加载成功16,启用成功15,出错1
+[11-27-2022 15:16:37] [I] ===========================
+[11-27-2022 15:16:37] [I] Server loaded. Type 'help' for help.
+[11-27-2022 15:17:00] [I] Randomized next map to be Labyrinth.
+[11-27-2022 15:17:00] [I] Loading map...
+[11-27-2022 15:17:01] [I] Map loaded.
+[11-27-2022 15:17:01] [I] Opened a server on port 6567.
+[11-27-2022 15:17:07] [I] cong0707_PC_#6380: hi
+[11-27-2022 15:19:29] [I] 1 mods loaded.
+[11-27-2022 15:22:35] [I] Hello world!
+[11-27-2022 15:22:36] [I] Hello world!
+[11-27-2022 15:22:36] [I] Hello world!
+[11-27-2022 15:22:36] [I] Hello world!
+[11-27-2022 15:22:36] [I] 5
+[11-27-2022 15:22:36] [I] 5
+[11-27-2022 15:23:25] [I] [wayzer/ext/mapSnap]加载方块颜色集成功
+[11-27-2022 15:23:25] [I] ===========================
+[11-27-2022 15:23:25] [I]      ScriptAgent          
+[11-27-2022 15:23:25] [I]            By WayZer    
+[11-27-2022 15:23:25] [I] 插件官网: https://git.io/SA4Mindustry
+[11-27-2022 15:23:25] [I] QQ交流群: 1033116078
+[11-27-2022 15:23:25] [I] 共找到100脚本,加载成功98,启用成功77,出错4
+[11-27-2022 15:23:25] [I] ===========================
+[11-27-2022 15:23:25] [I] Server loaded. Type 'help' for help.
+[11-27-2022 15:23:25] [I] Auto Host after 5 seconds
+[11-27-2022 15:23:30] [I] [33m本局游戏时长: 4.00分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:23:30] [I] Opened a server on port 6567.
+[11-27-2022 15:23:33] [I] [36m[+]野生的 [37m<>cong0707_[32mPC_[36m#6380[37m|paG 突然出现了
+[11-27-2022 15:23:36] [I] <>cong0707_PC_#6380|paG: hi
+[11-27-2022 15:25:29] [I] 1 mods loaded.
+[11-27-2022 15:27:14] [I] Loaded private info.
+[11-27-2022 15:27:43] [I] Hello world!
+[11-27-2022 15:27:43] [I] Hello world!
+[11-27-2022 15:27:43] [I] Hello world!
+[11-27-2022 15:27:43] [I] Hello world!
+[11-27-2022 15:27:43] [I] 5
+[11-27-2022 15:27:43] [I] 5
+[11-27-2022 15:27:46] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 15:27:46] [I] 开始延时
+[11-27-2022 15:27:46] [I] [wayzer/ext/mapSnap]加载方块颜色集成功
+[11-27-2022 15:27:47] [I] ===========================
+[11-27-2022 15:27:47] [I]      ScriptAgent          
+[11-27-2022 15:27:47] [I]            By WayZer    
+[11-27-2022 15:27:48] [I] 插件官网: https://git.io/SA4Mindustry
+[11-27-2022 15:27:48] [I] QQ交流群: 1033116078
+[11-27-2022 15:27:48] [I] 共找到116脚本,加载成功114,启用成功92,出错4
+[11-27-2022 15:27:48] [I] ===========================
+[11-27-2022 15:27:48] [I] Server loaded. Type 'help' for help.
+[11-27-2022 15:27:48] [I] Auto Host after 5 seconds
+[11-27-2022 15:27:53] [I] [33m本局游戏时长: 2.33分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:27:53] [I] Opened a server on port 6567.
+[11-27-2022 15:29:39] [I] [36m[+]野生的 [37m<>cong0707_[32mPC_[36m#6380[37m|paG 突然出现了
+[11-27-2022 15:29:44] [I] <<>cong0707_PC_#6380|paG: /hi>
+[11-27-2022 15:29:44] [I] Hello world!
+[11-27-2022 15:30:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m103
+[11-27-2022 15:30:20] [I] [33m异步处理中
+[11-27-2022 15:30:20] [I] [32m关闭脚本成功
+[11-27-2022 15:30:25] [I] <>cong0707_PC_#6380|paG: hi
+[11-27-2022 15:31:29] [I] <>cong0707_PC_#6380|paG: hi
+[11-27-2022 15:31:31] [I] <>cong0707_PC_#6380|paG: 1
+[11-27-2022 15:31:32] [I] <>cong0707_PC_#6380|paG: 2
+[11-27-2022 15:31:33] [I] <>cong0707_PC_#6380|paG: 3
+[11-27-2022 15:32:11] [I] [31m找不到模块或者脚本
+[11-27-2022 15:32:13] [I] [31m找不到模块或者脚本
+[11-27-2022 15:32:23] [I] [33m异步处理中
+[11-27-2022 15:32:23] [I] [32m重载成功
+[11-27-2022 15:32:31] [I] [33m异步处理中
+[11-27-2022 15:32:31] [I] [31m加载失败: ToLoad
+[11-27-2022 15:32:43] [I] [33m异步处理中
+[11-27-2022 15:32:44] [I] [32m重载成功
+[11-27-2022 15:32:45] [I] [33m异步处理中
+[11-27-2022 15:32:47] [I] Loading XemTranslate main scripts.
+[11-27-2022 15:32:47] [I] [32m重载成功
+[11-27-2022 15:32:53] [I] <>cong0707_PC_#6380|paG: hi
+[11-27-2022 15:32:56] [I] <<>cong0707_PC_#6380|paG: /tr>
+[11-27-2022 15:33:04] [I] Players: 1
+[11-27-2022 15:33:04] [I]  [P] cong0707_PC_#6380 / ID: FzCaAjh/Do8AAAAA9LRoUA== / IP: 127.0.0.1
+[11-27-2022 15:33:12] [E] Nobody with that name or ID could be found. If adding an admin by name, make sure they're online; otherwise, use their UUID.
+[11-27-2022 15:33:15] [I] Game over! Reached wave 2 with 1 players online on map Ancient Caldera.
+[11-27-2022 15:33:15] [I] Next Map is Tendrils(ID:15)
+[11-27-2022 15:33:15] [I] [33m本局游戏时长: 5.35分钟
+[33m有效总贡献时长: 3.52分钟
+[33m贡献排行榜(时长/挂机/建筑): [37mcong0707_[32mPC_[36m#6380[37m(3.57分钟/0.05分钟/0.0)
+[11-27-2022 15:33:16] [E] Nobody with that name or ID could be found. If adding an admin by name, make sure they're online; otherwise, use their UUID.
+[11-27-2022 15:33:18] [I] Changed admin status of player: cong0707_PC_#6380
+[11-27-2022 15:33:22] [I] <<>cong0707_PC_#6380|paG: /host>
+[11-27-2022 15:33:22] [I] [33m本局游戏时长: 5.47分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:33:22] [I] [32m强制换图为Islands,模式survival
+[11-27-2022 15:36:56] [I] <<>cong0707_PC_#6380|paG: /tr on>
+[11-27-2022 15:36:59] [I] [TR][33m[[37m<>cong0707_[32mPC_[36m#6380[37m|paG]:INVALID_TO_PARAM
+[11-27-2022 15:36:59] [I] [TR][33m[[37m<>cong0707_[32mPC_[36m#6380[37m|paG]:https://fanyi-api.baidu.com/api/trans/vip/translate?q=1om=auto&to=en]&appid=20220803001292897&salt=03Ixl&sign=4b50e37ab8574d9f9a385a4c7823ea91
+[11-27-2022 15:36:59] [I] <>cong0707_PC_#6380|paG: 1
+[11-27-2022 15:37:31] [I] [-]野生的 [37m<>cong0707_[32mPC_[36m#6380[37m|paG 突然消失了
+[11-27-2022 15:37:46] [I] 结束延时
+[11-27-2022 15:37:46] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 15:37:46] [I] 开始延时
+[11-27-2022 15:37:49] [I] 'name' is currently Server.
+[11-27-2022 15:38:17] [I] name set to [sky]cong[acid]的本地测试服务器.
+[11-27-2022 15:38:47] [I] desc set to [acid]欢迎地板下的朋友们！.
+[11-27-2022 15:39:06] [I] Game over! Reached wave 2 with 0 players online on map Islands.
+[11-27-2022 15:39:06] [I] Next Map is Mud Flats(ID:12)
+[11-27-2022 15:39:06] [I] [33m本局游戏时长: 5.70分钟
+[33m有效总贡献时长: 4.07分钟
+[33m贡献排行榜(时长/挂机/建筑): [37mcong0707_[32mPC_[36m#6380[37m(4.07分钟/0.00分钟/0.0)
+[11-27-2022 15:39:16] [I] [33m本局游戏时长: 5.87分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:39:38] [I] [36m[+]野生的 [37m<>cong0707_[32mPC_[36m#6380[37m|paG 突然出现了
+[11-27-2022 15:39:43] [I] [TR][33m[[37m<>cong0707_[32mPC_[36m#6380[37m|paG]:INVALID_TO_PARAM
+[11-27-2022 15:39:43] [I] [TR][33m[[37m<>cong0707_[32mPC_[36m#6380[37m|paG]:https://fanyi-api.baidu.com/api/trans/vip/translate?q=hiom=auto&to=en]&appid=20220803001292897&salt=PvnzR&sign=6576bc92f609f6afd5d05e029a171544
+[11-27-2022 15:39:43] [I] <>cong0707_PC_#6380|paG: hi
+[11-27-2022 15:39:47] [I] <<>cong0707_PC_#6380|paG: /tr off>
+[11-27-2022 15:39:51] [I] Changed admin status of player: cong0707_PC_#6380
+[11-27-2022 15:39:53] [I] <<>cong0707_PC_#6380|paG: /tr off>
+[11-27-2022 15:39:55] [I] [-]野生的 [37m<>cong0707_[32mPC_[36m#6380[37m|paG 突然消失了
+[11-27-2022 15:40:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m104
+[11-27-2022 15:45:52] [I] Game over! Reached wave 3 with 0 players online on map Mud Flats.
+[11-27-2022 15:45:52] [I] Next Map is Fortress(ID:6)
+[11-27-2022 15:45:52] [I] [33m本局游戏时长: 6.57分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:46:02] [I] [33m本局游戏时长: 6.73分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:47:46] [I] 结束延时
+[11-27-2022 15:47:46] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 15:47:46] [I] 开始延时
+[11-27-2022 15:50:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m105
+[11-27-2022 15:51:19] [I] Game over! Reached wave 2 with 0 players online on map Fortress.
+[11-27-2022 15:51:19] [I] Next Map is Mud Flats(ID:12)
+[11-27-2022 15:51:19] [I] [33m本局游戏时长: 5.27分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:51:29] [I] [33m本局游戏时长: 5.43分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:57:46] [I] 结束延时
+[11-27-2022 15:57:46] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 15:57:46] [I] 开始延时
+[11-27-2022 15:58:01] [I] Game over! Reached wave 3 with 0 players online on map Mud Flats.
+[11-27-2022 15:58:01] [I] Next Map is Wasteland(ID:18)
+[11-27-2022 15:58:01] [I] [33m本局游戏时长: 6.53分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 15:58:11] [I] [33m本局游戏时长: 6.70分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:00:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m100
+[11-27-2022 16:04:54] [I] Game over! Reached wave 3 with 0 players online on map Wasteland.
+[11-27-2022 16:04:54] [I] Next Map is Mud Flats(ID:12)
+[11-27-2022 16:04:54] [I] [33m本局游戏时长: 6.68分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:05:04] [I] [33m本局游戏时长: 6.85分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:07:46] [I] 结束延时
+[11-27-2022 16:07:46] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 16:07:46] [I] 开始延时
+[11-27-2022 16:10:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m101
+[11-27-2022 16:11:43] [I] Game over! Reached wave 3 with 0 players online on map Mud Flats.
+[11-27-2022 16:11:43] [I] Next Map is Molten Lake(ID:11)
+[11-27-2022 16:11:43] [I] [33m本局游戏时长: 6.63分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:11:53] [I] [33m本局游戏时长: 6.80分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:17:37] [I] Game over! Reached wave 2 with 0 players online on map Molten Lake.
+[11-27-2022 16:17:37] [I] Next Map is Triad(ID:16)
+[11-27-2022 16:17:37] [I] [33m本局游戏时长: 5.73分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:17:46] [I] 结束延时
+[11-27-2022 16:17:46] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 16:17:46] [I] 开始延时
+[11-27-2022 16:17:47] [I] [33m本局游戏时长: 5.90分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:20:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m102
+[11-27-2022 16:25:12] [I] Game over! Reached wave 2 with 0 players online on map Triad.
+[11-27-2022 16:25:12] [I] Next Map is Tendrils(ID:15)
+[11-27-2022 16:25:12] [I] [33m本局游戏时长: 7.40分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:25:22] [I] [33m本局游戏时长: 7.57分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:27:46] [I] 结束延时
+[11-27-2022 16:27:46] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 16:27:46] [I] 开始延时
+[11-27-2022 16:30:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m103
+[11-27-2022 16:30:56] [I] Game over! Reached wave 2 with 0 players online on map Tendrils.
+[11-27-2022 16:30:56] [I] Next Map is Veins(ID:17)
+[11-27-2022 16:30:56] [I] [33m本局游戏时长: 5.57分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:31:06] [I] [33m本局游戏时长: 5.73分钟
+[33m有效总贡献时长: 0.00分钟
+[33m贡献排行榜(时长/挂机/建筑): 
+[11-27-2022 16:37:46] [I] 结束延时
+[11-27-2022 16:37:46] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 16:37:46] [I] 开始延时
+[11-27-2022 16:40:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m104
+[11-27-2022 16:47:46] [I] 结束延时
+[11-27-2022 16:47:46] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 16:47:46] [I] 开始延时
+[11-27-2022 16:50:00] [I] [32m自动存档完成(整10分钟一次),存档号 [31m105
+[11-27-2022 16:57:47] [I] 结束延时
+[11-27-2022 16:57:47] [I] 获取更新数据失败: javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+[11-27-2022 16:57:47] [I] 开始延时
