@@ -1,1 +1,0 @@
-mindustry.mod.Mods().getScripts().runConsole("Call.sendMessage(\"test\")")
