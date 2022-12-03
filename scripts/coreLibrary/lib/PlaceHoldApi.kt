@@ -13,6 +13,7 @@ import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.PlaceHold.Updatable
+import coreLibrary.lib.PlaceHold.dumbTemplateHandler
 import kotlin.reflect.KProperty
 
 typealias PlaceHoldString = PlaceHoldContext
@@ -108,7 +109,10 @@ object PlaceHold {
  */
 fun String.with(vararg arg: Pair<String, Any>): PlaceHoldString = PlaceHoldApi.getContext(this, arg.toMap())
 fun PlaceHoldString.with(vararg arg: Pair<String, Any>): PlaceHoldString =
-    "{text}".with("text" to this, TemplateHandlerKey to PlaceHold.dumbTemplateHandler, *arg)
+    "{text}".with("text" to this, *arg)
+
+/** Convert String to PlaceHoldString with no PlaceHold and templateHandler */
+fun String.asPlaceHoldString() = "{text}".with("text" to this, TemplateHandlerKey to dumbTemplateHandler)
 
 /**
  * @see PlaceHold.register
