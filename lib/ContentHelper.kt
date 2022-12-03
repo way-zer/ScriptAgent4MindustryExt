@@ -13,10 +13,13 @@ import mindustry.gen.Iconc
 import mindustry.gen.Player
 
 object ContentHelper {
-    fun logToConsole(text: String) = logToConsole(text.with())
+    fun logToConsole(text: String) {
+        Log.info(Strings.stripColors(ColorApi.handle(text, ColorApi::consoleColorHandler)))
+    }
+
     fun logToConsole(text: PlaceHoldString) {
         val parsed = text.with("receiver" to CommandContext.ConsoleReceiver).toString()
-        Log.info(Strings.stripColors(ColorApi.handle(parsed, ColorApi::consoleColorHandler)))
+        logToConsole(parsed)
     }
 
     fun mindustryColorHandler(color: ColorApi.Color): String {
@@ -53,7 +56,7 @@ fun broadcast(
 }
 
 fun Player?.sendMessage(text: PlaceHoldString, type: MsgType = MsgType.Message, time: Float = 10f) {
-    if (this == null) ContentHelper.logToConsole(text.toString())
+    if (this == null) ContentHelper.logToConsole(text)
     else {
         if (con == null) return
         MindustryDispatcher.runInMain {
