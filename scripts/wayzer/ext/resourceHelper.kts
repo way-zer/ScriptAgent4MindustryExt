@@ -71,7 +71,12 @@ MapRegistry.register(this, object : MapProvider() {
 
             val map = mindustry.maps.Map(object : Fi("file.msav") {
                 val downloadUrl = "$webRoot/api/maps/$hash/downloadServer?token=$token"
-                val bytes by lazy { URL(downloadUrl).readBytes() }
+                val bytes by lazy {
+                    URL(downloadUrl).openConnection().apply {
+                        readTimeout = 10_000
+                    }.getInputStream().readBytes()
+                }
+
                 override fun read() = ByteArrayInputStream(bytes)
                 override fun exists() = true
             }, tags.getInt("width", 0), tags.getInt("height"), tags, true)
