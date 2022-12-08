@@ -61,8 +61,8 @@ onEnable {
         return@onEnable
     }
     val bot = BotFactory.newBot(qq, password) {
-        cacheDir = Config.cacheDir.resolve("mirai_cache")
         workingDir = Config.dataDir.resolve("mirai").apply { mkdirs() }
+        cacheDir = Config.cacheDir.resolve("mirai_cache").relativeTo(workingDir)
         fileBasedDeviceInfo()
         protocol = qqProtocol
         parentCoroutineContext = coroutineContext
