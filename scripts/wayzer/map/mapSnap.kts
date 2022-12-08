@@ -1,7 +1,5 @@
 package wayzer.map
 
-import arc.util.Log
-import mindustry.content.Blocks
 import mindustry.core.ContentLoader
 import mindustry.core.World
 import mindustry.world.Tile
@@ -32,22 +30,21 @@ object MapRenderer {
     //参考 mindustry.core.ContentLoader.loadColors
     fun loadColors(content: ContentLoader) {
         if (content.blocks().isEmpty) return
-        val img = javaClass.classLoader.getResourceAsStream("block_colors.png")?.use { ImageIO.read(it) }
-        if (img == null) Log.warn("[wayzer/ext/mapSnap]找不到图集res/block_colors.png")
-        img?.apply {
-            repeat(width) { i ->
-                val color = getRGB(i, 0)
-                if (color != 0 && color != 255) {
-                    content.block(i).apply {
-                        mapColor.argb8888(color)
-                        squareSprite = mapColor.a > 0.5f
-                        mapColor.a = 1.0f
-                        hasColor = true
-                    }
+        val logger = thisContextScript().logger
+        val img = javaClass.getResourceAsStream("/block_colors.png")?.use { ImageIO.read(it) }
+            ?: return logger.warning("找不到图集 block_colors.png")
+        repeat(img.width) { i ->
+            val color = img.getRGB(i, 0)
+            if (color != 0 && color != 255) {
+                content.block(i).apply {
+                    mapColor.argb8888(color)
+                    squareSprite = mapColor.a > 0.5f
+                    mapColor.a = 1.0f
+                    hasColor = true
                 }
             }
-            Log.info("[wayzer/ext/mapSnap]加载方块颜色集成功")
         }
+        logger.info("加载方块颜色集成功")
     }
 
     private fun getARGB(tile: Tile?): Int {
