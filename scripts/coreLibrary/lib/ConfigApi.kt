@@ -57,12 +57,8 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
         }
 
         fun set(v: T) {
-            fileConfig = fileConfig.withValue(
-                path,
-                v.toConfigValue().withOrigin(ConfigOriginFactory.newSimple().withComments(desc))
-            )
             cache(v)
-            saveFile()
+            modifyFile(path, v.toConfigValue().withOrigin(ConfigOriginFactory.newSimple().withComments(desc)))
         }
 
         /**
@@ -171,9 +167,20 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
         private val key_configs = DSLBuilder.DataKeyWithDefault("configs") { mutableSetOf<ConfigKey<*>>() }
         val Script.configs by key_configs
         val all = mutableMapOf<String, ConfigKey<*>>()
+        var configBaseFile: File = cf.wayzer.scriptAgent.Config.dataDir.resolve("config.base.conf")
         var configFile: File = cf.wayzer.scriptAgent.Config.dataDir.resolve("config.conf")
-        val overlayFile get() = configFile.resolveSibling(configFile.nameWithoutExtension + ".overlay.conf")
         private lateinit var fileConfig: Config
+        private lateinit var rawConfig: Config
+        fun setRawConfig(raw: Config) {
+            rawConfig = raw
+            val base =
+                if (configBaseFile.exists()) ConfigFactory.parseFile(configBaseFile) else ConfigFactory.empty()
+            fileConfig = raw
+                .withFallback(ConfigFactory.systemProperties())
+                .withFallback(ConfigFactory.systemEnvironment())
+                .withFallback(base)
+        }
+
         private var lastLoad: Long = -1
 
         init {
@@ -188,9 +195,7 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
         }
 
         fun reloadFile() {
-            fileConfig = ConfigFactory.parseFile(configFile)
-            if (overlayFile.exists())
-                fileConfig = ConfigFactory.parseFile(overlayFile).withFallback(fileConfig)
+            setRawConfig(ConfigFactory.parseFile(configFile))
             lastLoad = System.currentTimeMillis()
             all.values.forEach {
                 try {
@@ -201,11 +206,15 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
             }
         }
 
+        fun modifyFile(path: String, value: ConfigValue?, save: Boolean = true) {
+            setRawConfig(rawConfig.run {
+                if (value != null) withValue(path, value) else withoutPath(path)
+            })
+            if (save) saveFile()
+        }
+
         fun saveFile() {
-            if (overlayFile.exists())
-                overlayFile.writeText(fileConfig.root().render(renderConfig))
-            else
-                configFile.writeText(fileConfig.root().render(renderConfig))
+            configFile.writeText(rawConfig.root().render(renderConfig))
         }
 
         inline fun <reified T : Any> ClassContainer(): ClassContainer {
