@@ -1,7 +1,7 @@
 package wayzer.user
 
 import coreLibrary.DBApi.DB.registerTable
-import mindustry.gen.Groups
+import mindustry.net.Packets
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.text.DateFormat
 import java.time.Duration
@@ -34,24 +34,25 @@ listen<EventType.PlayerConnect> {
     }
 }
 
-fun ban(uuid: String, time: Int, reason: String, operate: PlayerProfile?): PlayerProfile? {
-    val profile = (PlayerData.findById(uuid) ?: return null).profile
+suspend fun ban(uuid: String, time: Int, reason: String, operate: PlayerProfile?): PlayerProfile? {
+    val profile = withContext(Dispatchers.IO) {
+        transaction { PlayerData.findByIdWithTransaction(uuid) }?.profile
+    }
     if (profile == null) {
         netServer.admins.banPlayerID(uuid)
+        Groups.player.filter { it.uuid() == uuid }.forEach { it.kick(Packets.KickReason.banned) }
         netServer.admins.getInfoOptional(uuid)?.let {
             broadcast("[red] 管理员禁封了{target.name},原因: [yellow]{reason}".with("target" to it, "reason" to reason))
         }
     } else {
-        launch(Dispatchers.IO) {
-            val ban = transaction {
+        val ban = withContext(Dispatchers.IO) {
+            transaction {
                 PlayerBan.create(profile, Duration.ofMinutes(time.toLong()), reason, operate)
             }
-            withContext(Dispatchers.game) {
-                Groups.player.find { it.uuid() == uuid }?.let {
-                    it.kick(profile, ban)
-                    broadcast("[red] 管理员禁封了{target.name},原因: [yellow]{reason}".with("target" to it, "reason" to reason))
-                }
-            }
+        }
+        profile.players.toTypedArray().forEach {
+            it.kick(profile, ban)
+            broadcast("[red] 管理员禁封了{target.name},原因: [yellow]{reason}".with("target" to it, "reason" to reason))
         }
     }
     return profile
