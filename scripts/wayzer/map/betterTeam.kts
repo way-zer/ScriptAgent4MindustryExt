@@ -3,7 +3,6 @@ package wayzer.map
 import arc.Events
 import mindustry.core.NetServer
 import mindustry.game.Team
-import mindustry.gen.Groups
 import mindustry.world.blocks.storage.CoreBlock
 import wayzer.map.BetterTeam.AssignTeamEvent
 
@@ -40,7 +39,6 @@ val allTeam: Set<Team>
 val teams = mutableMapOf<String, Team>()
 customLoad(::teams, teams::putAll)
 var bannedTeam = emptySet<Team>()
-var keepTeamsOnce = false
 
 onEnable {
     val backup = netServer.assigner
@@ -66,11 +64,7 @@ listen<EventType.BlockDestroyEvent> { e ->
         }
 }
 listen<EventType.ResetEvent> {
-    if (keepTeamsOnce) {
-        keepTeamsOnce = false
-        return@listen
-    }
-    teams.clear()
+    bannedTeam = emptySet()
 }
 
 fun updateBannedTeam(force: Boolean = false) {
@@ -124,7 +118,9 @@ command("team", "管理指令: 修改自己或他人队伍(PVP模式)") {
                 ?: returnReply("[red]找不到玩家,请使用/list查询正确的3位id".with())
         } ?: player ?: returnReply("[red]请输入玩家ID".with())
         changeTeam(player, team)
-        broadcast("[green]管理员更改了{player.name}[green]为{team.colorizeName}".with("player" to player, "team" to team))
+        broadcast(
+            "[green]管理员更改了{player.name}[green]为{team.colorizeName}".with("player" to player, "team" to team)
+        )
     }
 }
 
