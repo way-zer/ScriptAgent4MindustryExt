@@ -109,7 +109,7 @@ object PlaceHold {
  */
 fun String.with(vararg arg: Pair<String, Any>): PlaceHoldString = PlaceHoldApi.getContext(this, arg.toMap())
 fun PlaceHoldString.with(vararg arg: Pair<String, Any>): PlaceHoldString =
-    "{text}".with("text" to this, *arg)
+    "".with(*arg).createChild(text, vars)
 
 /** Convert String to PlaceHoldString with no PlaceHold and templateHandler */
 fun String.asPlaceHoldString() = "{text}".with("text" to this, TemplateHandlerKey to dumbTemplateHandler)
