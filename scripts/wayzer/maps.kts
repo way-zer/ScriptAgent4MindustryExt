@@ -5,7 +5,7 @@ package wayzer
 
 import arc.Events
 import cf.wayzer.placehold.DynamicVar
-import coreMindustry.lib.util.sendMenuPhone
+import coreLibrary.lib.util.menu
 import mindustry.game.Gamemode
 import mindustry.game.Team
 import mindustry.gen.Groups
@@ -67,7 +67,7 @@ command("maps", "列出服务器地图") {
     usage = "[page/filter] [page]"
     aliases = listOf("地图")
     body {
-        val page = arg.lastOrNull()?.toIntOrNull()
+        val page = arg.lastOrNull()?.toIntOrNull() ?: 1
         val filter = arg.getOrNull(0)?.toLowerCase()?.let { filter ->
             if (filter.matches(Regex("\\d+"))) return@let null
             if (filter !in MapRegistry.supportFilter.map { it.toLowerCase() }) {
@@ -76,9 +76,9 @@ command("maps", "列出服务器地图") {
             filter
         } ?: "display"
         val maps = MapRegistry.getMaps(filter).sortedBy { it.id }
-        sendMenuPhone("服务器地图 By WayZer", maps, page, mapsPrePage) { info ->
+        reply(menu("服务器地图 By WayZer", maps, page, mapsPrePage) { info ->
             "[red]{info.id}  [green]{info.map.name}[blue] | {info.mode}".with("info" to info)
-        }
+        })
     }
 }
 onEnable {

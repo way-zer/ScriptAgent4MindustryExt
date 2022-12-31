@@ -3,8 +3,6 @@
 package wayzer
 
 import cf.wayzer.placehold.PlaceHoldContext
-import coreMindustry.lib.util.sendMenuPhone
-import mindustry.gen.Groups
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -92,6 +90,7 @@ fun Script.addSubVote(
     vararg aliases: String,
     body: suspend CommandContext.() -> Unit
 ) {
+    val voteCommands = contextScript<VoteService>().voteCommands
     voteCommands += CommandInfo(this, aliases.first(), desc) {
         this.usage = usage
         this.aliases = aliases.toList()
@@ -147,11 +146,7 @@ inner class VoteCommands : Commands() {
 
     override suspend fun onHelp(context: CommandContext, explicit: Boolean) {
         if (!explicit) context.reply("[red]错误投票类型,请检查输入是否正确".with())
-        context.sendMenuPhone("可用投票类型", subCommands.values.toSet().filter {
-            it.permission.isBlank() || context.hasPermission(it.permission)
-        }, 1, 100) {
-            context.helpInfo(it, false)
-        }
+        super.onHelp(context, explicit)
     }
 }
 
