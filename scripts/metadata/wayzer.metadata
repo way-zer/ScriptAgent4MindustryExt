@@ -1,9 +1,9 @@
-ScriptAgent_Metadata Auto_Generated
-NAME WayZer Mindustry Plugin
 ID wayzer
-IS_MODULE true
-DEPENDS coreLibrary/DBApi 数据库服务
-DEPENDS coreMindustry 
-IMPORT MavenDepends com.google.guava:guava:30.1-jre
-IMPORT DefaultImport wayzer.lib.*
-IMPORT DefaultImport wayzer.lib.dao.*
+FQ_NAME wayzer.Module
+NAME WayZer Mindustry Plugin
+SOURCE_MD5 -5ccf88481314740b45358b901f2d91d8
++DEPENDS coreLibrary/DBApi 数据库服务
++DEPENDS coreMindustry 
++IMPORT DefaultImport wayzer.lib.*
++IMPORT DefaultImport wayzer.lib.dao.*
++IMPORT MavenDepends com.google.guava:guava:30.1-jre

@@ -5,6 +5,8 @@ import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.util.DSLBuilder
 
 object ConfigExt {
+    var Config.version by DSLBuilder.dataKey<String>()
+    var Config.mainScript by DSLBuilder.dataKey<String>()
     var Config.clientCommands by DSLBuilder.dataKey<CommandHandler>()
     var Config.serverCommands by DSLBuilder.dataKey<CommandHandler>()
 }

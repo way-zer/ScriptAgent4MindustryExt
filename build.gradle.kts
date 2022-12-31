@@ -9,6 +9,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v3.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
+val loaderVersion get() = version.toString().substringBeforeLast('.')
 
 if (projectDir.resolve(".git").isDirectory)
     gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
@@ -33,6 +34,7 @@ sourceSets {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven(url = "https://www.jitpack.io") {
         content {
@@ -54,7 +56,7 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.9.2.6"
+    val libraryVersion = "1.10.0"
     val mindustryVersion = "v140.101"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
@@ -102,10 +104,10 @@ tasks {
         )
     }
     withType<ProcessResources> {
-        inputs.property("version", rootProject.version)
+        inputs.property("version", loaderVersion)
         filter(
             filterType = org.apache.tools.ant.filters.ReplaceTokens::class,
-            properties = mapOf("tokens" to mapOf("version" to rootProject.version))
+            properties = mapOf("tokens" to mapOf("version" to loaderVersion))
         )
     }
     named<Delete>("clean") {

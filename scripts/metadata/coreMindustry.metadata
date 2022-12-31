@@ -1,15 +1,15 @@
-ScriptAgent_Metadata Auto_Generated
-NAME Mindustry 核心脚本模块
 ID coreMindustry
-IS_MODULE true
-DEPENDS coreLibrary 
-IMPORT LibraryByClass arc.Core
-IMPORT LibraryByClass mindustry.Vars
-IMPORT DefaultImport arc.Core
-IMPORT DefaultImport coreMindustry.lib.*
-IMPORT DefaultImport mindustry.Vars.*
-IMPORT DefaultImport mindustry.content.*
-IMPORT DefaultImport mindustry.game.EventType
-IMPORT DefaultImport mindustry.gen.Call
-IMPORT DefaultImport mindustry.gen.Groups
-IMPORT DefaultImport mindustry.gen.Player
+FQ_NAME coreMindustry.Module
+NAME Mindustry 核心脚本模块
+SOURCE_MD5 -2d13952142f37f3107c655fe2286bb04
++DEPENDS coreLibrary 
++IMPORT DefaultImport arc.Core
++IMPORT DefaultImport coreMindustry.lib.*
++IMPORT DefaultImport mindustry.Vars.*
++IMPORT DefaultImport mindustry.content.*
++IMPORT DefaultImport mindustry.game.EventType
++IMPORT DefaultImport mindustry.gen.Call
++IMPORT DefaultImport mindustry.gen.Groups
++IMPORT DefaultImport mindustry.gen.Player
++IMPORT LibraryByClass arc.Core
++IMPORT LibraryByClass mindustry.Vars

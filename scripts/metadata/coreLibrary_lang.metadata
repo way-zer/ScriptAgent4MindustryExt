@@ -1,0 +1,5 @@
+ID coreLibrary/lang
+FQ_NAME coreLibrary.Lang
+NAME 国际化多语言
+SOURCE_MD5 -5351beee4ad227836b5bcb3551171c0a
++DEPENDS coreLibrary module

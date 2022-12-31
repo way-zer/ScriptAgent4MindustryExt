@@ -1,5 +1,5 @@
-ScriptAgent_Metadata Auto_Generated
-NAME Main Module
 ID main
-IS_MODULE true
-DEPENDS coreMindustry 
+FQ_NAME main.Module
+NAME Main Module
+SOURCE_MD5 -293f8c5049d4e70cd86753b70d609f95
++DEPENDS coreMindustry 
