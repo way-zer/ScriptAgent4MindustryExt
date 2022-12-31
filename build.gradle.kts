@@ -69,7 +69,7 @@ dependencies {
     kotlinScriptDef("cf.wayzer:ScriptAgent:$libraryVersion")
 
     //coreLibrary
-    implementation("cf.wayzer:PlaceHoldLib:5.2")
+    implementation("cf.wayzer:PlaceHoldLib:6.0")
     implementation("io.github.config4k:config4k:0.4.1")
     //coreLib/DBApi
     val exposedVersion = "0.40.1"
