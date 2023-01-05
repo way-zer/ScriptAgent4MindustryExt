@@ -51,6 +51,10 @@ onEnable {
     updateBannedTeam(true)
 }
 listen<EventType.PlayEvent> { updateBannedTeam(true) }
+listen<EventType.ResetEvent> {
+    bannedTeam = emptySet()
+    teams.clear()
+}
 //custom gameover
 listen<EventType.BlockDestroyEvent> { e ->
     if (state.gameOver || !state.rules.pvp) return@listen
@@ -63,8 +67,10 @@ listen<EventType.BlockDestroyEvent> { e ->
             }
         }
 }
-listen<EventType.ResetEvent> {
-    bannedTeam = emptySet()
+//fix bug
+listen<EventType.PlayerConnectionConfirmed> {
+    //As team assigned in connect may be wrong.
+    changeTeam(it.player)
 }
 
 fun updateBannedTeam(force: Boolean = false) {
