@@ -60,6 +60,7 @@ dependencies {
     val mindustryVersion = "v140.101"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
+    pluginImplementation("cf.wayzer:LibraryManager:1.6")
 //    pluginImplementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
     pluginImplementation("com.github.TinyLake.MindustryX:core:$mindustryVersion")
 
