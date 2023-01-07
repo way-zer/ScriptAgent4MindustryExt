@@ -1,12 +1,8 @@
 package coreMindustry.lib
 
-import arc.util.CommandHandler
 import arc.util.Log
 import arc.util.Strings
-import cf.wayzer.scriptAgent.Config
-import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.*
-import mindustry.Vars.netServer
 import mindustry.gen.Call
 import mindustry.gen.Groups
 import mindustry.gen.Iconc
@@ -80,11 +76,3 @@ fun PlaceHoldString.toPlayer(player: Player): String = ColorApi.handle(
 @Deprecated("use PlaceHoldString", ReplaceWith("sendMessage(text.with(), type, time)", "coreLibrary.lib.with"))
 fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) =
     sendMessage(text.with(), type, time)
-
-val Config.clientCommands by DSLBuilder.dataKeyWithDefault {
-    netServer?.clientCommands ?: CommandHandler("/")
-}
-val Config.serverCommands by DSLBuilder.dataKeyWithDefault {
-    println("serverCommands Not exists")
-    CommandHandler("")
-}

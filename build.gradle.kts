@@ -34,7 +34,7 @@ sourceSets {
 }
 
 repositories {
-    mavenLocal()
+//    mavenLocal()
     mavenCentral()
     maven(url = "https://www.jitpack.io") {
         content {
@@ -56,14 +56,14 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.10.0.2"
+    val libraryVersion = "1.10.1.1"
     val mindustryVersion = "v140.101"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
-    pluginImplementation("cf.wayzer:LibraryManager:1.4.1")
 //    pluginImplementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
     pluginImplementation("com.github.TinyLake.MindustryX:core:$mindustryVersion")
 
+    implementation(sourceSets.getByName("plugin").output)
     implementation(kotlin("script-runtime"))
     implementation("cf.wayzer:ScriptAgent:$libraryVersion")
     kotlinScriptDef("cf.wayzer:ScriptAgent:$libraryVersion")
@@ -132,7 +132,7 @@ tasks {
         archiveVersion.set(rootProject.version.toString().substringBeforeLast('.'))
         configurations = listOf(project.configurations.getByName("pluginCompileClasspath"))
         manifest.attributes(
-            "Main-Class" to "cf.wayzer.scriptAgent.GenerateMain"
+            "Main-Class" to "cf.wayzer.scriptAgent.mindustry.GenerateMain"
         )
         dependencies {
             include(dependency("cf.wayzer:ScriptAgent"))
@@ -149,9 +149,6 @@ tasks {
         outputs.files("scripts/cache")
 
         classpath(buildPlugin.outputs.files)
-        mainClass.set("cf.wayzer.scriptAgent.GenerateMain")
-        if (javaVersion >= JavaVersion.VERSION_16)
-            jvmArgs("--add-opens java.base/java.net=ALL-UNNAMED")
     }
     val precompileZip = create<Zip>("precompileZip") {
         dependsOn(precompile)

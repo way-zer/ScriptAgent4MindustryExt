@@ -1,7 +1,7 @@
 {
   "name": "ScriptAgent4Mindustry",
   "author": "WayZer",
-  "main": "cf.wayzer.ScriptAgent4Mindustry",
+  "main": "cf.wayzer.scriptAgent.mindustry.Loader",
   "description": "More commands and features.",
   "version": "@version@",
   "minGameVersion": 136

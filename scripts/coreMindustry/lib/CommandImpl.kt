@@ -4,7 +4,7 @@ package coreMindustry.lib
 
 import arc.struct.Seq
 import arc.util.CommandHandler
-import cf.wayzer.scriptAgent.Config
+import cf.wayzer.scriptAgent.*
 import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.*

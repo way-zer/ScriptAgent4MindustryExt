@@ -1,33 +1,24 @@
-package cf.wayzer
+package cf.wayzer.scriptAgent.mindustry
 
 import arc.ApplicationListener
 import arc.Core
+import arc.files.Fi
 import arc.util.CommandHandler
 import arc.util.Log
-import cf.wayzer.ConfigExt.clientCommands
-import cf.wayzer.ConfigExt.mainScript
-import cf.wayzer.ConfigExt.serverCommands
-import cf.wayzer.ConfigExt.version
 import cf.wayzer.scriptAgent.*
 import cf.wayzer.scriptAgent.define.LoaderApi
 import kotlinx.coroutines.runBlocking
 import mindustry.Vars
-import mindustry.plugin.Plugin
+import mindustry.mod.Plugin
 import java.io.File
 
 @OptIn(LoaderApi::class)
-class ScriptAgent4Mindustry : Plugin() {
-    init {
-        if (System.getProperty("java.util.logging.SimpleFormatter.format") == null)
-            System.setProperty(
-                "java.util.logging.SimpleFormatter.format",
-                "[%1\$tF | %1\$tT | %4\$s] [%3\$s] %5\$s%6\$s%n"
-            )
-        ScriptAgent.load()
-    }
+class Main(private val loader: Plugin) : Plugin() {
+    override fun getConfig(): Fi = loader.config
 
     override fun registerClientCommands(handler: CommandHandler) {
-        Config.clientCommands = handler
+        //after init() is too late
+//        Config.clientCommands = handler
     }
 
     override fun registerServerCommands(handler: CommandHandler) {
@@ -36,13 +27,17 @@ class ScriptAgent4Mindustry : Plugin() {
 
     override fun init() {
         val defaultMain = "main/bootStrap"
-        val version = Vars.mods.getMod(javaClass).meta.version
+        val version = Vars.mods.getMod(loader.javaClass).meta.version
         val main = System.getenv("SAMain") ?: defaultMain
         Log.info("SAMain=$main")
 
         Config.version = version
         Config.mainScript = main
         Config.rootDir = Vars.dataDirectory.child("scripts").file()
+        Config.clientCommands = Vars.netServer?.clientCommands ?: CommandHandler("/")
+        if (!Vars.headless) {
+            Config.serverCommands = CommandHandler("")
+        }
 
         tryExtract("/res/$defaultMain.kts", Config.rootDir.resolve("$defaultMain.kts"))
         tryExtract("/res/$defaultMain.ktc", Config.cacheFile(defaultMain, false))

@@ -63,15 +63,17 @@ listenPacket2ServerAsync<ConnectPacket> { con, packet ->
         return@listenPacket2ServerAsync false
     }
     val old = transaction { PlayerData.findById(packet.uuid) }
-    val event = ConnectAsyncEvent(con, packet, old).emitAsync {
-        if (it != Event.Priority.NormalE) return@emitAsync
-        withContext(Dispatchers.IO) {
-            data = transaction {
-                PlayerData.findOrCreate(packet.uuid, con.address, packet.name).apply {
-                    refresh(flush = true)
-                    profile//warm up cache
+    val event = ConnectAsyncEvent(con, packet, old).apply {
+        emitAsync {
+            data =
+                withContext(Dispatchers.IO) {
+                    transaction {
+                        PlayerData.findOrCreate(packet.uuid, con.address, packet.name).apply {
+                            refresh(flush = true)
+                            profile//warm up cache
+                        }
+                    }
                 }
-            }
         }
     }
     if (event.cancelled) con.kick("[red]拒绝入服: ${event.reason}")

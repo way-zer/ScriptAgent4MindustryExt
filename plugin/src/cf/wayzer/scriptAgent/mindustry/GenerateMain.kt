@@ -1,5 +1,9 @@
-package cf.wayzer.scriptAgent
+package cf.wayzer.scriptAgent.mindustry
 
+import cf.wayzer.scriptAgent.Config
+import cf.wayzer.scriptAgent.ScriptAgent
+import cf.wayzer.scriptAgent.ScriptManager
+import cf.wayzer.scriptAgent.ScriptRegistry
 import cf.wayzer.scriptAgent.define.LoaderApi
 import cf.wayzer.scriptAgent.define.ScriptState
 import cf.wayzer.scriptAgent.util.DependencyManager
@@ -18,7 +22,7 @@ object GenerateMain {
                 "[%1\$tF | %1\$tT | %4\$s] [%3\$s] %5\$s%6\$s%n"
             )
         ScriptAgent.loadUseClassLoader()
-            ?.loadClass("cf.wayzer.scriptAgent.GenerateMain")
+            ?.loadClass(GenerateMain::class.java.name)
             ?.getDeclaredMethod("afterLoad", Array<String>::class.java)?.invoke(null, args)
             ?: exitProcess(-1)
     }
@@ -35,27 +39,22 @@ object GenerateMain {
         Config.rootDir = File("scripts")
         ScriptRegistry.scanRoot()
 
-        var notFound = 0
         runBlocking {
-            if (args.isEmpty())
-                ScriptManager.loadAll(false)
-            else
-                args.forEach {
-                    val script = ScriptManager.getScriptNullable(it)
-                    if (script == null) {
-                        println("找不到脚本: $it")
-                        notFound++
-                        return@forEach
-                    }
-                }
+            ScriptManager.transaction {
+                if (args.isEmpty())
+                    addAll()
+                else
+                    args.forEach { add(it) }
+                load()
+            }
         }
-        val fail = ScriptRegistry.allScripts { it.scriptState == ScriptState.ToLoad && it.failReason != null }
-        if (notFound != 0)
-            println("有${notFound}个输入脚本未找到")
-        println("共加载${ScriptRegistry.allScripts { it.scriptState != ScriptState.ToLoad }.size}个脚本，失败${fail.size}个")
+        val fail = ScriptRegistry.allScripts { it.failReason != null }
+        println(
+            "共加载${ScriptRegistry.allScripts { it.scriptState != ScriptState.Found }.size}个脚本，失败${fail.size}个"
+        )
         fail.forEach {
             println("\t${it.id}: ${it.failReason}")
         }
-        exitProcess(notFound + fail.size)
+        exitProcess(fail.size)
     }
 }
