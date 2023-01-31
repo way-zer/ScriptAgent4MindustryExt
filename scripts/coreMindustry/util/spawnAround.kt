@@ -14,8 +14,8 @@ fun UnitType.spawnAround(pos: Posc, team: Team, radius: Int = 10): mindustry.gen
     return create(team).apply {
         set(pos)
         val valid = mutableListOf<Point2>()
-        Geometry.circle(tileX(), tileY(), radius) { x, y ->
-            if (canPass(x, y) && (isGrounded || Vars.world.tile(x, y)?.floor()?.isDeep == false))
+        Geometry.circle(tileX(), tileY(), Vars.world.width(), Vars.world.height(), radius) { x, y ->
+            if (canPass(x, y) && (!canDrown() || floorOn()?.isDeep == false))
                 valid.add(Point2(x, y))
         }
         val r = valid.randomOrNull() ?: return null
