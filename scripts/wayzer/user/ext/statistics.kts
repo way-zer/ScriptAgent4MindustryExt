@@ -6,39 +6,41 @@ package wayzer.user.ext
 import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.PlaceHoldApi
 import coreLibrary.lib.util.loop
-import mindustry.game.Gamemode
 import mindustry.game.Team
-import mindustry.gen.Groups
 import mindustry.world.Block
 import wayzer.MapChangeEvent
 import wayzer.user.UserService
 import java.io.Serializable
 import java.time.Duration
-import java.time.Instant
 import kotlin.math.ceil
 import kotlin.math.min
 
+class GameoverStatisticsEvent(
+    var data: List<StatisticsData>//sorted by score
+) : Event {
+    companion object : Event.Handler()
+}
+
 data class StatisticsData(
+    val uuid: String,
+    var name: String = "",
     var playedTime: Int = 0,
     var idleTime: Int = 0,
     var buildScore: Float = 0f,
     var breakBlock: Int = 0,
     @Transient var pvpTeam: Team = Team.sharded
 ) : Serializable {
-    val win get() = state.rules.pvp && pvpTeam == teamWin
+    //set when gameover
+    var win: Boolean = false
+    var score: Double = 0.0
+    var exp: Int = 0
 
-    //加权比分
-    val score
-        get() = playedTime - 0.8 * idleTime +
+    fun cal(winTeam: Team) {
+        win = state.rules.pvp && pvpTeam == winTeam
+        score = playedTime - 0.8 * idleTime +
                 0.6 * min(buildScore, 0.75f * playedTime) +
                 if (win) 600 * (1 - idleTime / playedTime) else 0
-
-    //结算经验计算
-    val exp get() = min(ceil(score * 15 / 3600 * rate).toInt(), (60 * rate).toInt())//3600点积分为15,40封顶
-
-    companion object {
-        lateinit var teamWin: Team
-        var rate = 1.0
+        exp = ceil((score * 15 / 3600).coerceAtMost(60.0)).toInt()//3600点积分为15,40封顶
     }
 }
 
@@ -54,15 +56,12 @@ val Player.active
 
 val userService = contextScript<UserService>()
 
-data class Activity(val name: String, val rate: Double, val endTime: Long = 0)
-
-val activity by config.key(Activity("无", 1.0), "活动设置")
-
+//region Data
 @Savable
 val statisticsData = mutableMapOf<String, StatisticsData>()
+val Player.data get() = statisticsData.getOrPut(uuid()) { StatisticsData(uuid()) }
 customLoad(::statisticsData) { statisticsData += it }
-val Player.data get() = statisticsData.getOrPut(uuid()) { StatisticsData() }
-
+listen<EventType.ResetEvent> { statisticsData.clear() }
 
 registerVarForType<StatisticsData>().apply {
     registerChild("playedTime", "本局在线时间", DynamicVar.obj { Duration.ofSeconds(it.playedTime.toLong()) })
@@ -80,16 +79,13 @@ registerVarForType<Player>().apply {
 onDisable {
     PlaceHoldApi.resetTypeBinder(StatisticsData::class.java)//局部类，防止泄漏
 }
+//endregion
 
-listen<EventType.ResetEvent> {
-    statisticsData.clear()
-}
 listen<EventType.PlayerJoin> {
     it.player.data.pvpTeam = it.player.team()
 }
 listen<EventType.PlayEvent> {
-    launch {
-        delay(5000)
+    launch(Dispatchers.gamePost) {
         Groups.player.forEach { p ->
             p.data.pvpTeam = p.team()
         }
@@ -97,14 +93,13 @@ listen<EventType.PlayEvent> {
 }
 
 onEnable {
-    loop {
+    loop(Dispatchers.game) {
         delay(1000)
-        runCatching {
-            Groups.player.forEach {
-                it.data.playedTime++
-                if (it.dead() || !it.active)
-                    it.data.idleTime++
-            }
+        Groups.player.forEach {
+            it.data.name = it.info.lastName
+            it.data.playedTime++
+            if (it.dead() || !it.active)
+                it.data.idleTime++
         }
     }
 }
@@ -117,6 +112,7 @@ listen<EventType.BlockBuildEndEvent> {
     }
 }
 
+//region gameOver
 listen<EventType.GameOverEvent> { event ->
     onGameOver(event.winner)
 }
@@ -132,55 +128,41 @@ fun onGameOver(winner: Team) {
         )
     }
 
-    StatisticsData.teamWin = if (state.rules.mode() != Gamemode.survival) winner else Team.sharded
-    var totalTime = 0
-    val sortedData = statisticsData.filterValues { it.playedTime > 60 }
-        .mapKeys { netServer.admins.getInfo(it.key) }
-        .toList()
-        .sortedByDescending { it.second.score }
-    val list = sortedData.map { (player, data) ->
-        totalTime += data.playedTime - data.idleTime
-        "[white]{pvpState}{player.name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f})".with(
-            "player" to player, "statistics" to data, "pvpState" to if (data.win) "[green][胜][]" else ""
-        )
-    }
-    broadcast(
-        """
-        [yellow]本局游戏时长: {gameTime:分钟}
-        [yellow]有效总贡献时长: {totalTime:分钟}
-        [yellow]贡献排行榜(时长/挂机/建筑): {list}
-    """.trimIndent().with("gameTime" to gameTime, "totalTime" to Duration.ofSeconds(totalTime.toLong()), "list" to list)
-    )
-    StatisticsData.rate = 1.0
-    if (sortedData.isNotEmpty() && gameTime > Duration.ofMinutes(15)) {
-        if (activity.endTime > System.currentTimeMillis()) {
-            StatisticsData.rate = activity.rate
-            broadcast(
-                "[gold]{name} [green]活动加成 [gold]x{rate:%.1f}[],还剩{left:小时}".with(
-                    "name" to activity.name, "rate" to activity.rate,
-                    "left" to Duration.between(Instant.now(), Instant.ofEpochMilli(activity.endTime))
-                )
+    launch(Dispatchers.game) {
+        val sortedData = statisticsData.values
+            .filter { it.playedTime > 60 }
+            .onEach { it.cal(winner) }
+            .sortedByDescending { it.score }
+            .let { GameoverStatisticsEvent(it).emitAsync().data }
+        statisticsData.clear()
+
+        val totalTime = sortedData.sumOf { it.playedTime - it.idleTime }
+        val list = sortedData.map {
+            "[white]{pvpState}{name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f})".with(
+                "name" to it.name, "statistics" to it, "pvpState" to if (it.win) "[green][胜][]" else ""
             )
         }
-        launch(Dispatchers.IO) {
-            val map = mutableMapOf<PlayerProfile, StatisticsData>()
-            sortedData.groupBy { PlayerData.findByIdWithTransaction(it.first.id)?.profile }
-                .forEach { (key, value) ->
-                    if (key == null || value.isEmpty()) return@forEach
-                    map[key] = value.maxByOrNull { it.second.score }!!.second
+        broadcast(
+            """
+            [yellow]本局游戏时长: {gameTime:分钟}
+            [yellow]有效总贡献时长: {totalTime:分钟}
+            [yellow]贡献排行榜(时长/挂机/建筑): {list}
+            """.trimIndent()
+                .with("gameTime" to gameTime, "totalTime" to Duration.ofSeconds(totalTime.toLong()), "list" to list)
+        )
+
+        if (sortedData.isNotEmpty() && gameTime > Duration.ofMinutes(15)) withContext(Dispatchers.IO) {
+            sortedData.groupBy { PlayerData.findByIdWithTransaction(it.uuid)?.profile }
+                .forEach { (profile, data) ->
+                    if (profile == null) return@forEach
+                    val best = data.maxBy { it.score }
+                    userService.updateExp(profile, best.exp, "游戏结算")
                 }
-            map.forEach { (profile, data) ->
-                userService.updateExp(profile, data.exp, "游戏结算")
-            }
-            depends("wayzer/user/ext/rank")
-                ?.import<(Map<PlayerProfile, Pair<Int, Boolean>>) -> Unit>("onGameOver")
-                ?.invoke(map.mapValues { it.value.playedTime to it.value.win })
         }
     }
-    statisticsData.clear()
 }
-export(::onGameOver)//Need in Dispatchers.game
 listenTo<MapChangeEvent>(Event.Priority.Before) {
-    if (statisticsData.isEmpty()) return@listenTo
+    if (statisticsData.none { it.value.playedTime > 60 }) return@listenTo
     onGameOver(Team.derelict)
 }
+//endregion
