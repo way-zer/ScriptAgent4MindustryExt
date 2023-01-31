@@ -78,16 +78,17 @@ object RankData : IdTable<Int>("RankData") {
             if new."weekUpdate" != week then
                 new."weekUpdate" := week;
                 ${
-            weekValue.values.joinToString("\n") {
-                """new."${it.name}" :=0;"""
+            weekValue.entries.joinToString("\n") { (k, v) ->
+                """new."${v.name}" := new."${k.name}" - old."${k.name}";"""
             }
         }
-            end if;
-            ${
+            else
+                ${
             weekValue.entries.joinToString("\n") { (k, v) ->
                 """new."${v.name}" := old."${v.name}" + new."${k.name}" - old."${k.name}";"""
             }
         }
+            end if;
             return new;
         end
         $$ language plpgsql;
