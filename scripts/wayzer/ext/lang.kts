@@ -31,7 +31,9 @@ var Player.lang: String
     }
 
 registerVarForType<Player>()
-    .registerChild("lang", "多语言支持", DynamicVar.obj { it.lang })
+    .registerChild("lang", "多语言支持", DynamicVar.obj {
+        kotlin.runCatching { it.lang }.getOrNull()
+    })
 
 command("lang", "设置语言") {
     permission = "wayzer.lang.set"
