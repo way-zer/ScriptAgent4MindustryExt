@@ -2,6 +2,11 @@ package coreLibrary
 
 import cf.wayzer.scriptAgent.impl.ScriptCache
 
+suspend inline fun runIgnoreCancel(sync: Boolean, crossinline body: suspend () -> Unit) {
+    val job = launch(Job()) { body() }
+    if (sync) job.join()
+}
+
 val thisRef = this
 onEnable {
     Commands.controlCommand.run {
@@ -50,7 +55,7 @@ onEnable {
             }
         })
         addSub(CommandInfo(thisRef, "load", "(重新)加载一个脚本或者模块") {
-            usage = "<module[/script]> [--noCache] [--noEnable]"
+            usage = "<module[/script]> [--noCache] [--noEnable] [--async]"
             permission = "scriptAgent.control.load"
             aliases = listOf("reload", "加载", "重载")
             onComplete {
@@ -59,6 +64,8 @@ onEnable {
             body {
                 val noCache = checkArg("--noCache")
                 var noEnable = checkArg("--noEnable")
+                val async = checkArg("--async")
+
                 if (arg.isEmpty()) replyUsage()
                 val script = ScriptRegistry.findScriptInfo(arg[0])
                     ?: returnReply("[red]找不到模块或者脚本".with())
@@ -67,12 +74,10 @@ onEnable {
                     reply("[yellow]清理cache文件{name}".with("name" to file.name))
                     file.delete()
                 }
-                //not cancel when disable self
-                launch(Job()) {
-                    reply("[yellow]异步处理中".with())
+                runIgnoreCancel(!async) {
                     ScriptManager.transaction {
                         add(script)
-                        if (script.failReason == null && !script.enabled)//因为其他原因本来就保持loaded
+                        if (script.failReason == null && script.scriptState.loaded)//因为其他原因本来就保持loaded
                             noEnable = true
                         unload(addAllAffect = true)
                         load()
@@ -85,19 +90,18 @@ onEnable {
             }
         })
         addSub(CommandInfo(thisRef, "enable", "(重新)启用一个脚本或者模块") {
-            usage = "<module[/script]>"
+            usage = "<module[/script]> [--async]"
             permission = "scriptAgent.control.enable"
             aliases = listOf("启用")
             onComplete {
                 onComplete(0) { ScriptRegistry.allScripts { it.scriptState.loaded }.map { it.id } }
             }
             body {
+                val async = checkArg("--async")
                 if (arg.isEmpty()) replyUsage()
                 val script = ScriptRegistry.getScriptInfo(arg[0])
                     ?: returnReply("[red]找不到模块或者脚本".with())
-                //not cancel when disable self
-                launch(Job()) {
-                    reply("[yellow]异步处理中".with())
+                runIgnoreCancel(!async) {
                     ScriptManager.transaction {
                         add(script)
                         disable(addAllAffect = true)
@@ -109,19 +113,18 @@ onEnable {
             }
         })
         addSub(CommandInfo(thisRef, "unload", "卸载一个脚本或者模块") {
-            usage = "<module[/script]>"
+            usage = "<module[/script]> [--async]"
             permission = "scriptAgent.control.unload"
             aliases = listOf("卸载")
             onComplete {
                 onComplete(0) { ScriptRegistry.allScripts { it.scriptState.loaded }.map { it.id } }
             }
             body {
+                val async = checkArg("--async")
                 if (arg.isEmpty()) replyUsage()
                 val script = ScriptRegistry.getScriptInfo(arg[0]) ?: returnReply("[red]找不到模块或者脚本".with())
 
-                //not cancel when disable self
-                launch(Job()) {
-                    reply("[yellow]异步处理中".with())
+                runIgnoreCancel(!async) {
                     ScriptManager.unloadScript(script)
                     if (script.scriptState == ScriptState.ToLoad)
                         script.scriptInfo.stateUpdate(ScriptState.Found)
@@ -130,19 +133,18 @@ onEnable {
             }
         })
         addSub(CommandInfo(thisRef, "disable", "关闭一个脚本或者模块") {
-            usage = "<module[/script]>"
+            usage = "<module[/script]> [--async]"
             permission = "scriptAgent.control.disable"
             aliases = listOf("关闭")
             onComplete {
                 onComplete(0) { ScriptRegistry.allScripts { it.scriptState.enabled }.map { it.id } }
             }
             body {
+                val async = checkArg("--async")
                 if (arg.isEmpty()) replyUsage()
                 val script = ScriptRegistry.getScriptInfo(arg[0]) ?: returnReply("[red]找不到模块或者脚本".with())
 
-                //not cancel when disable self
-                launch(Job()) {
-                    reply("[yellow]异步处理中".with())
+                runIgnoreCancel(!async) {
                     ScriptManager.disableScript(script)
                     if (script.scriptState == ScriptState.ToEnable)
                         script.scriptInfo.stateUpdate(ScriptState.Loaded)
@@ -153,10 +155,10 @@ onEnable {
         addSub(CommandInfo(thisRef, "genMetadata", "生成供开发使用的元数据") {
             permission = "scriptAgent.control.genMetadata"
             body {
-                launch {
+                withContext(Dispatchers.Default) {
                     val all = ScriptRegistry.allScripts { it.children(true).isNotEmpty() }
                         .mapNotNull { it.compiledScript }
-                    reply("[yellow]异步处理,共{size}待生成".with("size" to all.size))
+                    reply("[yellow]共{size}待生成".with("size" to all.size))
                     Config.metadataDir.mkdirs()
                     all.forEach { info ->
                         Config.metadataFile(info.scriptInfo.id).writer().use {
