@@ -77,7 +77,8 @@ onEnable {
                 runIgnoreCancel(!async) {
                     ScriptManager.transaction {
                         add(script)
-                        if (script.failReason == null && script.scriptState.loaded)//因为其他原因本来就保持loaded
+                        //因为其他原因本来就保持loaded
+                        if (script.run { failReason == null && scriptState.loaded && !scriptState.enabled })
                             noEnable = true
                         unload(addAllAffect = true)
                         load()
