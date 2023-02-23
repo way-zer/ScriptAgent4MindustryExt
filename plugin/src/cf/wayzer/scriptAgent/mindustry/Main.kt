@@ -83,6 +83,6 @@ class Main(private val loader: Plugin) : Plugin() {
         if (to.exists()) return
         to.parentFile.mkdirs()
         val internal = javaClass.classLoader.getResourceAsStream(from) ?: return
-        to.writeBytes(internal.readAllBytes())
+        to.writeBytes(internal.readBytes())
     }
 }
