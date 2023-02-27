@@ -5,7 +5,6 @@ import arc.util.Log
 import arc.util.serialization.Jval
 import coreLibrary.lib.util.loop
 import mindustry.core.Version
-import mindustry.gen.Groups
 import mindustry.net.BeControl
 import java.io.File
 import java.net.URL
@@ -51,7 +50,7 @@ onEnable {
                     val newBuild = json.getString("tag_name", "")
                     val (version, revision) = ("$newBuild.0").removePrefix("v")
                         .split(".").map { it.toInt() }
-                    if (version > Version.build || revision > Version.revision) {
+                    if (version > Version.build || (version == Version.build && revision > Version.revision)) {
                         val asset = json.get("assets").asArray().find {
                             it.getString("name", "").contains("server", ignoreCase = true)
                         } ?: error("New version $newBuild, but can't find asset")
@@ -91,9 +90,12 @@ suspend fun update(version: String, url: String) {
         Thread.sleep(100L)
         dest.outputStream().use { output ->
             tmp.inputStream().use { it.copyTo(output) }
+            output.flush()
         }
         tmp.delete()
-        Log.info("&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically.")
+        Log.info(
+            "&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically."
+        )
         exitProcess(2)
     }
     broadcast("[yellow]服务器新版本{version}下载完成,将在本局游戏后自动重启更新".with("version" to version))
