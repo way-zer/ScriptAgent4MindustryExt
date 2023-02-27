@@ -1,6 +1,6 @@
 @file:Import("redis.clients:jedis:4.3.1", mavenDepends = true)
 
-package coreLibrary
+package coreLibrary.extApi
 
 import coreLibrary.lib.util.ServiceRegistry
 import redis.clients.jedis.Jedis
