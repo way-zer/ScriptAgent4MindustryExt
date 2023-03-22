@@ -1,6 +1,6 @@
 @file:Depends("coreLibrary")
 @file:Import("-Xjvm-default=enable", compileArg = true)
-@file:Import("net.mamoe:mirai-core-jvm:2.10.0", mavenDepends = true)
+@file:Import("net.mamoe:mirai-core-jvm:2.13.4", mavenDepends = true)
 @file:Import("mirai.lib.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.events.*", defaultImport = true)
@@ -27,7 +27,7 @@ val password by config.key("123456", "机器人qq密码")
 val qqProtocol by config.key(
     BotConfiguration.MiraiProtocol.ANDROID_PAD,
     "QQ登录类型，不同的类型可同时登录",
-    "可用值: ANDROID_PHONE ANDROID_PAD ANDROID_WATCH"
+    "可用值: ANDROID_PHONE ANDROID_PAD ANDROID_WATCH IPAD MACOS"
 )
 
 val channel = Channel<String>(onBufferOverflow = BufferOverflow.DROP_LATEST)
@@ -60,21 +60,19 @@ onEnable {
         println("机器人未开启,请先修改配置文件")
         return@onEnable
     }
-    val bot = BotFactory.newBot(qq, password) {
-        workingDir = Config.dataDir.resolve("mirai").apply { mkdirs() }
-        cacheDir = Config.cacheDir.resolve("mirai_cache").relativeTo(workingDir)
-        fileBasedDeviceInfo()
-        protocol = qqProtocol
-        parentCoroutineContext = coroutineContext
-        loginSolver = StandardCharImageLoginSolver(channel::receive)
-        botLoggerSupplier = { MyLoggerImpl("Bot ${it.id}", true) }
-        networkLoggerSupplier = { MyLoggerImpl("Net ${it.id}", false) }
-    }
-    launch {
-        withContextClassloader {
-            bot.login()
+    val bot = withContextClassloader {
+        BotFactory.newBot(qq, password) {
+            workingDir = Config.dataDir.resolve("mirai").apply { mkdirs() }
+            cacheDir = Config.cacheDir.resolve("mirai_cache").relativeTo(workingDir)
+            fileBasedDeviceInfo()
+            protocol = qqProtocol
+            parentCoroutineContext = coroutineContext
+            loginSolver = StandardCharImageLoginSolver(channel::receive)
+            botLoggerSupplier = { MyLoggerImpl("Bot ${it.id}", true) }
+            networkLoggerSupplier = { MyLoggerImpl("Net ${it.id}", false) }
         }
     }
+    launch { bot.login() }
 }
 
 Commands.controlCommand.let {

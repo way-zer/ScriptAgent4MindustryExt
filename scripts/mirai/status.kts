@@ -2,7 +2,7 @@ package mirai
 
 import cf.wayzer.placehold.PlaceHoldApi
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
-import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
+import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
@@ -26,11 +26,9 @@ globalEventChannel().subscribeGroupMessages {
                 val file = File.createTempFile("status_Image", ".png")
                 try {
                     ImageIO.write(getMapSnap(), "png", file)
-                    file.toExternalResource("png").use {
-                        withTimeoutOrNull(3000) {
-                            msg += subject.uploadImage(it)
-                        } ?: { msg += "上传图片超时" }
-                    }
+                    withTimeoutOrNull(3000) {
+                        msg += file.uploadAsImage(subject, "png")
+                    } ?: run { msg += "上传图片超时" }
                 } finally {
                     file.delete()
                 }
