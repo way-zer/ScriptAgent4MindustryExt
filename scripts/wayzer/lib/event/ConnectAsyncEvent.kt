@@ -17,7 +17,7 @@ class ConnectAsyncEvent(
     var reason: String? = null
         private set
     override var cancelled: Boolean
-        get() = con.kicked
+        get() = reason != null || con.kicked
         set(@Suppress("UNUSED_PARAMETER") value) {
             error("Can't cancel,please use con.kick")
         }

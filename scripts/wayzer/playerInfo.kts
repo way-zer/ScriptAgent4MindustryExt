@@ -76,7 +76,8 @@ listenPacket2ServerAsync<ConnectPacket> { con, packet ->
                 }
         }
     }
-    if (event.cancelled) con.kick("[red]拒绝入服: ${event.reason}")
+    if (event.cancelled && !con.kicked)
+        con.kick("[red]拒绝入服: ${event.reason}")
     !event.cancelled
 }
 
