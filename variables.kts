@@ -1,6 +1,7 @@
 //WayZer 版权所有(请勿删除版权注解)
 package coreMindustry
 
+import arc.util.Time
 import cf.wayzer.placehold.DynamicVar
 import mindustry.core.Version
 import mindustry.ctype.UnlockableContent
@@ -11,6 +12,7 @@ import mindustry.net.Administration
 import java.time.Duration
 import java.time.Instant
 import java.util.*
+import kotlin.math.roundToLong
 
 name = "基础: 全局变量"
 
@@ -41,7 +43,9 @@ registerVar("state.wave", "当前波数", DynamicVar.v { state.wave })
 registerVar("state.enemies", "当前敌人数量", DynamicVar.v { state.enemies })
 registerVar("state.gameMode", "地图游戏模式", DynamicVar.v { state.rules.mode() })
 registerVar("state.startTime", "本局游戏开始时间", DynamicVar.v { startTime })
-registerVar("state.gameTime", "本局游戏开始持续时间", DynamicVar.v { Duration.between(startTime, Instant.now()) })
+registerVar("state.gameTime", "本局游戏开始持续时间", DynamicVar.v {
+    Duration.between(startTime, Instant.now()) - Duration.ofSeconds(pauseTime.roundToLong())
+})
 registerVar("game.version", "当前游戏版本", DynamicVar.v { Version.build })
 
 //PlayerVars
@@ -93,6 +97,12 @@ registerVarForType<Unit>().apply {
 }
 
 var startTime = Instant.now()!!
+var pauseTime: Float = 0f //in seconds
 listen<EventType.WorldLoadEvent> {
     startTime = Instant.now()
+    pauseTime = 0f
+}
+listen(EventType.Trigger.update) {
+    if (state.isPaused)
+        pauseTime += Time.delta / 60
 }
