@@ -49,6 +49,7 @@ fun VoteService.register() {
             start(player!!, "投降({team.colorizeName}[yellow]队|需要全队同意)".with("player" to player!!, "team" to team)) {
                 state.teams.get(team).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
             }
+            return@addSubVote
         }
         start(player!!, "投降".with(), supportSingle = true) {
             state.teams.get(player!!.team()).cores.forEach { Time.run(Random.nextFloat() * 60 * 3, it::kill) }
