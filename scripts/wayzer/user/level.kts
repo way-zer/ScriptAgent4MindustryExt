@@ -48,7 +48,7 @@ fun updateExp(p: PlayerProfile, desc: String, dot: Int) {
 export(::updateExp)
 
 registerVarForType<Player>().apply {
-    registerChild("prefix.0lvl", "等级图标显示", DynamicVar.obj {
+    registerChild("prefix.5lvl", "等级图标显示", DynamicVar.obj {
         if (!showIcon) return@obj ""
         "<${getIcon(level(PlayerData[it.uuid()].secureProfile(it)?.totalExp ?: 0))}>"
     })
