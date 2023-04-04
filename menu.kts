@@ -46,6 +46,7 @@ listenPacket2ServerAsync<MenuChooseCallPacket> { con, packet ->
  * 低级接口, 内部不带Timeout, 外部通常需要进行Timeout处理(否则可能无限期等待)
  * @return 原版返回值，代表选中n个选项，可能 -1 代表主动关闭
  */
+@Deprecated("handle in MenuBuilder")
 suspend fun menuAsync(player: Player, title: String, msg: String, menu: Array<Array<String>>): Int {
     val id = Random.nextInt()
     Call.menu(player.con, id, title, msg, menu)
