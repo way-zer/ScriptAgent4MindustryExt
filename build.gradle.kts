@@ -84,6 +84,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     //coreLib/extApi/redisApi
     implementation("redis.clients:jedis:4.3.1")
+    //coreLib/extApi/mongoApi
+    implementation("org.litote.kmongo:kmongo-coroutine:4.8.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
     //coreMindustry
 //    implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
