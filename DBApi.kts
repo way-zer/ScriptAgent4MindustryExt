@@ -14,6 +14,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
+import java.util.logging.Level
 import kotlin.system.measureTimeMillis
 
 
@@ -114,4 +115,10 @@ object DB : ServiceRegistry<Database>() {
     }
 }
 
-DB.subscribe(this) { DB.initDB(it) }
+DB.subscribe(this) {
+    try {
+        DB.initDB(it)
+    } catch (e: Exception) {
+        logger.log(Level.SEVERE, "Error when initDB", e)
+    }
+}
