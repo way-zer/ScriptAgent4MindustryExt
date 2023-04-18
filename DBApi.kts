@@ -73,7 +73,9 @@ object DB : ServiceRegistry<Database>() {
         val version: Int
 
         /**will be call in transaction*/
-        fun onUpgrade(oldVersion: Int) {}
+        fun onUpgrade(oldVersion: Int) {
+            SchemaUtils.createMissingTablesAndColumns(this as Table)
+        }
     }
 
     /**
