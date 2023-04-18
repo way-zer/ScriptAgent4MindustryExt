@@ -67,11 +67,6 @@ listen<EventType.BlockDestroyEvent> { e ->
             }
         }
 }
-//fix bug
-listen<EventType.PlayerConnectionConfirmed> {
-    //As team assigned in connect may be wrong.
-    changeTeam(it.player)
-}
 
 fun updateBannedTeam(force: Boolean = false) {
     if (force || bannedTeam.isEmpty())
