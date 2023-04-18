@@ -1,7 +1,7 @@
 ID coreMindustry
 FQ_NAME coreMindustry.Module
 NAME Mindustry 核心脚本模块
-SOURCE_MD5 -2d13952142f37f3107c655fe2286bb04
+SOURCE_MD5 -43fba1125b37a8c44861793d8606b903
 +DEPENDS coreLibrary 
 +IMPORT DefaultImport arc.Core
 +IMPORT DefaultImport coreMindustry.lib.*

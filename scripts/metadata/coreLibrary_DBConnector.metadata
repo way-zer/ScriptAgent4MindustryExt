@@ -1,0 +1,6 @@
+ID coreLibrary/DBConnector
+FQ_NAME coreLibrary.DBConnector
+NAME DBConnector Script
+SOURCE_MD5 4e02a1ba43eaa6a28afef56b0e298431
++DEPENDS coreLibrary module
++DEPENDS coreLibrary/DBApi 

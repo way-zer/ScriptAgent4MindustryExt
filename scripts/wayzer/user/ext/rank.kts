@@ -1,5 +1,3 @@
-@file:Import("@wayzer/user/ext/rank.dao.kt", sourceFile = true)
-
 package wayzer.user.ext
 
 import coreLibrary.DBApi.DB.registerTable

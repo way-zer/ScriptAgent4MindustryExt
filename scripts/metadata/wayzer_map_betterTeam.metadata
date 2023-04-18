@@ -1,5 +1,5 @@
 ID wayzer/map/betterTeam
 FQ_NAME wayzer.map.BetterTeam
 NAME 更好的队伍
-SOURCE_MD5 48aa4e2fe9d1ef5433a78fba069175af
+SOURCE_MD5 4ea2fcd1160a862a5ed34605fb99d0d9
 +DEPENDS wayzer module

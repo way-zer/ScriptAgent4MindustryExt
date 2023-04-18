@@ -1,7 +1,7 @@
 ID wayzer
 FQ_NAME wayzer.Module
 NAME WayZer Mindustry Plugin
-SOURCE_MD5 -5ccf88481314740b45358b901f2d91d8
+SOURCE_MD5 36a0507ae439f7a02a337eed9354ddf7
 +DEPENDS coreLibrary/DBApi 数据库服务
 +DEPENDS coreMindustry 
 +IMPORT DefaultImport wayzer.lib.*

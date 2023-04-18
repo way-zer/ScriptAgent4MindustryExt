@@ -1,7 +1,7 @@
 ID coreLibrary/DBApi
 FQ_NAME coreLibrary.DBApi
 NAME DBApi Script
-SOURCE_MD5 -73edbcdfb688bcda6402a111d4f35fcb
+SOURCE_MD5 480263951971a1398727df51613750bf
 +DEPENDS coreLibrary module
 +IMPORT MavenDepends org.jetbrains.exposed:exposed-core:0.40.1
 +IMPORT MavenDepends org.jetbrains.exposed:exposed-dao:0.40.1
