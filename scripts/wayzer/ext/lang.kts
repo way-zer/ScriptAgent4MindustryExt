@@ -18,17 +18,23 @@ var Player.lang: String
         ?: locale
     set(v) {
         if (lang == v) return
-        PlayerData[uuid()].secureProfile(this)?.apply {
-            launch(Dispatchers.IO) {
-                transaction {
-                    lang = v
-                }
-            }
-        } ?: let {
-            tempLang[uuid()] = v
-            sendMessage("[yellow]当前未绑定账号,语言设置将在退出游戏后重置".with())
+        launch(Dispatchers.game) {
+            setLang(this@lang, v)
         }
     }
+
+suspend fun setLang(player: Player, v: String) {
+    PlayerData[player.uuid()].secureProfile(player)?.apply {
+        withContext(Dispatchers.IO) {
+            transaction {
+                lang = v
+            }
+        }
+    } ?: let {
+        tempLang[player.uuid()] = v
+        player.sendMessage("[yellow]当前未绑定账号,语言设置将在退出游戏后重置".with())
+    }
+}
 
 registerVarForType<Player>()
     .registerChild("lang", "多语言支持", DynamicVar.obj {
@@ -40,7 +46,9 @@ command("lang", "设置语言") {
     type = CommandType.Client
     body {
         if (arg.isEmpty()) returnReply("[yellow]你的当前语言是: {receiver.lang}".with())
-        player!!.lang = arg[0]
+        setLang(player!!, arg[0])
         reply("[green]你的语言已设为 {v}".with("v" to player!!.lang))
     }
 }
+
+PermissionApi.registerDefault("wayzer.lang.set")
