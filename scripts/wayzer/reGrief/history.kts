@@ -85,9 +85,9 @@ fun log(x: Int, y: Int, log: Log) {
 listen<EventType.BlockBuildEndEvent> {
     val player = it.unit?.player ?: return@listen
     if (it.breaking)
-        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Break(player?.uuid()))
+        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Break(player.uuid()))
     else
-        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Place(player?.uuid(), it.tile.block()))
+        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Place(player.uuid(), it.tile.block()))
 }
 listen<EventType.ConfigEvent> {
     val log = Log.Config(it.player?.uuid(), it.value?.toString() ?: "null")
@@ -97,6 +97,7 @@ listen<EventType.DepositEvent> {
     log(it.tile.tileX(), it.tile.tileY(), Log.Deposit(it.player?.uuid(), it.item, it.amount))
 }
 listen<EventType.BlockDestroyEvent> {
+    if (it.tile == emptyTile) return@listen
     log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Destroy())
 }
 listen<EventType.PickupEvent> {

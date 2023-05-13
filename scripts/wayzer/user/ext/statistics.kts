@@ -122,9 +122,11 @@ fun onGameOver(winner: Team) {
     if (state.rules.infiniteResources || state.rules.editor) {
         return broadcast(
             """
-            [yellow]本局游戏时长: {gameTime:分钟}
+            [yellow]地图: [{map.id}]{map.name}[yellow]
+            [yellow]总游戏时长: {state.mapTime:分钟}
+            [yellow]本局游戏时长: {state.gameTime:分钟}
             [yellow]沙盒或编辑器模式,不计算贡献
-        """.trimIndent().with("gameTime" to gameTime)
+        """.trimIndent().with()
         )
     }
 
@@ -138,17 +140,19 @@ fun onGameOver(winner: Team) {
 
         val totalTime = sortedData.sumOf { it.playedTime - it.idleTime }
         val list = sortedData.map {
-            "[white]{pvpState}{name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f})".with(
+            "{pvpState}{name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f})".with(
                 "name" to it.name, "statistics" to it, "pvpState" to if (it.win) "[green][胜][]" else ""
             )
         }
         broadcast(
             """
-            [yellow]本局游戏时长: {gameTime:分钟}
-            [yellow]有效总贡献时长: {totalTime:分钟}
-            [yellow]贡献排行榜(时长/挂机/建筑): {list}
+            [yellow]地图: [white][{map.id}]{map.name}
+            [yellow]总游戏时长: [white]{state.mapTime:分钟}
+            [yellow]本局游戏时长: [white]{state.gameTime:分钟}
+            [yellow]有效总贡献时长: [white]{totalTime:分钟}
+            [yellow]贡献排行榜(时长/挂机/建筑): [white]{list}
             """.trimIndent()
-                .with("gameTime" to gameTime, "totalTime" to Duration.ofSeconds(totalTime.toLong()), "list" to list)
+                .with("totalTime" to Duration.ofSeconds(totalTime.toLong()), "list" to list)
         )
 
         if (sortedData.isNotEmpty() && gameTime > Duration.ofMinutes(15)) withContext(Dispatchers.IO) {

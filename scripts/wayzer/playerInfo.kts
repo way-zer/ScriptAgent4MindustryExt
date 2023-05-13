@@ -111,13 +111,17 @@ onEnable {
         loop(Dispatchers.IO) {
             delay(5000)
             val online = Groups.player.mapNotNull { PlayerData[it.uuid()].secureProfile(it) }
-            transaction {
-                online.forEach(PlayerProfile::loopCheck)
-            }
+            runCatching {
+                transaction {
+                    online.forEach(PlayerProfile::loopCheck)
+                }
+            }//Some time ConcurrentModificationException
         }
         loop(Dispatchers.game) {
             delay(5000)
-            Groups.player.forEach { it.updateName() }
+            runCatching {
+                Groups.player.forEach { it.updateName() }
+            }//Some time ConcurrentModificationException
         }
     }
 }
