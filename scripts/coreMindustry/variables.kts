@@ -43,8 +43,11 @@ registerVar("state.wave", "当前波数", DynamicVar.v { state.wave })
 registerVar("state.enemies", "当前敌人数量", DynamicVar.v { state.enemies })
 registerVar("state.gameMode", "地图游戏模式", DynamicVar.v { state.rules.mode() })
 registerVar("state.startTime", "本局游戏开始时间", DynamicVar.v { startTime })
-registerVar("state.gameTime", "本局游戏开始持续时间", DynamicVar.v {
+registerVar("state.gameTime", "本局游戏开始持续时间(不含回档)", DynamicVar.v {
     Duration.between(startTime, Instant.now()) - Duration.ofSeconds(pauseTime.roundToLong())
+})
+registerVar("state.mapTime", "当前地图的持续时间(含回档前时间)", DynamicVar.v {
+    Duration.ofMillis((state.tick / 60 * 1000).toLong())
 })
 registerVar("game.version", "当前游戏版本", DynamicVar.v { Version.build })
 
