@@ -15,15 +15,16 @@ import coreLibrary.lib.util.withContextClassloader
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import net.mamoe.mirai.BotFactory
+import net.mamoe.mirai.auth.BotAuthorization
 import net.mamoe.mirai.utils.BotConfiguration
 import net.mamoe.mirai.utils.MiraiLoggerPlatformBase
 import net.mamoe.mirai.utils.StandardCharImageLoginSolver
 import java.util.logging.Level
 
-val enable by config.key(false, "是否启动机器人(开启前先设置账号密码)")
 val logVerbose by config.key(false, "向控制台输出mirai完整日记")
 val qq by config.key(1849301538L, "机器人qq号")
-val password by config.key("123456", "机器人qq密码")
+val password by config.key("", "机器人qq密码")
+val qrLogin by config.key(false, "开启扫码登录")
 val qqProtocol by config.key(
     BotConfiguration.MiraiProtocol.ANDROID_PAD,
     "QQ登录类型，不同的类型可同时登录",
@@ -56,18 +57,18 @@ inner class MyLoggerImpl(override val identity: String, private val botLog: Bool
 withContextClassloader { globalEventChannel() }//init
 
 onEnable {
-    if (!enable) {
-        println("机器人未开启,请先修改配置文件")
-        return@onEnable
+    if (password.isEmpty() && !qrLogin) {
+        return@onEnable ScriptManager.disableScript(this, "未配置登录方式，请使用`sa config`进行配置")
     }
     val bot = withContextClassloader {
-        BotFactory.newBot(qq, password) {
+        val auth = if (qrLogin) BotAuthorization.byQRCode() else BotAuthorization.byPassword(password)
+        BotFactory.newBot(qq, auth) {
             workingDir = Config.dataDir.resolve("mirai").apply { mkdirs() }
             cacheDir = Config.cacheDir.resolve("mirai_cache").relativeTo(workingDir)
             fileBasedDeviceInfo()
             protocol = qqProtocol
             parentCoroutineContext = coroutineContext
-            loginSolver = StandardCharImageLoginSolver(channel::receive)
+            loginSolver = StandardCharImageLoginSolver({ channel.receive() })
             botLoggerSupplier = { MyLoggerImpl("Bot ${it.id}", true) }
             networkLoggerSupplier = { MyLoggerImpl("Net ${it.id}", false) }
         }
