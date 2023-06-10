@@ -2,9 +2,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.zip.ZipFile
 
 plugins {
-    kotlin("jvm") version "1.7.20"
+    kotlin("jvm") version "1.8.20"
     id("me.qoomon.git-versioning") version "2.1.1"
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "cf.wayzer"
@@ -34,7 +34,11 @@ sourceSets {
 }
 
 repositories {
+    val inChina = System.getProperty("user.timezone") in arrayOf("Asia/Shanghai", "GMT+08:00")
 //    mavenLocal()
+    if (inChina)
+        maven(url = "https://maven.aliyun.com/repository/public")//mirror for central
+
     mavenCentral()
     maven(url = "https://www.jitpack.io") {
         content {
@@ -42,9 +46,10 @@ repositories {
         }
     }
 
-    if (System.getProperty("user.timezone") != "Asia/Shanghai")//ScriptAgent
-        maven("https://maven.tinylake.tk/")
-    else {
+    //ScriptAgent
+    if (!inChina) {
+        maven("https://maven.tinylake.tk/") //cloudFlare mirror
+    } else {
         maven {
             url = uri("https://packages.aliyun.com/maven/repository/2102713-release-0NVzQH/")
             credentials {
@@ -56,8 +61,8 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.10.1.2"
-    val mindustryVersion = "v140.101"
+    val libraryVersion = "1.10.4.3"
+    val mindustryVersion = "v143.102"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
     pluginImplementation("cf.wayzer:LibraryManager:1.6")
@@ -90,11 +95,14 @@ dependencies {
     implementation("cf.wayzer:ContentsTweaker:v2.0.1")
 
     //mirai
-    implementation("net.mamoe:mirai-core-api-jvm:2.12.3")
+    implementation("net.mamoe:mirai-core-api-jvm:2.15.0-M1")
     //wayzer
     implementation("com.google.guava:guava:30.1-jre")
 }
 
+kotlin {
+    jvmToolchain(8)
+}
 tasks {
     withType<KotlinCompile>().configureEach {
         kotlinOptions.jvmTarget = "1.8"
