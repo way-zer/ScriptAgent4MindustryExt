@@ -1,14 +1,13 @@
-@file:Import("@wayzer/maps.manager.kt", sourceFile = true)
-@file:Import("@wayzer/maps.registry.kt", sourceFile = true)
+@file:Depends("coreMindustry/menu", "maps菜单")
 
 package wayzer
 
 import arc.Events
 import cf.wayzer.placehold.DynamicVar
 import coreLibrary.lib.util.menu
+import coreMindustry.PagedMenuBuilder
 import mindustry.game.Gamemode
 import mindustry.game.Team
-import mindustry.gen.Groups
 import mindustry.io.SaveIO
 import java.time.Duration
 import mindustry.maps.Map as MdtMap
@@ -76,9 +75,29 @@ command("maps", "列出服务器地图") {
             filter
         } ?: "display"
         val maps = MapRegistry.getMaps(filter).sortedBy { it.id }
-        reply(menu("服务器地图 By WayZer", maps, page, mapsPrePage) { info ->
-            "[red]{info.id}  [green]{info.map.name}[blue] | {info.mode}".with("info" to info)
+        val template = "[red]{info.id}  [green]{info.map.name}[blue] | {info.mode}"
+        val player = player ?: returnReply(menu("服务器地图 By WayZer", maps, page, mapsPrePage) { info ->
+            template.with("info" to info)
         })
+        object : PagedMenuBuilder<MapInfo>(maps, page, mapsPrePage) {
+            override suspend fun renderItem(item: MapInfo) {
+                option(template.with("info" to item).toPlayer(player)) {
+                    RootCommands.handleInput("vote map ${item.id}", player, "/")
+                }
+            }
+
+            override suspend fun build() {
+                title = "服务器地图"
+                msg = "SA4Mindustry By WayZer\n" +
+                        "点击选项可发起投票换图"
+                val url = "https://mdt.wayzer.top"
+                option("点击打开Mindustry资源站，查看更多地图\n$url") {
+                    Call.openURI(player.con, url)
+                }
+                newRow()
+                super.build()
+            }
+        }.sendTo(player, 60_000)
     }
 }
 onEnable {
