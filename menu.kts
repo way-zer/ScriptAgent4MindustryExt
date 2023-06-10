@@ -51,5 +51,3 @@ suspend fun menuAsync(player: Player, title: String, msg: String, menu: Array<Ar
     Call.menu(player.con, id, title, msg, menu)
     return nextEvent<MenuChooseEvent> { it.player == player && it.menuId == id }.value
 }
-
-//TODO 接管 Commands.defaultHelpImpl
