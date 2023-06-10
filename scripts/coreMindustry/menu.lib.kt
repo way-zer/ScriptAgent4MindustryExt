@@ -14,7 +14,8 @@ open class MenuBuilder<T : Any>(
     open val followup: Boolean,
     private val block: suspend MenuBuilder<T>.() -> Unit = { }
 ) {
-    constructor(block: suspend MenuBuilder<T>.() -> Unit) : this(false, block)
+    protected constructor() : this(false, {})
+    constructor(block: suspend MenuBuilder<T>.() -> Unit = {}) : this(false, block)
     constructor(title: String, block: suspend MenuBuilder<T>.() -> Unit) : this(block) {
         this.title = title
     }
