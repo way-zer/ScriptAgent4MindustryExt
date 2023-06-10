@@ -1,6 +1,6 @@
 @file:Depends("coreLibrary")
 @file:Import("-Xjvm-default=enable", compileArg = true)
-@file:Import("net.mamoe:mirai-core-jvm:2.13.4", mavenDepends = true)
+@file:Import("net.mamoe:mirai-core-jvm:2.15.0-M1", mavenDepends = true)
 @file:Import("mirai.lib.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.*", defaultImport = true)
 @file:Import("net.mamoe.mirai.event.events.*", defaultImport = true)
