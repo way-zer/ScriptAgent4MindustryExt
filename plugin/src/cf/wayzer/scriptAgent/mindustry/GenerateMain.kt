@@ -10,7 +10,10 @@ import cf.wayzer.scriptAgent.util.DependencyManager
 import cf.wayzer.scriptAgent.util.maven.Dependency
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.math.BigInteger
+import java.security.MessageDigest
 import kotlin.system.exitProcess
+import kotlin.system.measureTimeMillis
 
 @OptIn(LoaderApi::class)
 object GenerateMain {
@@ -55,6 +58,45 @@ object GenerateMain {
         fail.forEach {
             println("\t${it.id}: ${it.failReason}")
         }
+        if (System.getProperty("ScriptAgent.PreparePack") != null) {
+            val time = measureTimeMillis { preparePack() }
+            println("Finish preparePack in ${time}ms")
+        }
         exitProcess(fail.size)
+    }
+
+    private fun preparePack() {
+        val destScripts = File("build/tmp/scripts")
+        val destBuiltin = File("build/tmp/builtinScripts")
+        val toSave = ScriptRegistry.allScripts { it.scriptState.loaded }
+            .mapNotNull { it.compiledScript }
+            .sortedBy { it.id }
+        println("prepare Pack for ${toSave.size} scripts.")
+
+        val md5Digest = MessageDigest.getInstance("MD5")
+        val destCAS = destBuiltin.resolve("by_md5").also { it.mkdirs() }
+        fun addCAS(bs: ByteArray): String {
+            val md5 = BigInteger(1, md5Digest.digest(bs)).toString(16)
+            destCAS.resolve(md5).writeBytes(bs)
+            return md5
+        }
+
+        val meta = mutableListOf<String>()
+        toSave.forEach { script ->
+            val idWithModule = script.source.run { if (isModule) id + Config.moduleIdSuffix else id }
+            val ktcFile = script.compiledFile
+            ktcFile.copyTo(destScripts.resolve(ktcFile.relativeTo(Config.cacheDir)).also { it.parentFile.mkdirs() })
+            val scriptMD5 = addCAS(ktcFile.readBytes())
+
+            val resources = script.source.listResources().map { res ->
+                val file = res.loadFile()
+                file.copyTo(destScripts.resolve(file.relativeTo(Config.rootDir)).also { it.parentFile.mkdirs() })
+                res.name to addCAS(file.readBytes())
+            }.sortedBy { it.first }.joinToString(";") { "${it.first}:${it.second}" }
+            meta.add("$idWithModule $scriptMD5 $resources")
+        }
+        destBuiltin.resolve("META").bufferedWriter().use {
+            meta.joinTo(it, "\n")
+        }
     }
 }

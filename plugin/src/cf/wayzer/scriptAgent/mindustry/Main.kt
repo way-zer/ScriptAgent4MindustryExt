@@ -6,12 +6,11 @@ import arc.files.Fi
 import arc.util.CommandHandler
 import arc.util.Log
 import cf.wayzer.scriptAgent.*
-import cf.wayzer.scriptAgent.MainScriptsHelper.defaultMain
 import cf.wayzer.scriptAgent.define.LoaderApi
+import cf.wayzer.scriptAgent.util.BuiltinScriptRegistry
 import kotlinx.coroutines.runBlocking
 import mindustry.Vars
 import mindustry.mod.Plugin
-import java.io.File
 
 @OptIn(LoaderApi::class)
 class Main(private val loader: Plugin) : Plugin() {
@@ -35,10 +34,8 @@ class Main(private val loader: Plugin) : Plugin() {
             Config.serverCommands = CommandHandler("")
         }
 
-        tryExtract("/res/$defaultMain.kts", Config.rootDir.resolve("$defaultMain.kts"))
-        tryExtract("/res/$defaultMain.ktc", Config.cacheFile(defaultMain, false))
+        ScriptRegistry.registries.add(BuiltinScriptRegistry)
         ScriptRegistry.scanRoot()
-
         val script = ScriptRegistry.findScriptInfo(Config.mainScript)
         if (script != null) runBlocking {
             ScriptManager.transaction {
@@ -73,12 +70,5 @@ class Main(private val loader: Plugin) : Plugin() {
             )
         }
         Log.info("&y===========================")
-    }
-
-    private fun tryExtract(from: String, to: File) {
-        if (to.exists()) return
-        to.parentFile.mkdirs()
-        val internal = javaClass.classLoader.getResourceAsStream(from) ?: return
-        to.writeBytes(internal.readBytes())
     }
 }

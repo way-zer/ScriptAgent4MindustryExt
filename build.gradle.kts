@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.zip.ZipFile
 
 plugins {
     kotlin("jvm") version "1.8.20"
@@ -154,29 +153,27 @@ tasks {
             println(archiveFile.get())
         }
     }
+    val destPrecompile = buildDir.resolve("tmp/scripts")
+    val destBuiltin = buildDir.resolve("tmp/builtinScripts")
     val precompile = create<JavaExec>("precompile") {
         dependsOn(buildPlugin)
         group = "plugin"
-        inputs.files(sourceSets.main.get().allSource)
-        outputs.files("scripts/cache")
-
         classpath(buildPlugin.outputs.files)
+        systemProperties["ScriptAgent.PreparePack"] = "true"
+
+        inputs.files(sourceSets.main.get().allSource)
+        outputs.dirs(destPrecompile, destBuiltin)
+        doFirst {
+            destPrecompile.deleteRecursively()
+            destBuiltin.deleteRecursively()
+        }
     }
     val precompileZip = create<Zip>("precompileZip") {
         dependsOn(precompile)
         group = "plugin"
         archiveClassifier.set("precompile")
 
-        from(file("scripts/cache")) {
-            include("**/*.ktc")
-        }
-        from(file("scripts")) {
-            exclude("cache")
-            exclude("metadata")
-            exclude("**/*.kts")
-            exclude("**/*.kt")
-            exclude("**/lib")
-        }
+        from(destPrecompile)
         doLast {
             println(archiveFile.get())
         }
@@ -188,21 +185,9 @@ tasks {
         archiveClassifier.set("allInOne")
         includeEmptyDirs = false
 
-
-        val metaFile = temporaryDir.resolve("PACKED")
-        outputs.file(metaFile)
-        doFirst {
-            val ktcFiles = ZipFile(precompileZip.outputs.files.singleFile)
-                .entries().asSequence()
-                .filter { it.name.endsWith(".ktc") }
-                .map { it.name }
-            metaFile.writeText(ktcFiles.joinToString("\n"))
-        }
-
         from(zipTree(buildPlugin.outputs.files.singleFile))
-        into("scripts") {
-            from(zipTree(precompileZip.outputs.files.singleFile))
-            from(metaFile)
+        from(destBuiltin) {
+            into("builtin")
         }
     }
 }
