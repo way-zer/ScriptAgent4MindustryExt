@@ -4,7 +4,6 @@ import arc.util.serialization.Base64Coder
 import cf.wayzer.placehold.DynamicVar
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
-import mindustry.gen.Groups
 import mindustry.net.Administration
 import java.security.MessageDigest
 import java.time.Duration
@@ -18,7 +17,16 @@ fun shortStr(str: String): String {
     }
 
     val bs = md5Md5(str.toByteArray())
-    return Base64Coder.encode(bs).sliceArray(0..2).concatToString()
+    return Base64Coder.encode(bs).sliceArray(0..2).map {
+        when (it) {
+            'k' -> 'K'
+            'S' -> 's'
+            'l' -> 'L'
+            '+' -> 'A'
+            '/' -> 'B'
+            else -> it
+        }
+    }.joinToString("")
 }
 
 @JvmName("shortIDExt")
