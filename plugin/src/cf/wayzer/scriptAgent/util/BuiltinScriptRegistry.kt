@@ -49,7 +49,11 @@ object BuiltinScriptRegistry : ScriptRegistry.IRegistry {
         //We only need scan once, as builtin won't update in runtime.
         if (cache == null) {
             val lines = BuiltinScriptRegistry::class.java.getResourceAsStream("/builtin/META")
-                ?.reader()?.useLines { it.toList() } ?: return emptyList()
+                ?.reader()?.useLines { it.toList() }
+            if (lines == null) {
+                cache = emptyMap()
+                return emptyList()
+            }
             //format: id(with moduleIdSuffix) md5 resources(split by ';')
             cache = lines.associate { line ->
                 val (idStr, md5, resourcesStr) = line.split(' ')
