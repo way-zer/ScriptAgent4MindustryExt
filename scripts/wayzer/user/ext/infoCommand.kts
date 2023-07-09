@@ -1,5 +1,7 @@
 package wayzer.user.ext
 
+import org.jetbrains.exposed.sql.transactions.transaction
+
 val template by config.key(
     """
     | [#DEA82A] {player.name} [#DEA82A]个人信息[]
@@ -33,6 +35,20 @@ command("info", "获取当前个人信息") {
         [yellow]绑定成功后,才能获取经验和使用更多功能
     """.trimIndent()
         reply(template.with("player" to player!!, "profileInfo" to profileInfo), MsgType.InfoMessage)
+    }
+}
+
+command("unbind", "解除绑定") {
+    type = CommandType.Client
+    aliases = listOf("解绑")
+    body {
+        val data = PlayerData[player!!.uuid()]
+        if (data.profile == null)
+            returnReply("[red]你还没有绑定呢".with())
+        withContext(Dispatchers.IO) {
+            transaction { data.unbind() }
+        }
+        player!!.kick("[green]解绑成功，请重新进服", 0)
     }
 }
 

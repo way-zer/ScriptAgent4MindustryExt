@@ -66,6 +66,11 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
             Usid.put(this, player.usid())
     }
 
+    @NeedTransaction
+    fun unbind(){
+        this.profileId = null
+    }
+
     fun secure(player: Player): Boolean {
         if (!Setting.checkUsid || profileId == null) return true
         val secure = Usid.get(this, player)
