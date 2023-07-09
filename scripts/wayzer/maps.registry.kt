@@ -2,7 +2,7 @@ package wayzer
 
 import cf.wayzer.scriptAgent.Event
 import cf.wayzer.scriptAgent.define.Script
-import cf.wayzer.scriptAgent.emit
+import cf.wayzer.scriptAgent.emitAsync
 import coreLibrary.lib.PlaceHoldString
 import coreMindustry.lib.ContentHelper
 import kotlinx.coroutines.flow.asFlow
@@ -37,18 +37,25 @@ data class MapInfo(
 
 abstract class MapProvider {
     /**should support "all"*/
+    @Deprecated("support search")
     open val supportFilter: Set<String> = baseFilter
 
     /**@param filter all is lowerCase */
-    abstract fun getMaps(filter: String = "all"): Collection<MapInfo>
+    @Deprecated("impl suspended one", ReplaceWith("searchMaps(filter)"), DeprecationLevel.WARNING)
+    open fun getMaps(filter: String = "all"): Collection<MapInfo> = emptyList()
+    open suspend fun searchMaps(search: String = "all"): Collection<MapInfo> {
+        @Suppress("DEPRECATION")
+        return if (search !in supportFilter) emptyList()
+        else getMaps(search)
+    }
 
     /**@param id may not exist in getMaps*/
     open suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)? = null): MapInfo? =
-        getMaps().find { it.id == id }
+        searchMaps().find { it.id == id }
 
     companion object {
         val baseFilter = setOf("all", "display", "pvp", "attack", "survive")
-        fun List<MapInfo>.filterWhen(b: Boolean, body: (MapInfo) -> Boolean): List<MapInfo> {
+        inline fun List<MapInfo>.filterWhen(b: Boolean, body: (MapInfo) -> Boolean): List<MapInfo> {
             return if (b) filter(body) else this
         }
 
@@ -75,10 +82,10 @@ object MapRegistry : MapProvider() {
         providers.add(provider)
     }
 
+    @Deprecated("support search")
     override val supportFilter: Set<String> get() = providers.flatMapTo(mutableSetOf()) { it.supportFilter }
-    override fun getMaps(filter: String) = providers.flatMapTo(mutableSetOf()) {
-        if (filter !in it.supportFilter) emptyList()
-        else it.getMaps(filter)
+    override suspend fun searchMaps(search: String): Collection<MapInfo> {
+        return providers.flatMapTo(mutableSetOf()) { it.searchMaps(search) }
     }
 
     /**Dispatch should be Dispatchers.game*/
@@ -86,14 +93,14 @@ object MapRegistry : MapProvider() {
         return providers.asFlow().map { it.findById(id, reply) }.filterNotNull().firstOrNull()
     }
 
-    fun nextMapInfo(previous: MapInfo? = null, mode: Gamemode = Gamemode.survival, filter: String = "all"): MapInfo {
-        val maps = getMaps(filter)
+    suspend fun nextMapInfo(previous: MapInfo? = null, mode: Gamemode = Gamemode.survival, filter: String = "all"): MapInfo {
+        val maps = searchMaps(filter)
         val next = maps.filter { it.mode == mode && it != previous }.randomOrNull()
             ?: maps.random()
         if (!SaveIO.isSaveValid(next.map.file)) {
             ContentHelper.logToConsole("[yellow]invalid map ${next.map.file.nameWithoutExtension()}, auto change")
             return nextMapInfo(previous, mode)
         }
-        return GetNextMapEvent(previous, next).emit().mapInfo
+        return GetNextMapEvent(previous, next).emitAsync().mapInfo
     }
 }

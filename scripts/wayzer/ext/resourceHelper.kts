@@ -2,19 +2,24 @@
 
 package wayzer.ext
 
-import arc.files.Fi
 import arc.struct.StringMap
+import arc.util.Http
+import arc.util.Strings
 import arc.util.serialization.JsonReader
 import arc.util.serialization.JsonValue
 import arc.util.serialization.JsonWriter
 import cf.wayzer.placehold.PlaceHoldApi.with
+import com.google.common.cache.CacheBuilder
 import mindustry.game.Gamemode
+import mindustry.io.SaveIO
+import mindustry.maps.Map
 import wayzer.MapInfo
 import wayzer.MapProvider
 import wayzer.MapRegistry
-import java.io.ByteArrayInputStream
-import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
+import java.time.Duration
+import java.util.zip.InflaterInputStream
 import mindustry.maps.Map as MdtMap
 
 name = "资源站配套脚本"
@@ -38,9 +43,57 @@ fun JsonValue.toStringMap() = StringMap().apply {
     } while (node != null)
 }
 
+suspend fun httpGet(url: String) = withContext(Dispatchers.IO) {
+    lateinit var result: JsonValue
+    Http.get(url)
+        .block { result = JsonReader().parse(it.resultAsString) }
+    return@withContext result
+}
+
+fun loadMap(map: Map, hash: String) {
+    val url = URL("$webRoot/api/maps/$hash/downloadServer?token=$token")
+    url.openConnection()
+        .apply { readTimeout = 10_000 }
+        .getInputStream().use { stream ->
+            @Suppress("INACCESSIBLE_TYPE")
+            SaveIO.load(InflaterInputStream(stream), world.filterContext(map))
+        }
+}
+
+fun newMapInfo(id: Int, hash: String, tags: StringMap, mode: String): MapInfo {
+    val mode2 = Gamemode.all.find { it.name.equals(mode, ignoreCase = true) }
+        ?: Gamemode.survival.takeUnless { mode.equals("unknown", true) }
+    val map = Map(customMapDirectory.child("unknown"), tags.getInt("width"), tags.getInt("height"), tags, true).apply {
+        resourceId = hash
+    }
+    return MapInfo(id, map, mode2 ?: map.rules().mode()) {
+        loadMap(map, hash)
+        if (state.teams.getActive().none { it.hasCore() })
+            error("Map has no cores!")
+    }
+}
+
+val searchCache = CacheBuilder.newBuilder()
+    .expireAfterWrite(Duration.ofHours(1))
+    .build<String, List<MapInfo>>()!!
+
 MapRegistry.register(this, object : MapProvider() {
-    override fun getMaps(filter: String): Collection<MapInfo> {
-        return emptyList()
+    override suspend fun searchMaps(search: String): Collection<MapInfo> {
+        if (!tokenOk) return emptyList()
+        val mappedSearch = when (search) {
+            "all", "display", "site" -> ""
+            "pvp", "attack", "survive" -> "@mode:${Strings.capitalize(search)}"
+            else -> search
+        }
+        searchCache.getIfPresent(mappedSearch)?.let { return it }
+        val maps = httpGet("$webRoot/api/maps/list?prePage=100&search=${URLEncoder.encode(mappedSearch, "utf-8")}")
+            .map {
+                val id = it.getInt("id")
+                val hash = it.getString("latest")
+                newMapInfo(id, hash, it.toStringMap(), it.getString("mode", "unknown"))
+            }
+        searchCache.put(mappedSearch, maps)
+        return maps
     }
 
     override suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)?): MapInfo? {
@@ -50,38 +103,10 @@ MapRegistry.register(this, object : MapProvider() {
             return null
         }
         return withContext(Dispatchers.IO) {
-            val info = let {
-                val infoUrl = "$webRoot/api/maps/thread/$id/latest"
-                val infoCon = URL(infoUrl).openConnection() as HttpURLConnection
-                infoCon.connect()
-                if (infoCon.responseCode != HttpURLConnection.HTTP_OK) {
-                    launch(Dispatchers.game) {
-                        reply?.invoke("[red]网络地图加载失败,请稍后再试:{msg}".with("msg" to infoCon.responseMessage))
-                    }
-                    return@withContext null
-                }
-                infoCon.inputStream.use { JsonReader().parse(it.readBytes().decodeToString()) }
-            }
+            val info = httpGet("$webRoot/api/maps/thread/$id/latest")
             val hash = info.getString("hash")
             val tags = info.get("tags").toStringMap()
-            val mode = info.getString("mode", "unknown").let { mode ->
-                if (mode.equals("unknown", true)) return@let null
-                Gamemode.all.find { it.name.equals(mode, ignoreCase = true) } ?: Gamemode.survival
-            }
-
-            val map = mindustry.maps.Map(object : Fi("file.msav") {
-                val downloadUrl = "$webRoot/api/maps/$hash/downloadServer?token=$token"
-                val bytes by lazy {
-                    URL(downloadUrl).openConnection().apply {
-                        readTimeout = 10_000
-                    }.getInputStream().readBytes()
-                }
-
-                override fun read() = ByteArrayInputStream(bytes)
-                override fun exists() = true
-            }, tags.getInt("width", 0), tags.getInt("height"), tags, true)
-            map.resourceId = hash
-            MapInfo(id, map, mode ?: map.rules().mode())
+            newMapInfo(id, hash, tags, info.getString("mode", "unknown"))
         }
     }
 })

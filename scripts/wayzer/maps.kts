@@ -19,7 +19,8 @@ val mapsPrePage by config.key(9, "/maps每页显示数")
 
 MapRegistry.register(this, object : MapProvider() {
     override val supportFilter = baseFilter + "internal"
-    override fun getMaps(filter: String): Collection<MapInfo> {
+    override suspend fun searchMaps(search: String): Collection<MapInfo> {
+        if (search !in supportFilter) return emptyList()
         maps.reload()
         var enableIntern = configEnableInternMaps
         if (!enableIntern && maps.customMaps().isEmpty) {
@@ -29,8 +30,8 @@ MapRegistry.register(this, object : MapProvider() {
         val mapList = if (enableIntern) maps.all() else maps.customMaps()
         return mapList.sortedBy { it.file.lastModified() }
             .mapIndexed { i, map -> MapInfo(i + 1, map, bestMode(map)) }
-            .filterWhen(!enableIntern && filter != "all") { it.map.custom }
-            .filterByMode(filter)
+            .filterWhen(!enableIntern && search != "all") { it.map.custom }
+            .filterByMode(search)
     }
 
     private fun bestMode(map: mindustry.maps.Map): Gamemode {
@@ -67,14 +68,8 @@ command("maps", "列出服务器地图") {
     aliases = listOf("地图")
     body {
         val page = arg.lastOrNull()?.toIntOrNull() ?: 1
-        val filter = arg.getOrNull(0)?.toLowerCase()?.let { filter ->
-            if (filter.matches(Regex("\\d+"))) return@let null
-            if (filter !in MapRegistry.supportFilter.map { it.toLowerCase() }) {
-                returnReply("[red]支持的选择器:[green]{list:, }".with("list" to MapRegistry.supportFilter))
-            }
-            filter
-        } ?: "display"
-        val maps = MapRegistry.getMaps(filter).sortedBy { it.id }
+        val filter = arg.getOrNull(0) ?: "display"
+        val maps = MapRegistry.searchMaps(filter).sortedBy { it.id }
         val template = "[red]{info.id}  [green]{info.map.name}[blue] | {info.mode}"
         val player = player ?: returnReply(menu("服务器地图 By WayZer", maps, page, mapsPrePage) { info ->
             template.with("info" to info)
@@ -87,7 +82,7 @@ command("maps", "列出服务器地图") {
             }
 
             override suspend fun build() {
-                title = "服务器地图"
+                title = "服务器地图($filter)"
                 msg = "SA4Mindustry By WayZer\n" +
                         "点击选项可发起投票换图"
                 val url = "https://mdt.wayzer.top"
@@ -129,19 +124,20 @@ listen<EventType.GameOverEvent> { event ->
         if (state.rules.pvp) "&lcGame over! Team &ly${event.winner.name}&lc is victorious with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
         else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
     )
-    if (GameOverEvent(event.winner).emit().cancelled) return@listen
-    val map = MapRegistry.nextMapInfo(MapManager.current)
-    val winnerMsg: Any =
-        if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
-    val msg = """
+    launch(Dispatchers.game) {
+        if (GameOverEvent(event.winner).emitAsync().cancelled) return@launch
+        val map = MapRegistry.nextMapInfo(MapManager.current)
+        val winnerMsg: Any =
+            if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
+        val msg = """
                 | [SCARLET]游戏结束![]"
                 | {winnerMsg}
                 | 下一张地图为:[accent]{nextMap.name}[] By: [accent]{nextMap.author}[]
                 | 下一场游戏将在 {waitTime} 秒后开始
             """.trimMargin().with("nextMap" to map.map, "winnerMsg" to winnerMsg, "waitTime" to waitingTime.seconds)
-    broadcast(msg, gameOverMsgType, quite = true)
-    ContentHelper.logToConsole("Next Map is ${map.map.name()}(ID:${map.id})")
-    launch {
+        broadcast(msg, gameOverMsgType, quite = true)
+        ContentHelper.logToConsole("Next Map is ${map.map.name()}(ID:${map.id})")
+
         val now = state.map
         delay(waitingTime.toMillis())
         if (state.map != now) return@launch//已经通过其他方式换图
