@@ -1,0 +1,5 @@
+ID mapScript/shared/posMark
+FQ_NAME mapScript.shared.PosMark
+NAME PosMark Script
+SOURCE_MD5 3c637b0e762c7f01010a165d06e7d06
++DEPENDS mapScript module

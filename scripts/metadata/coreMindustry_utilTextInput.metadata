@@ -1,0 +1,5 @@
+ID coreMindustry/utilTextInput
+FQ_NAME coreMindustry.UtilTextInput
+NAME UtilTextInput Script
+SOURCE_MD5 313009dee7ab4dca8ab60053520bbea0
++DEPENDS coreMindustry module

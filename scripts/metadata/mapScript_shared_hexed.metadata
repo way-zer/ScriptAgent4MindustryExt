@@ -1,0 +1,6 @@
+ID mapScript/shared/hexed
+FQ_NAME mapScript.shared.Hexed
+NAME Hexed Script
+SOURCE_MD5 62a460ac34a7c07fcf53f3b61e223f75
++DEPENDS mapScript module
++DEPENDS wayzer/map/betterTeam 队伍分配

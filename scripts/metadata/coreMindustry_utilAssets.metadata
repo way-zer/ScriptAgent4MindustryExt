@@ -1,0 +1,7 @@
+ID coreMindustry/utilAssets
+FQ_NAME coreMindustry.UtilAssets
+NAME UtilAssets Script
+SOURCE_MD5 -2c03897eaeb572431c4a7603ab761eef
++DEPENDS coreMindustry module
++IMPORT MavenDependsSingle com.github.Tinylake.MindustryX:core:d55d3085:assets
++IMPORT MavenRepository https://www.jitpack.io/
