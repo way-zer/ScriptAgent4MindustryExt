@@ -13,7 +13,6 @@ import wayzer.user.UserService
 import java.io.Serializable
 import java.time.Duration
 import kotlin.math.ceil
-import kotlin.math.min
 
 class GameoverStatisticsEvent(
     var data: List<StatisticsData>//sorted by score
@@ -26,7 +25,6 @@ data class StatisticsData(
     var name: String = "",
     var playedTime: Int = 0,
     var idleTime: Int = 0,
-    var buildScore: Float = 0f,
     var breakBlock: Int = 0,
     @Transient var pvpTeam: Team = Team.sharded
 ) : Serializable {
@@ -38,7 +36,6 @@ data class StatisticsData(
     fun cal(winTeam: Team) {
         win = state.rules.pvp && pvpTeam == winTeam
         score = playedTime - 0.8 * idleTime +
-                0.6 * min(buildScore, 0.75f * playedTime) +
                 if (win) 600 * (1 - idleTime / playedTime) else 0
         exp = ceil((score * 15 / 3600).coerceAtMost(60.0)).toInt()//3600点积分为15,40封顶
     }
@@ -66,10 +63,6 @@ listen<EventType.ResetEvent> { statisticsData.clear() }
 registerVarForType<StatisticsData>().apply {
     registerChild("playedTime", "本局在线时间", DynamicVar.obj { Duration.ofSeconds(it.playedTime.toLong()) })
     registerChild("idleTime", "本局在线时间", DynamicVar.obj { Duration.ofSeconds(it.idleTime.toLong()) })
-    registerChild("buildScore", "建筑积分") { _, obj, p ->
-        if (!p.isNullOrBlank()) p.format(obj.buildScore)
-        else obj.buildScore
-    }
     registerChild("score", "综合得分", DynamicVar.obj { it.score })
     registerChild("breakBlock", "破坏方块数", DynamicVar.obj { it.breakBlock })
 }
@@ -103,14 +96,6 @@ onEnable {
         }
     }
 }
-listen<EventType.BlockBuildEndEvent> {
-    it.unit?.player?.data?.apply {
-        if (it.breaking)
-            breakBlock++
-        else
-            buildScore += it.tile.block().buildScore
-    }
-}
 
 //region gameOver
 listen<EventType.GameOverEvent> { event ->
@@ -140,7 +125,7 @@ fun onGameOver(winner: Team) {
 
         val totalTime = sortedData.sumOf { it.playedTime - it.idleTime }
         val list = sortedData.map {
-            "{pvpState}{name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟}/{statistics.buildScore:%.1f})".with(
+            "{pvpState}{name}[white]({statistics.playedTime:分钟}/{statistics.idleTime:分钟})".with(
                 "name" to it.name, "statistics" to it, "pvpState" to if (it.win) "[green][胜][]" else ""
             )
         }
@@ -150,7 +135,7 @@ fun onGameOver(winner: Team) {
             [yellow]总游戏时长: [white]{state.mapTime:分钟}
             [yellow]本局游戏时长: [white]{state.gameTime:分钟}
             [yellow]有效总贡献时长: [white]{totalTime:分钟}
-            [yellow]贡献排行榜(时长/挂机/建筑): [white]{list}
+            [yellow]贡献排行榜(时长/挂机): [white]{list}
             """.trimIndent()
                 .with("totalTime" to Duration.ofSeconds(totalTime.toLong()), "list" to list)
         )
