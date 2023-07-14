@@ -21,6 +21,7 @@ data class AssignTeamEvent(val player: Player, val group: Iterable<Player>, val 
     companion object : Event.Handler()
 }
 
+@Deprecated("not manage teams state")
 data class ChangeTeamEvent(val player: Player, var team: Team) : Event {
     override val handler: Event.Handler get() = Companion
 
@@ -29,23 +30,22 @@ data class ChangeTeamEvent(val player: Player, var team: Team) : Event {
 
 val spectateTeam = Team.all[255]!!
 val allTeam: Set<Team>
-    get() = state.teams.getActive().mapTo(mutableSetOf()) { it.team }.apply {
-        remove(Team.derelict)
-        removeIf { !it.data().hasCore() }
-        removeAll(bannedTeam)
+    get() {
+        if (!state.rules.pvp) return setOf(state.rules.defaultTeam)
+        return state.teams.getActive().mapTo(mutableSetOf()) { it.team }.apply {
+            remove(Team.derelict)
+            removeIf { !it.data().hasCore() }
+            removeAll(bannedTeam)
+        }
     }
 
-@Savable(false)
-val teams = mutableMapOf<String, Team>()
-customLoad(::teams, teams::putAll)
+val offlineSave = mutableMapOf<String, Team>()
 var bannedTeam = emptySet<Team>()
 
 onEnable {
     val backup = netServer.assigner
     netServer.assigner = NetServer.TeamAssigner { p, g ->
-        ChangeTeamEvent(p, randomTeam(p, g)).emit().team.also {
-            teams[p.uuid()] = it
-        }
+        ChangeTeamEvent(p, randomTeam(p, g)).emit().team
     }
     onDisable { netServer.assigner = backup }
     updateBannedTeam(true)
@@ -53,8 +53,9 @@ onEnable {
 listen<EventType.PlayEvent> { updateBannedTeam(true) }
 listen<EventType.ResetEvent> {
     bannedTeam = emptySet()
-    teams.clear()
+    offlineSave.clear()
 }
+listen<EventType.PlayerLeave> { offlineSave[it.player.uuid()] = it.player.team() }
 //custom gameover
 listen<EventType.BlockDestroyEvent> { e ->
     if (state.gameOver || !state.rules.pvp) return@listen
@@ -85,9 +86,9 @@ fun updateBannedTeam(force: Boolean = false) {
  */
 fun randomTeam(player: Player, group: Iterable<Player> = Groups.player): Team {
     val allTeam = allTeam
-    if (teams[player.uuid()]?.run { this != spectateTeam && this !in allTeam } == true)
-        teams.remove(player.uuid())
-    val fromEvent = AssignTeamEvent(player, group, teams[player.uuid()]).emit().team
+    val bak = offlineSave.remove(player.uuid())
+        ?.takeIf { it in allTeam }
+    val fromEvent = AssignTeamEvent(player, group, bak).emit().team
     if (fromEvent != null) return fromEvent
     if (!state.rules.pvp) return state.rules.defaultTeam
     return allTeam.shuffled()
@@ -97,10 +98,8 @@ fun randomTeam(player: Player, group: Iterable<Player> = Groups.player): Team {
 
 fun changeTeam(p: Player, team: Team = randomTeam(p)) {
     val newTeam = ChangeTeamEvent(p, team).emit().team
-    teams[p.uuid()] = newTeam
     p.clearUnit()
     p.team(newTeam)
-    p.clearUnit()
 }
 
 export(::changeTeam)
