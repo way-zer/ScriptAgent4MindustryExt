@@ -8,6 +8,7 @@ import cf.wayzer.placehold.PlaceHoldApi
 import coreLibrary.lib.util.loop
 import mindustry.game.Team
 import mindustry.world.Block
+import org.jetbrains.exposed.sql.transactions.transaction
 import wayzer.MapChangeEvent
 import wayzer.user.UserService
 import java.io.Serializable
@@ -141,12 +142,14 @@ fun onGameOver(winner: Team) {
         )
 
         if (sortedData.isNotEmpty() && gameTime > Duration.ofMinutes(15)) withContext(Dispatchers.IO) {
-            sortedData.groupBy { PlayerData.findByIdWithTransaction(it.uuid)?.profile }
-                .forEach { (profile, data) ->
-                    if (profile == null) return@forEach
-                    val best = data.maxBy { it.score }
-                    userService.updateExp(profile, best.exp, "游戏结算")
-                }
+            transaction {
+                sortedData.groupBy { PlayerData.findByIdWithTransaction(it.uuid)?.profile }
+                    .forEach { (profile, data) ->
+                        if (profile == null) return@forEach
+                        val best = data.maxBy { it.score }
+                        userService.updateExp(profile, best.exp, "游戏结算")
+                    }
+            }
         }
     }
 }

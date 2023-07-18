@@ -51,6 +51,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
 
     @WithTransactionHelper
     fun onQuit(player: Player) {
+        if (player != this.player) return
         this.player = null
         if (secure(player)) TransactionHelper.lateUpdate {
             lastTime = Instant.now()
@@ -67,7 +68,7 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
     }
 
     @NeedTransaction
-    fun unbind(){
+    fun unbind() {
         this.profileId = null
     }
 
@@ -156,21 +157,19 @@ class PlayerData(id: EntityID<String>) : Entity<String>(id) {
 
         @NeedTransaction
         fun findOrCreate(uuid: String, address: String, name: String) =
-            findByIdWithTransaction(uuid) ?: transaction {
-                new(uuid) {
+            findByIdWithTransaction(uuid)
+                ?: new(uuid) {
                     firstIP = address
                     lastIp = address
                     lastName = Strings.stripColors(name)
-                }.also { it.flush() }
-            }.also { putCache(uuid, it) }
+                }.also { it.flush(); putCache(uuid, it) }
 
         /**Must call after findOrCreate or null*/
         override fun findById(id: EntityID<String>): PlayerData? = cache.getIfPresent(id.value)
             ?: realCache[id.value]?.also { cache.put(id.value, it) }
 
         @NeedTransaction
-        fun findByIdWithTransaction(id: String) = findById(id) ?: transaction {
-            super.findById(EntityID(id, T))
-        }?.also { putCache(id, it) }
+        fun findByIdWithTransaction(id: String) = findById(id)
+            ?: super.findById(EntityID(id, T))?.also { putCache(id, it) }
     }
 }
