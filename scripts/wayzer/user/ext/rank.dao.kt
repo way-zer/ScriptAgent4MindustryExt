@@ -1,7 +1,5 @@
 package wayzer.user.ext
 
-import coreLibrary.lib.PlaceHoldString
-import coreLibrary.lib.with
 import mindustry.gen.Player
 import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.dao.id.EntityID
@@ -109,13 +107,13 @@ object RankData : IdTable<Int>("RankData") {
         }
     }
 
+    data class RankResult(val name: String, val rank: Int, val value: Int)
+
     class RankStatement(
         private val field: Column<Int>,
         private val checkWeek: Boolean,
         private val p: Player?,
-        private val valueMap: (Int) -> Any
-    ) :
-        Statement<List<PlaceHoldString>>(StatementType.SELECT, emptyList()) {
+    ) : Statement<List<RankResult>>(StatementType.SELECT, emptyList()) {
         override fun arguments(): Iterable<Iterable<Pair<IColumnType, Any>>> {
             val profile = p?.let { PlayerData[it.uuid()].profile?.id?.value } ?: -1
             return listOf(listOf(IntegerColumnType() to profile))
@@ -123,14 +121,12 @@ object RankData : IdTable<Int>("RankData") {
 
         override fun prepareSQL(transaction: Transaction) = QueryBuilder(true).apply {
             append("with t as (select ")
-            listOf(RankData.id, RankData.name, field, RankFunction(field)).appendTo { +it }
+            listOf(id, name, field, RankFunction(field)).appendTo { +it }
             append(" from ")
             RankData.describe(transaction, this)
             if (checkWeek) {
                 append(" where ")
-                +SqlExpressionBuilder.run {
-                    RankData.week eq RankData.CurrentWeek()
-                }
+                +SqlExpressionBuilder.run { week eq CurrentWeek() }
             }
             append(')')
 
@@ -140,14 +136,15 @@ object RankData : IdTable<Int>("RankData") {
             append("(select * from t where t.id = ?)")
         }.toString()
 
-        override fun PreparedStatementApi.executeInternal(transaction: Transaction): List<PlaceHoldString> {
+        override fun PreparedStatementApi.executeInternal(transaction: Transaction): List<RankResult> {
             val set = executeQuery()
-            return mutableListOf<PlaceHoldString>().apply {
+            return buildList {
                 while (set.next()) {
-                    val rank = set.getInt("rank").toString().padStart(2, ' ')
-                    val name = set.getString("name")
-                    val value = valueMap(set.getInt(field.name))
-                    add("{rank}: {name} {value}".with("rank" to rank, "name" to name, "value" to value))
+                    this += RankResult(
+                        name = set.getString("name"),
+                        rank = set.getInt("rank"),
+                        value = set.getInt(field.name)
+                    )
                 }
             }
         }
