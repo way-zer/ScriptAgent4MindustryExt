@@ -51,6 +51,7 @@ object BuiltinScriptRegistry : ScriptRegistry.IRegistry {
             val lines = BuiltinScriptRegistry::class.java.getResourceAsStream("/builtin/META")
                 ?.reader()?.useLines { it.toList() }
             if (lines == null) {
+                Config.logger.warning("BuiltinScriptRegistry found no scripts")
                 cache = emptyMap()
                 return emptyList()
             }
@@ -62,8 +63,9 @@ object BuiltinScriptRegistry : ScriptRegistry.IRegistry {
                 val resources = resourcesStr.takeUnless { it.isEmpty() }?.split(';')?.associate {
                     it.split(':').run { get(0) to get(1) }
                 }.orEmpty()
-                md5 to BuiltinScriptSource(ScriptInfo.getOrCreate(id), isModule, md5, resources)
+                id to BuiltinScriptSource(ScriptInfo.getOrCreate(id), isModule, md5, resources)
             }
+            Config.logger.info("BuiltinScriptRegistry found ${cache!!.size} scripts")
         }
         return cache!!.values.toList()
     }
