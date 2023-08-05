@@ -19,10 +19,9 @@ jobs:
           deno-version: v1.x
       - name: Generate Changelog
         id: changelog
-        run: deno .github/actions/changelog.ts
-        with:
-          token: ${{ github.token }}
-
+        run: deno run -A .github/actions/changelog.ts
+        env:
+          INPUT_TOKEN: ${{ github.token }}
 
       - uses: actions/cache@v2
         with:
