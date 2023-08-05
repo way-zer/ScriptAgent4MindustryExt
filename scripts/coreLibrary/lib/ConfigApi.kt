@@ -23,6 +23,7 @@ import io.github.config4k.toConfig
 import java.io.File
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.properties.PropertyDelegateProvider
 import kotlin.reflect.KProperty
 
 open class ConfigBuilder(private val path: String, val script: Script?) {
@@ -56,9 +57,10 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
             error("Wrong config type: $path get $v")
         }
 
-        fun set(v: T) {
+        fun set(v: T, saveDefault: Boolean = false) {
             cache(v)
-            modifyFile(path, v.toConfigValue().withOrigin(ConfigOriginFactory.newSimple().withComments(desc)))
+            val write = if (!saveDefault && v == default) null else v.toConfigValue()
+            modifyFile(path, write?.withOrigin(ConfigOriginFactory.newSimple().withComments(desc)))
         }
 
         /**
@@ -66,16 +68,13 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
          */
         fun reset() {
             if (!fileConfig.hasPath(path)) return
-            fileConfig = fileConfig.withoutPath(path)
-            saveFile()
+            set(default)
         }
 
         /**
          * 写入默认值到文件中
          */
-        fun writeDefault() {
-            set(default)
-        }
+        fun writeDefault() = set(default, saveDefault = true)
 
         fun getString(): String {
             return get().toConfigValue().render(renderConfig)
@@ -133,20 +132,25 @@ open class ConfigBuilder(private val path: String, val script: Script?) {
         return key
     }
 
+    inner class KeyProvider<T : Any>(val type: ClassContainer, val default: T, val desc: Array<out String>) :
+        PropertyDelegateProvider<Any?, ConfigKey<T>> {
+        override fun provideDelegate(thisRef: Any?, property: KProperty<*>): ConfigKey<T> {
+            val script: Script = when {
+                thisRef is Script -> thisRef
+                this@ConfigBuilder.script != null -> this@ConfigBuilder.script
+                else -> error("Can't get script in context")
+            }
+            return key(script, property.name, type, default, *desc, onChange = null)
+        }
+    }
+
     /**
      * The most commonly used api
      * Example(in script)
      * val port by config.key(8080,"示例配置项")
      */
     inline fun <reified T : Any> key(default: T, vararg desc: String) =
-        DSLBuilder.Companion.ProvideDelegate<Any?, ConfigKey<T>> { obj, name ->
-            val script: Script = when {
-                obj is Script -> obj
-                this.script != null -> this.script
-                else -> error("Can't get script in context")
-            }
-            key(script, name, ClassContainer<T>(), default, *desc, onChange = null)
-        }
+        KeyProvider(ClassContainer<T>(), default, desc)
 
     /**
      * commonly only use [onChange] not return

@@ -1,5 +1,5 @@
 ID coreLibrary/lang
 FQ_NAME coreLibrary.Lang
 NAME 国际化多语言
-SOURCE_MD5 -5351beee4ad227836b5bcb3551171c0a
+SOURCE_MD5 acae4111b52dd87c94a434caaee8e3f6
 +DEPENDS coreLibrary module

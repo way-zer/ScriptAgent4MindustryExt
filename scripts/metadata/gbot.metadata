@@ -1,7 +1,7 @@
 ID gbot
 FQ_NAME gbot.Module
 NAME Module Module
-SOURCE_MD5 -230c0af8c1d1ab4952965489e5ac48ae
+SOURCE_MD5 d59477cc3aa664c759d6e81ca768a1e4
 +DEPENDS coreLibrary 
-+IMPORT MavenDepends love.forte.simbot.component:simbot-component-qq-guild-core:3.0.0.0-alpha.8
-+IMPORT MavenDepends love.forte.simbot:simbot-core:3.1.0
++IMPORT MavenDepends love.forte.simbot.component:simbot-component-qq-guild-core:3.1.0.0-alpha.9
++IMPORT MavenDepends love.forte.simbot:simbot-core:3.2.0

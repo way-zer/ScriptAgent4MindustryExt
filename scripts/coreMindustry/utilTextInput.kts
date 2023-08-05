@@ -4,9 +4,7 @@ import coreLibrary.lib.util.nextEvent
 import mindustry.game.EventType.TextInputEvent
 import kotlin.random.Random
 
-data class OnTextInputResult(val player: Player, val id: Int, val text: String?) : Event, Event.Cancellable {
-    override var cancelled: Boolean = false
-
+data class OnTextInputResult(val player: Player, val id: Int, val text: String?) : Event {
     companion object : Event.Handler()
 }
 

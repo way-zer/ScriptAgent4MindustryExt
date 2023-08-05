@@ -1,7 +1,7 @@
 ID coreLibrary
 FQ_NAME coreLibrary.Module
 NAME ScriptAgent 库模块
-SOURCE_MD5 -344358de8277007312c9f7e4cffcbd10
+SOURCE_MD5 4307b40623a537534052066d140ad8d0
 +IMPORT DefaultImport coreLibrary.lib.*
 +IMPORT MavenDependsSingle cf.wayzer:PlaceHoldLib:6.0
 +IMPORT MavenDependsSingle com.typesafe:config:1.3.3

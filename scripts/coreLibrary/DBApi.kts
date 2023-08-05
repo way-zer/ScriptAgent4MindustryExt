@@ -97,7 +97,7 @@ object DB : ServiceRegistry<Database>() {
     @Synchronized
     internal fun initDB(db: Database) {
         TransactionManager.defaultDatabase = db
-        val allTable = ScriptManager.allScripts { it.inst?.dslExists(key) == true }
+        val allTable = ScriptRegistry.allScripts { it.inst?.dslExists(key) == true }
             .flatMapTo(mutableSetOf()) { it.inst!!.registeredTable }
 
         transaction {

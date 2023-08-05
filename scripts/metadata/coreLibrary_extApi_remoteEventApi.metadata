@@ -1,6 +1,6 @@
 ID coreLibrary/extApi/remoteEventApi
 FQ_NAME coreLibrary.extApi.RemoteEventApi
 NAME RemoteEventApi Script
-SOURCE_MD5 -23b05128ec63d1cd6870e88ff840e17
+SOURCE_MD5 fdc4faed7139c2e32978f177007bf1e9
 +DEPENDS coreLibrary module
 +DEPENDS coreLibrary/extApi/redisApi 基于redis

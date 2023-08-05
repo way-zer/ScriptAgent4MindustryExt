@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.20"
+    kotlin("jvm") version "1.9.0"
     id("me.qoomon.git-versioning") version "2.1.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -60,8 +60,8 @@ repositories {
 }
 
 dependencies {
-    val libraryVersion = "1.10.4.4"
-    val mindustryVersion = "v145.103"
+    val libraryVersion = "1.10.5.1"
+    val mindustryVersion = "d226209aa1"
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
     pluginImplementation("cf.wayzer:LibraryManager:1.6")
@@ -97,7 +97,7 @@ dependencies {
     implementation("cf.wayzer:ContentsTweaker:v2.0.1")
 
     //mirai
-    implementation("net.mamoe:mirai-core-api-jvm:2.15.0-M1")
+    implementation("net.mamoe:mirai-core-api-jvm:2.15.0")
     //wayzer
     implementation("com.google.guava:guava:30.1-jre")
 }

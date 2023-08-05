@@ -13,7 +13,7 @@ onEnable {
             val detail = checkArg("-v")
             val page = arg.firstOrNull()?.toIntOrNull() ?: 1
             val all = mutableListOf<VarInfo>()
-            ScriptManager.allScripts { true }.sortedBy { it.id }.forEach { script ->
+            ScriptRegistry.allScripts().sortedBy { it.id }.forEach { script ->
                 script.inst?.registeredVars?.mapTo(all) { (key, desc) ->
                     VarInfo(script, key, desc)
                 }
