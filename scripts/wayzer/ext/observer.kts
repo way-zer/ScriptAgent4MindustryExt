@@ -59,6 +59,7 @@ command("ob", "切换为观察者") {
             ?: return@body
         when (team) {
             Team.derelict -> {
+                teams.changeTeam(player, teams.spectateTeam)
                 obTeam.remove(player)
                 teams.changeTeam(player)
                 broadcast(

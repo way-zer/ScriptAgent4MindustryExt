@@ -73,7 +73,7 @@ fun updateBannedTeam(force: Boolean = false) {
 
 fun randomTeam(player: Player, group: Iterable<Player> = Groups.player): Team {
     val allTeam = allTeam
-    val bak = (offlineSave.remove(player.uuid()) ?: player.team())
+    val bak = (offlineSave.remove(player.uuid()) ?: player.team().takeUnless { player.dead() })
         ?.takeIf { it in allTeam }
     val fromEvent = Dispatchers.game.safeBlocking { AssignTeamEvent(player, group, bak).emitAsync() }.team
     if (fromEvent != null) return fromEvent

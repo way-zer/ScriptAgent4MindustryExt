@@ -64,7 +64,7 @@ onEnable {
                     }
                     "write" -> {
                         config.writeDefault()
-                        reply("[green]写入文件成功成功".with())
+                        reply("[green]写入文件成功".with())
                     }
                     "set" -> {
                         if (arg.size <= 2) returnReply("[red]请输入值".with())

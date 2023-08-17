@@ -1,7 +1,6 @@
 package main
 //WayZer 版权所有(请勿删除版权注解)
 import arc.graphics.Color
-import mindustry.content.Fx
 import mindustry.entities.Effect
 
 name = "扩展功能: 显示粒子效果"
