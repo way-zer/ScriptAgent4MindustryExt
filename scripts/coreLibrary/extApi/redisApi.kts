@@ -1,4 +1,4 @@
-@file:Import("redis.clients:jedis:4.3.1", mavenDepends = true)
+@file:Import("redis.clients:jedis:4.4.3", mavenDepends = true)
 
 package coreLibrary.extApi
 

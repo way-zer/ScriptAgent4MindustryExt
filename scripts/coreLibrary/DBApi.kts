@@ -1,7 +1,7 @@
-@file:Import("org.jetbrains.exposed:exposed-core:0.40.1", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-dao:0.40.1", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-java-time:0.40.1", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-jdbc:0.40.1", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-core:0.41.1", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-dao:0.41.1", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-java-time:0.41.1", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-jdbc:0.41.1", mavenDepends = true)
 
 package coreLibrary
 
@@ -88,7 +88,7 @@ object DB : ServiceRegistry<Database>() {
     @ScriptDsl
     fun Script.registerTable(vararg t: Table) {
         registeredTable.addAll(t)
-        if (DB.provided)
+        if (provided)
             transaction {
                 withDataBaseLock { initTable(t.asIterable()) }
             }

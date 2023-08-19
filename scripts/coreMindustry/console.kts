@@ -48,7 +48,7 @@ class MyPrintStream(private val block: (String) -> Unit) : PrintStream(ByteArray
 object MyCompleter : Completer {
     override fun complete(reader: LineReader, line: ParsedLine, candidates: MutableList<Candidate>) {
         val cmd = line.line().substring(0, line.cursor()).split(' ')
-        runBlocking {
+        runBlocking(Dispatchers.game) {
             candidates += RootCommands.tabComplete(null, cmd).map {
                 Candidate(it)
             }
@@ -87,11 +87,13 @@ suspend fun handleInput(reader: LineReader) {
         }
         last = 0
         if (line.isEmpty()) continue
-        try {
-            RootCommands.handleInput(line, null)
-        } catch (e: Throwable) {
-            logger.log(Level.SEVERE, "error when handle input", e)
-        }
+        launch(Job()) {//ignore cancel
+            try {
+                RootCommands.handleInput(line, null)
+            } catch (e: Throwable) {
+                logger.log(Level.SEVERE, "error when handle input", e)
+            }
+        }.join()
     }
 }
 
@@ -102,7 +104,10 @@ fun start() {
     started = true
     launch(Dispatchers.IO + CoroutineName("Console Reader")) {
         reader = withContextClassloader {
-            LineReaderBuilder.builder().completer(MyCompleter).build()
+            LineReaderBuilder.builder()
+                .completer(MyCompleter)
+                .variable(LineReader.HISTORY_FILE,Config.cacheDir.resolve("console.history"))
+                .build()
         }
         val bakOut = System.out
         System.setOut(MyPrintStream {
@@ -112,6 +117,7 @@ fun start() {
             handleInput(reader)
         } finally {
             System.setOut(bakOut)
+            reader.terminal.close()
         }
     }
 }
