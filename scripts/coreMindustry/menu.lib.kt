@@ -67,6 +67,12 @@ open class MenuBuilder<T : Any>(
         callback.add(body)
     }
 
+    //when menu close by esc
+    @MenuBuilderDsl
+    fun default(body: suspend () -> T) {
+        callback.add(-1, body)
+    }
+    
     @MenuBuilderDsl
     suspend fun lazyOption(body: suspend FlagOptionBuilder.() -> T) {
         val name = FlagOptionBuilder().let {
