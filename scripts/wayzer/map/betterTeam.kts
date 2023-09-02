@@ -4,6 +4,7 @@ import arc.Events
 import mindustry.core.NetServer
 import mindustry.game.Team
 import mindustry.world.blocks.storage.CoreBlock
+import mindustry.world.blocks.storage.CoreBlock.CoreBuild
 
 name = "更好的队伍"
 
@@ -59,6 +60,16 @@ listen<EventType.BlockDestroyEvent> { e ->
                 Events.fire(EventType.GameOverEvent(it))
             }
         }
+}
+//fix 诈尸问题
+listen<EventType.CoreChangeEvent> { e ->
+    val team = e.core.team
+    launch(Dispatchers.gamePost) {
+        if (!team.active())
+            Groups.build.filterIsInstance<CoreBuild>().forEach {
+                if (it.lastDamage == team) it.lastDamage = Team.derelict
+            }
+    }
 }
 
 fun updateBannedTeam(force: Boolean = false) {
