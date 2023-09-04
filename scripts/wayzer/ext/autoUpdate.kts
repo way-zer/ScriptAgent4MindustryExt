@@ -20,7 +20,7 @@ val useMirror by config.key(false, "使用镜像加速下载")
 
 var updateCallback: (() -> Unit)? = null
 
-suspend fun download(url: String, file: File): Int = withContext(Dispatchers.IO) {
+suspend fun download(url: String, file: File): Int = runInterruptible {
     val steam = URL(url).openStream()
     val buffer = ByteArray(128 * 1024)//128KB
     val logInterval = Interval()
@@ -37,7 +37,7 @@ suspend fun download(url: String, file: File): Int = withContext(Dispatchers.IO)
             }
         }
     }
-    return@withContext len
+    len
 }
 
 onEnable {
