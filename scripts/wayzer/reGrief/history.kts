@@ -54,14 +54,12 @@ sealed class Log(val uid: String?, private val desc: () -> String) {
 
 PermissionApi.registerDefault("wayzer.ext.history")
 val historyLimit by config.key(10, "单格最长日记记录")
-lateinit var logs: Array<Array<List<Log>>>
+lateinit var logs: Array<List<Log>>
 
 //初始化
 fun initData() {
-    logs = Array(world.width()) {
-        Array(world.height()) {
-            emptyList()
-        }
+    logs = Array(world.width() * world.height()) {
+        emptyList()
     }
 }
 onEnable {
@@ -73,10 +71,10 @@ listen<EventType.WorldLoadEvent> {
 }
 
 //记录
-fun log(x: Int, y: Int, log: Log) {
+fun log(pos: Int, log: Log) {
     if (historyLimit <= 0) return
-    if (logs[x][y].isEmpty()) logs[x][y] = LinkedList(listOf(log))
-    else with(logs[x][y] as LinkedList) {
+    if (logs[pos].isEmpty()) logs[pos] = LinkedList(listOf(log))
+    else with(logs[pos] as LinkedList) {
         while (size >= historyLimit)
             remove()
         add(log)
@@ -85,26 +83,26 @@ fun log(x: Int, y: Int, log: Log) {
 listen<EventType.BlockBuildEndEvent> {
     val player = it.unit?.player ?: return@listen
     if (it.breaking)
-        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Break(player.uuid()))
+        log(it.tile.array(), Log.Break(player.uuid()))
     else
-        log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Place(player.uuid(), it.tile.block()))
+        log(it.tile.array(), Log.Place(player.uuid(), it.tile.block()))
 }
 listen<EventType.ConfigEvent> {
     val log = Log.Config(it.player?.uuid(), it.value?.toString() ?: "null")
-    log(it.tile.tileX(), it.tile.tileY(), log)
+    log(it.tile.tile.array(), log)
 }
 listen<EventType.DepositEvent> {
-    log(it.tile.tileX(), it.tile.tileY(), Log.Deposit(it.player?.uuid(), it.item, it.amount))
+    log(it.tile.tile.array(), Log.Deposit(it.player?.uuid(), it.item, it.amount))
 }
 listen<EventType.BlockDestroyEvent> {
     if (it.tile == emptyTile) return@listen
-    log(it.tile.x.toInt(), it.tile.y.toInt(), Log.Destroy())
+    log(it.tile.array(), Log.Destroy())
 }
 listen<EventType.PickupEvent> {
     val build = it.build ?: return@listen
     //As the build has removed when pickup, use tileOn instead
     val tile = build.tileOn()
-    log(tile.centerX(), tile.centerY(), Log.PickUp(it.carrier.player?.uuid()))
+    log(tile.array(), Log.PickUp(it.carrier.player?.uuid()))
 }
 
 fun Player.showLog(xf: Float, yf: Float) {
@@ -112,7 +110,7 @@ fun Player.showLog(xf: Float, yf: Float) {
     val y = yf.toInt() / 8
     if (x < 0 || x >= world.width()) return
     if (y < 0 || y >= world.height()) return
-    val logs = logs[x][y]
+    val logs = logs[x + y * world.width()]
     if (logs.isEmpty()) Call.label(
         con,
         "[yellow]位置({x},{y})无记录".with("x" to x, "y" to y).toPlayer(this),
@@ -175,7 +173,7 @@ listen<EventType.BlockDestroyEvent> { event ->
             val list = mutableListOf<PlaceHoldString>()
             for (x in event.tile.x.let { it - 10..it + 10 })
                 for (y in event.tile.y.let { it - 10..it + 10 })
-                    logs.getOrNull(x)?.getOrNull(y)?.lastOrNull { it is Log.Place }?.let { log ->
+                    logs.getOrNull(x + y * world.width())?.lastOrNull { it is Log.Place }?.let { log ->
                         if (log is Log.Place && log.type in dangerBlock)
                             list.add(log.descLog("在距离核心(${x - event.tile.x},${y - event.tile.y})的位置"))
                     }
