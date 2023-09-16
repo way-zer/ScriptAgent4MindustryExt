@@ -1,7 +1,6 @@
 ID coreLibrary/extApi/mongoApi
 FQ_NAME coreLibrary.extApi.MongoApi
 NAME MongoApi Script
-SOURCE_MD5 416996a6571bec819c7019e893389586
 +DEPENDS coreLibrary module
 +IMPORT MavenDepends com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.1
 +IMPORT MavenDepends org.litote.kmongo:kmongo-coroutine:4.8.0

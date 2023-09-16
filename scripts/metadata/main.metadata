@@ -1,5 +1,4 @@
 ID main
 FQ_NAME main.Module
 NAME Main Module
-SOURCE_MD5 b98996170a991a5a72ec6c08684606de
 +DEPENDS coreMindustry 

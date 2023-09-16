@@ -1,5 +1,4 @@
 ID wayzer/user/userService
 FQ_NAME wayzer.user.UserService
 NAME UserService Script
-SOURCE_MD5 8f05b8c759f5eeb24789abd80a24b5d0
 +DEPENDS wayzer module

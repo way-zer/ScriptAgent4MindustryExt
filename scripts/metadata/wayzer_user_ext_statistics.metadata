@@ -1,7 +1,6 @@
 ID wayzer/user/ext/statistics
 FQ_NAME wayzer.user.ext.Statistics
 NAME Statistics Script
-SOURCE_MD5 7932c9c60e2e96ee6e570546ed093458
 +DEPENDS wayzer module
 +DEPENDS wayzer/maps 监测投票换图
 +DEPENDS wayzer/user/userService 

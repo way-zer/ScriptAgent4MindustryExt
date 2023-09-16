@@ -1,6 +1,5 @@
 ID coreLibrary/extApi/redisApi
 FQ_NAME coreLibrary.extApi.RedisApi
 NAME RedisApi Script
-SOURCE_MD5 195ea8d8992d9fdab53d1bec9595cd69
 +DEPENDS coreLibrary module
-+IMPORT MavenDepends redis.clients:jedis:4.3.1
++IMPORT MavenDepends redis.clients:jedis:4.4.3

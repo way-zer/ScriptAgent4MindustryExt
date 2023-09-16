@@ -1,6 +1,7 @@
 package coreLibrary
 
 import cf.wayzer.scriptAgent.impl.ScriptCache
+import cf.wayzer.scriptAgent.util.MetadataFile
 
 suspend inline fun runIgnoreCancel(sync: Boolean, crossinline body: suspend () -> Unit) {
     val job = launch(Job()) { body() }
@@ -163,7 +164,8 @@ onEnable {
                     Config.metadataDir.mkdirs()
                     all.forEach { info ->
                         Config.metadataFile(info.scriptInfo.id).writer().use {
-                            ScriptCache.asMetadata(info).writeTo(it)
+                            val meta = ScriptCache.asMetadata(info)
+                            MetadataFile(meta.id, meta.attr - "SOURCE_MD5", meta.data).writeTo(it)
                         }
                     }
                     reply("[green]生成完成".with())
