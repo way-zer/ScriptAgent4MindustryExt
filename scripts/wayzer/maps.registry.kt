@@ -84,8 +84,8 @@ object MapRegistry : MapProvider() {
 
     @Deprecated("support search")
     override val supportFilter: Set<String> get() = providers.flatMapTo(mutableSetOf()) { it.supportFilter }
-    override suspend fun searchMaps(search: String): Collection<MapInfo> {
-        return providers.flatMapTo(mutableSetOf()) { it.searchMaps(search) }
+    override suspend fun searchMaps(search: String): List<MapInfo> {
+        return providers.flatMap { it.searchMaps(search) }
     }
 
     /**Dispatch should be Dispatchers.game*/
