@@ -16,7 +16,7 @@ listen<EventType.UnitUnloadEvent> { e ->
         return@listen
     fun alert(text: PlaceHoldString) {
         if (interval[0, 2 * 60f]) {//2s cooldown
-            broadcast(text, MsgType.InfoToast, 4f, true, Groups.player.filter { it.team() == e.unit.team })
+            broadcast(text, MsgType.InfoToast, 4f, true, e.unit.team.data().players)
         }
     }
 
