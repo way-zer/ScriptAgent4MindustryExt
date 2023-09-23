@@ -1,15 +1,15 @@
+@file:Depends("wayzer/admin/restart", "计划重启")
+
 package wayzer.ext
 
 import arc.util.Interval
 import arc.util.Log
 import arc.util.serialization.Jval
-import coreLibrary.lib.util.loop
 import mindustry.core.Version
 import mindustry.net.BeControl
 import java.io.File
 import java.net.URL
 import java.time.LocalDateTime
-import kotlin.system.exitProcess
 
 name = "自动更新"
 
@@ -17,8 +17,6 @@ val enableUpdate by config.key(false, "是否开启自动更新")
 val source by config.key("Anuken/Mindustry", "服务端来源，Github仓库")
 val onlyInNight by config.key(false, "仅在凌晨自动更新", "本地时间1:00到7:00")
 val useMirror by config.key(false, "使用镜像加速下载")
-
-var updateCallback: (() -> Unit)? = null
 
 suspend fun download(url: String, file: File): Int = runInterruptible {
     val steam = URL(url).openStream()
@@ -82,12 +80,7 @@ suspend fun update(version: String, url: String) {
         throw e
     }
     Log.info("新版本 $version 下载完成: ${size / 1024}KB")
-    updateCallback = {
-        Groups.player.forEach {
-            it.kick("[yellow]服务器重启更新到新版本 $version")
-        }
-
-        Thread.sleep(100L)
+    contextScript<wayzer.admin.Restart>().scheduleRestart("新版本更新 $version") {
         dest.outputStream().use { output ->
             tmp.inputStream().use { it.copyTo(output) }
             output.flush()
@@ -96,13 +89,7 @@ suspend fun update(version: String, url: String) {
         Log.info(
             "&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically."
         )
-        exitProcess(2)
     }
-    broadcast("[yellow]服务器新版本{version}下载完成,将在本局游戏后自动重启更新".with("version" to version))
-}
-
-listen<EventType.ResetEvent> {
-    updateCallback?.invoke()
 }
 
 command("forceUpdate", "强制更新服务器版本") {
