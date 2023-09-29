@@ -75,4 +75,20 @@ command("banX", "管理指令: 禁封") {
         reply("[green]已禁封{qq}".with("qq" to (qq ?: uuid)))
     }
 }
-PermissionApi.registerDefault("wayzer.admin.ban", group = "@admin")
+command("unbanX", "管理指令: 解禁") {
+    usage = "<qq>"
+    permission = "wayzer.admin.unban"
+    body {
+        if (arg.isEmpty()) replyUsage()
+        val qq = arg[0].toLongOrNull() ?: replyUsage()
+        val ban = transaction {
+            val profile = PlayerProfile.findByQQ(qq) ?: return@transaction null
+            PlayerBan.findNotEnd(profile.id)?.also {
+                it.delete()
+            }
+        } ?: returnReply("[red]用户当前未被禁封".with())
+        logger.info("unban $qq ${ban.endTime} ${ban.reason}")
+        reply("[green]解禁成功, 禁封原因: {reason}".with("reason" to ban.reason))
+    }
+}
+PermissionApi.registerDefault("wayzer.admin.ban", "wayzer.admin.unban", group = "@admin")
