@@ -31,7 +31,8 @@
 * wayzer模块为一套完整的Mindustry服务器基础插件(By: WayZer)
   * 插件测试服务器: mdt.wayzer.cf
   * 交流QQ群: 1033116078 或者直接在Discussions讨论
-* mirai为qq机器人库mirai的脚本封装
+* mapScript 一套专为MDT设计的特殊脚本，脚本生命周期与单局游戏绑定，脚本仅在地图需要时加载。
+* ~~mirai为qq机器人库mirai的脚本封装~~(因为上游不可控因素，计划移除)
 
 快速开始,功能介绍等请查阅[Wiki](https://github.com/way-zer/ScriptAgent4MindustryExt/wiki)
 
