@@ -1,8 +1,6 @@
 package wayzer.user.ext
 
 import arc.util.io.Writes
-import mindustry.content.Blocks
-import mindustry.content.UnitTypes
 import mindustry.gen.Building
 import wayzer.user.ext.Skills.Api.skill
 import java.io.ByteArrayOutputStream
@@ -13,9 +11,14 @@ import java.time.Duration
 val used = mutableMapOf<String, Long>()
 customLoad(::used, used::putAll)
 listen<EventType.ResetEvent> { used.clear() }
+command("skill", "技能菜单") {
+    aliases = listOf("技能")
+    body(Api.skills)
+}
 
 @Suppress("unused")
 companion object Api {
+    val skills = Commands()
     lateinit var script: Skills
     private val used get() = script.used
 
@@ -65,7 +68,7 @@ companion object Api {
 
     @ScriptDsl
     fun Script.skill(name: String, desc: String, vararg aliases: String, body: SkillScope.() -> Unit) {
-        command(name, desc) {
+        skills += CommandInfo(this, name, desc) {
             permission = "wayzer.user.skills.$name"
             this.aliases = aliases.toList()
             type = CommandType.Client
