@@ -1,0 +1,7 @@
+ID mapScript
+FQ_NAME mapScript.Module
+NAME Module Module
++DEPENDS coreMindustry 
++DEPENDS wayzer/maps 获取地图信息
++IMPORT DefaultImport mapScript.lib.*
++SOFT_DEPENDS wayzer/map/mapInfo 显示地图信息
