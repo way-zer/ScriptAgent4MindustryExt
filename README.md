@@ -1,9 +1,9 @@
 ![For Mindustry](https://img.shields.io/badge/For-Mindustry-orange)
 ![Lang CN](https://img.shields.io/badge/Lang-ZH--CN-blue)
-![Support 7.0](https://img.shields.io/badge/Support_Version-7.(136+)-success)
-![GitHub Releases](https://img.shields.io/github/downloads/way-zer/ScriptAgent4MindustryExt/v3.0.0/total)
-[![Build Status](https://travis-ci.com/way-zer/ScriptAgent4MindustryExt.svg?branch=1.1)](https://travis-ci.com/way-zer/ScriptAgent4MindustryExt)
-
+![Support 7.5](https://img.shields.io/badge/Support_Version-7.5(136+)-success)
+![GitHub Releases](https://img.shields.io/github/downloads/way-zer/ScriptAgent4MindustryExt/latest/total)
+[![BuildPlugin](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/buildPlugin.yml/badge.svg)](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/buildPlugin.yml)
+[![CheckScript](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/checkScripts.yml/badge.svg)](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/checkScripts.yml)
 # ScriptAgent for Mindustry
 一个强大的Mindustry脚本插件,基于kts定义的DSL  
 > A strong script plugin for Mindustry by kts(for english README see [me](./README_en.md))  
@@ -12,7 +12,7 @@
 > This repository contains the loader and lots of feature scripts(use or for example)  
 > including vote/map/permission/level/bot and much more (all essitials for server)
 
-## 特性
+## 插件特性(Plugin Features)
 
 - 强大,基于kotlin,可以访问所有Java接口(所有插件能干的，脚本都能干)
 - 快速,脚本加载完成后，转换为jvm字节码，和java插件没有性能差距
@@ -21,9 +21,9 @@
 - 智能,开发时,拥有IDEA(或AndroidStudio)的智能补全
 - 可定制,插件除核心部分外,均使用脚本实现,可根据自己需要进行修改,另外,模块定义脚本也可以为脚本扩充DSL
 
-## 具体功能
+## 具体功能(Scripts Features)
 
-本仓库共含5个模块coreLib,core,main,wayzer,mirai
+本仓库共含6个模块
 
 * coreLib为该框架的标准库
 * core为针对mindustry的具体实现
@@ -36,19 +36,24 @@
 
 快速开始,功能介绍等请查阅[Wiki](https://github.com/way-zer/ScriptAgent4MindustryExt/wiki)
 
-## 功能预览
-### 客户端
+## 功能预览(Preview)
+### 客户端(User/Client)
 ![image](https://user-images.githubusercontent.com/15688938/132090295-59a57f81-cc72-4ab5-8c10-deadf7ae452a.png)
 ![image](https://user-images.githubusercontent.com/15688938/132090317-cc62339d-8ce5-4906-90d0-e8fda1bacf36.png)
 
-### 服务器后台
+### 服务器后台(Server)
 ![image](https://user-images.githubusercontent.com/15688938/132090197-e041d11c-e09a-49ee-94e8-d2cdae30038f.png)
 ![image](https://user-images.githubusercontent.com/15688938/132090212-1f924326-4ba7-43be-bbb8-e055599fa75c.png)
 ![image](https://user-images.githubusercontent.com/15688938/132090238-bbfcaf2e-154a-446c-9d1f-92f391835f0a.png)
 
-## 版权
+## 版权(License)
 
 - 插件本体：未经许可禁止转载和用作其他用途
+  Plugin jar: No reproduction or use for other purposes(like modify) without permission.
 - 脚本：归属脚本制作者，本仓库脚本转载需注明本页面链接
+  Scripts(kts): keep all right without noting. Reproduction needs to indicate this page link.
   - 脚本默认允许私人修改并使用，不允许修改原作者版权信息，公开请folk或引用该仓库(脚本作者声明优先)
+    This repository scripts are free for use, and allow privately modify. Reproduction need keep license and please `fork` or `reference` to this repository.
+    (Additional notes from the script author will be given priority.) 
   - mirai模块及依赖该模块的所有代码，遵循AGPLv3协议
+    `mirai` module and all `depends` on it, follow `AGPLv3` license.
