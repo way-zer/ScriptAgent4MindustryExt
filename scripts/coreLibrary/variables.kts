@@ -1,14 +1,17 @@
 package coreLibrary
 
+import cf.wayzer.placehold.DynamicVar
 import com.typesafe.config.Config
 import io.github.config4k.ClassContainer
 import io.github.config4k.CustomType
 import io.github.config4k.registerCustomType
 import io.github.config4k.toConfig
+import java.lang.management.ManagementFactory
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import kotlin.time.toKotlinDuration
 
 name = "基础变量注册"
 
@@ -20,16 +23,24 @@ registerVarForType<Instant>().apply {
 
 registerVarForType<Duration>().apply {
     registerToString("参数设定单位(天,时,分,秒,d,h,m,s,默认m)") { _, obj, arg ->
-        val unit = when (arg?.get(0)?.lowercaseChar()) {
+        if (arg.isNullOrEmpty()) {
+            return@registerToString obj.toKotlinDuration().toString()
+        }
+        val unit = when (arg[0].lowercaseChar()) {
             'd', '天' -> ChronoUnit.DAYS
             'h', '小', '时' -> ChronoUnit.HOURS
             'm', '分' -> ChronoUnit.MINUTES
             's', '秒' -> ChronoUnit.SECONDS
             else -> ChronoUnit.MINUTES
         }
-        "%.2f%s".format((obj.seconds.toDouble() / unit.duration.seconds), arg ?: "")
+        "%.2f%s".format((obj.seconds.toDouble() / unit.duration.seconds), arg)
     }
 }
+
+val startTime = Instant.ofEpochMilli(
+    runCatching { ManagementFactory.getRuntimeMXBean().startTime }.getOrElse { System.currentTimeMillis() }
+)!!
+registerVar("state.uptime", "进程运行时间", DynamicVar.v { Duration.between(startTime, Instant.now()) })
 
 @Suppress("PropertyName")
 val NANO_PRE_SECOND = 1000_000_000L
