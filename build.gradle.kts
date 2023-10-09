@@ -97,7 +97,10 @@ dependencies {
     implementation("cf.wayzer:ContentsTweaker:v2.0.1")
 
     //mirai
-    implementation("net.mamoe:mirai-core-api-jvm:2.15.0")
+    implementation("net.mamoe:mirai-core:2.15.0")
+    implementation("net.mamoe:mirai-core-utils:2.15.0")
+    implementation("top.mrxiaom:qsign:1.1.0-beta")
+
     //wayzer
     implementation("com.google.guava:guava:30.1-jre")
 }
