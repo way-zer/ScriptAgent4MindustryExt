@@ -3,12 +3,11 @@
 package wayzer
 
 import cf.wayzer.placehold.DynamicVar
+import cf.wayzer.scriptAgent.events.ScriptDisableEvent
 import java.time.Duration
 import java.time.Instant
 
 name = "投票服务"
-
-VoteEvent.init()
 
 listen<EventType.PlayerJoin> {
     (VoteEvent.active.get() ?: return@listen)
@@ -48,5 +47,8 @@ command("vote", "发起投票") {
     type = CommandType.Client
     aliases = listOf("投票")
     body(VoteEvent.VoteCommands)
+}
+listenTo<ScriptDisableEvent> {
+    VoteEvent.VoteCommands.removeAll(script)
 }
 PermissionApi.registerDefault("wayzer.vote.*")

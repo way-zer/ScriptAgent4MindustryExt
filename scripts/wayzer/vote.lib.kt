@@ -6,8 +6,6 @@ import cf.wayzer.scriptAgent.contextScript
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.emitAsync
-import cf.wayzer.scriptAgent.events.ScriptDisableEvent
-import cf.wayzer.scriptAgent.listenTo
 import coreLibrary.lib.*
 import coreMindustry.MenuBuilder
 import coreMindustry.lib.*
@@ -51,7 +49,19 @@ class VoteEvent(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val mainJob = scope.launch(Dispatchers.game + CoroutineName("Vote Service")) main@{
+        if ((coolDowns[starter.uuid()] ?: 0) > System.currentTimeMillis()) {
+            starter.sendMessage("[yellow]你刚发起的投票投票失败，投票冷却中".with())
+            return@main
+        }
         emitAsync {
+            if (supportSingle && allCanVote().run { isEmpty() || singleOrNull() == starter }) {
+                if (System.currentTimeMillis() - lastAction > 60_000) {
+                    broadcast("[yellow]单人快速投票{type}成功".with("type" to voteDesc))
+                    lastAction = System.currentTimeMillis()
+                    succeed = true
+                    return@emitAsync
+                } else broadcast("[red]距离上一玩家离开或上一投票成功不足1分钟,快速投票失败".with())
+            }
             if (!active.compareAndSet(null, this@VoteEvent)) {
                 return@emitAsync cancel()
             }
@@ -99,6 +109,11 @@ class VoteEvent(
                     }
                 }
             }
+
+            if (!succeed) coolDowns[starter.uuid()] = System.currentTimeMillis() + voteCoolDown.toMillis()
+            val t = if (succeed) "[yellow]{starter.name}[yellow]发起{type}[yellow]投票成功. {status}"
+            else "[yellow]{starter.name}[yellow]发起{type}[yellow]投票失败. {status}"
+            broadcast(t.with("starter" to starter, "type" to voteDesc, "status" to status()))
         }
         coroutineContext.cancelChildren()
     }
@@ -200,34 +215,6 @@ class VoteEvent(
         internal val active = AtomicReference<VoteEvent?>(null)
         internal var lastAction = 0L //最后一次玩家退出或投票成功时间,用于处理单人投票
         internal val coolDowns = mutableMapOf<String, Long>()
-
-        internal fun init() = with(script) {
-            listenTo<VoteEvent>(Event.Priority.Intercept) {
-                if ((coolDowns[starter.uuid()] ?: 0) > System.currentTimeMillis()) {
-                    starter.sendMessage("[yellow]你刚发起的投票投票失败，投票冷却中".with())
-                    cancelled = true
-                }
-            }
-            listenTo<VoteEvent>(Event.Priority.Before) {
-                if (supportSingle && allCanVote().run { isEmpty() || singleOrNull() == starter }) {
-                    if (System.currentTimeMillis() - lastAction > 60_000) {
-                        broadcast("[yellow]单人快速投票{type}成功".with("type" to voteDesc))
-                        lastAction = System.currentTimeMillis()
-                        succeed = true
-                        cancelled = true
-                    } else broadcast("[red]距离上一玩家离开或上一投票成功不足1分钟,快速投票失败".with())
-                }
-            }
-            listenTo<VoteEvent>(Event.Priority.After) {
-                if (!succeed) coolDowns[starter.uuid()] = System.currentTimeMillis() + voteCoolDown.toMillis()
-                val t = if (succeed) "[yellow]{starter.name}[yellow]发起{type}[yellow]投票成功. {status}"
-                else "[yellow]{starter.name}[yellow]发起{type}[yellow]投票失败. {status}"
-                broadcast(t.with("starter" to starter, "type" to voteDesc, "status" to status()))
-            }
-            listenTo<ScriptDisableEvent> {
-                VoteCommands.removeAll(script)
-            }
-        }
     }
 }
 
