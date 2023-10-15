@@ -1,3 +1,5 @@
+@file:Depends("coreMindustry")
+
 package main
 
 suspend fun boot() = ScriptManager.transaction {
