@@ -68,13 +68,8 @@ object GeneratorSupport {
                 .forEach { it.inst?.let(GeneratorSupport::checkScript) }
         }
         MapRegistry.register(this, object : MapProvider() {
-            override val supportFilter: Set<String>
-                get() = knownMaps.flatMapTo(
-                    mutableSetOf()
-                ) { it.value.second }
-
-            override suspend fun searchMaps(search: String) = knownMaps.values
-                .filter { search in it.second }
+            override suspend fun searchMaps(search: String?) = knownMaps.values
+                .filter { search == null || search in it.second }
                 .map { it.first }
 
             override suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)?): MapInfo? {

@@ -18,7 +18,6 @@ import kotlinx.coroutines.launch
 import mindustry.Vars
 import mindustry.core.GameState
 import mindustry.game.EventType
-import mindustry.game.Gamemode
 import mindustry.game.Rules
 import mindustry.gen.Call
 import mindustry.gen.Groups
@@ -38,9 +37,7 @@ class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val rules: Rules) :
 }
 
 object MapManager {
-    var current: MapInfo = Vars.state.map?.let { //default may be useful, just for in case
-        MapInfo(it.rules().idInTag, it, it.rules().mode())
-    } ?: MapInfo(0, Vars.maps.all().first(), Gamemode.survival)
+    var current: MapInfo = MapInfo(Vars.state.rules.idInTag, Vars.state.map, Vars.state.rules.mode())
         private set
 
     @JvmOverloads
@@ -77,6 +74,8 @@ object MapManager {
             info.load() // EventType.ResetEvent
             // EventType.SaveLoadEvent
             // EventType.WorldLoadEvent
+            if (Vars.state.teams.getActive().none { it.hasCore() })
+                error("Map has no cores!")
         } catch (e: Throwable) {
             broadcast(
                 "[red]地图{info.map.name}无效:{reason}".with(

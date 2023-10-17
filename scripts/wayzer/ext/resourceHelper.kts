@@ -13,6 +13,7 @@ import com.google.common.cache.CacheBuilder
 import mindustry.game.Gamemode
 import mindustry.io.SaveIO
 import mindustry.maps.Map
+import wayzer.BaseMapInfo
 import wayzer.MapInfo
 import wayzer.MapProvider
 import wayzer.MapRegistry
@@ -44,10 +45,13 @@ fun JsonValue.toStringMap() = StringMap().apply {
 }
 
 suspend fun httpGet(url: String) = withContext(Dispatchers.IO) {
-    lateinit var result: JsonValue
-    Http.get(url)
-        .block { result = JsonReader().parse(it.resultAsString) }
-    return@withContext result
+    runInterruptible {
+        var result: Result<JsonValue> = Result.failure(IllegalStateException("result not set"))
+        Http.get(url)
+            .error { result = Result.failure(it) }
+            .block { result = Result.success(JsonReader().parse(it.resultAsString)) }
+        result.getOrThrow()
+    }
 }
 
 fun loadMap(map: Map, hash: String) {
@@ -60,28 +64,24 @@ fun loadMap(map: Map, hash: String) {
         }
 }
 
-fun newMapInfo(id: Int, hash: String, tags: StringMap, mode: String): MapInfo {
+fun newMapInfo(id: Int, hash: String, tags: StringMap, mode: String): BaseMapInfo {
     val mode2 = Gamemode.all.find { it.name.equals(mode, ignoreCase = true) }
         ?: Gamemode.survival.takeUnless { mode.equals("unknown", true) }
     val map = Map(customMapDirectory.child("unknown"), tags.getInt("width"), tags.getInt("height"), tags, true).apply {
         resourceId = hash
     }
-    return MapInfo(id, map, mode2 ?: map.rules().mode()) {
-        loadMap(map, hash)
-        if (state.teams.getActive().none { it.hasCore() })
-            error("Map has no cores!")
-    }
+    return BaseMapInfo(id, map, mode2 ?: map.rules().mode())
 }
 
 val searchCache = CacheBuilder.newBuilder()
     .expireAfterWrite(Duration.ofHours(1))
-    .build<String, List<MapInfo>>()!!
+    .build<String, List<BaseMapInfo>>()!!
 
 MapRegistry.register(this, object : MapProvider() {
-    override suspend fun searchMaps(search: String): Collection<MapInfo> {
+    override suspend fun searchMaps(search: String?): Collection<BaseMapInfo> {
         if (!tokenOk) return emptyList()
         val mappedSearch = when (search) {
-            "all", "display", "site" -> ""
+            "all", "display", "site", null -> ""
             "pvp", "attack", "survive" -> "@mode:${Strings.capitalize(search)}"
             else -> search
         }
@@ -102,11 +102,13 @@ MapRegistry.register(this, object : MapProvider() {
             reply?.invoke("[red]本服未开启网络换图，请联系服主开启".with())
             return null
         }
-        return withContext(Dispatchers.IO) {
-            val info = httpGet("$webRoot/api/maps/thread/$id/latest")
-            val hash = info.getString("hash")
-            val tags = info.get("tags").toStringMap()
-            newMapInfo(id, hash, tags, info.getString("mode", "unknown"))
+        val info = httpGet("$webRoot/api/maps/thread/$id/latest")
+        val hash = info.getString("hash")
+        val tags = info.get("tags").toStringMap()
+        return newMapInfo(id, hash, tags, info.getString("mode", "unknown")).run {
+            MapInfo(id, map, mode) {
+                loadMap(map, hash)
+            }
         }
     }
 })

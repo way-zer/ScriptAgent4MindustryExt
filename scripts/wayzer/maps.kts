@@ -4,7 +4,6 @@ package wayzer
 
 import arc.Events
 import cf.wayzer.placehold.DynamicVar
-import coreLibrary.lib.util.menu
 import coreMindustry.PagedMenuBuilder
 import mindustry.game.Gamemode
 import mindustry.game.Team
@@ -16,21 +15,16 @@ name = "基础: 地图控制与管理"
 
 val configEnableInternMaps by config.key(false, "是否开启原版内置地图")
 val mapsPrePage by config.key(9, "/maps每页显示数")
+val nextSameMode by config.key(false, "自动换图是否选择相同模式地图,否则选择生存模式")
 
 MapRegistry.register(this, object : MapProvider() {
-    override val supportFilter = baseFilter + "internal"
-    override suspend fun searchMaps(search: String): Collection<MapInfo> {
-        if (search !in supportFilter) return emptyList()
+    override suspend fun searchMaps(search: String?): Collection<MapInfo> {
+        if (search == "@internal") return maps.defaultMaps()
+            .mapIndexed { i, map -> MapInfo(i + 1, map, Gamemode.survival) }
         maps.reload()
-        var enableIntern = configEnableInternMaps
-        if (!enableIntern && maps.customMaps().isEmpty) {
-            logger.warning("服务器未安装自定义地图,自动使用自带地图")
-            enableIntern = true
-        }
-        val mapList = if (enableIntern) maps.all() else maps.customMaps()
+        val mapList = if (configEnableInternMaps) maps.all() else maps.customMaps()
         return mapList.sortedBy { it.file.lastModified() }
             .mapIndexed { i, map -> MapInfo(i + 1, map, bestMode(map)) }
-            .filterWhen(!enableIntern && search != "all") { it.map.custom }
             .filterByMode(search)
     }
 
@@ -46,7 +40,7 @@ MapRegistry.register(this, object : MapProvider() {
     }
 })
 
-registerVarForType<MapInfo>().apply {
+registerVarForType<BaseMapInfo>().apply {
     registerChild("id", "在/maps中的id", DynamicVar.obj { it.id.toString().padStart(3, '0') })
     registerChild("mode", "地图设定模式", DynamicVar.obj { it.mode.name })
     registerChild("map", "Type@Map", DynamicVar.obj { it.map })
@@ -74,8 +68,8 @@ command("maps", "列出服务器地图") {
         val player = player ?: returnReply(menu("服务器地图 By WayZer", maps, page, mapsPrePage) { info ->
             template.with("info" to info)
         })
-        object : PagedMenuBuilder<MapInfo>(maps, page, mapsPrePage) {
-            override suspend fun renderItem(item: MapInfo) {
+        object : PagedMenuBuilder<BaseMapInfo>(maps, page, mapsPrePage) {
+            override suspend fun renderItem(item: BaseMapInfo) {
                 option(template.with("info" to item).toPlayer(player)) {
                     RootCommands.handleInput("vote map ${item.id}", player, "/")
                 }
@@ -126,7 +120,10 @@ listen<EventType.GameOverEvent> { event ->
     )
     launch(Dispatchers.game) {
         if (GameOverEvent(event.winner).emitAsync().cancelled) return@launch
-        val map = MapRegistry.nextMapInfo(MapManager.current)
+        val map = MapRegistry.nextMapInfo(
+            MapManager.current,
+            if (nextSameMode) MapManager.current.mode else Gamemode.survival
+        )
         val winnerMsg: Any =
             if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
         val msg = """

@@ -1,10 +1,10 @@
 package wayzer
 
+import arc.util.Log
 import cf.wayzer.scriptAgent.Event
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.emitAsync
 import coreLibrary.lib.PlaceHoldString
-import coreMindustry.lib.ContentHelper
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
@@ -14,59 +14,48 @@ import mindustry.game.Gamemode
 import mindustry.io.SaveIO
 import mindustry.maps.Map
 
-data class MapInfo(
-    val id: Int, val map: Map, val mode: Gamemode,
+/** base mapInfo, not for load */
+open class BaseMapInfo(val id: Int, val map: Map, val mode: Gamemode) {
+    override fun toString(): String {
+        return "BaseMapInfo(id=$id, map=$map, mode=$mode)"
+    }
+
+    override fun equals(other: Any?): Boolean = other is BaseMapInfo && id == other.id
+    override fun hashCode(): Int = id
+}
+
+class MapInfo(
+    id: Int, map: Map, mode: Gamemode,
     val beforeReset: (() -> Unit)? = null,
     /**use for generator or save*/
     val load: (() -> Unit) = {
         @Suppress("INACCESSIBLE_TYPE")
         SaveIO.load(map.file, Vars.world.filterContext(map))
-        if (Vars.state.teams.getActive().none { it.hasCore() })
-            error("Map has no cores!")
     }
-) {
-    override fun equals(other: Any?): Boolean {
-        if (other !is MapInfo) return false
-        return id == other.id
-    }
-
-    override fun hashCode(): Int {
-        return id
-    }
+) : BaseMapInfo(id, map, mode) {
+    override fun equals(other: Any?): Boolean = other is MapInfo && id == other.id
+    override fun hashCode(): Int = id
 }
 
 abstract class MapProvider {
-    /**should support "all"*/
-    @Deprecated("support search")
-    open val supportFilter: Set<String> = baseFilter
-
-    /**@param filter all is lowerCase */
-    @Deprecated("impl suspended one", ReplaceWith("searchMaps(filter)"), DeprecationLevel.WARNING)
-    open fun getMaps(filter: String = "all"): Collection<MapInfo> = emptyList()
-    open suspend fun searchMaps(search: String = "all"): Collection<MapInfo> {
-        @Suppress("DEPRECATION")
-        return if (search !in supportFilter) emptyList()
-        else getMaps(search)
-    }
-
+    abstract suspend fun searchMaps(search: String? = null): Collection<BaseMapInfo>
     /**@param id may not exist in getMaps*/
     open suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)? = null): MapInfo? =
-        searchMaps().find { it.id == id }
+        searchMaps().filterIsInstance<MapInfo>().find { it.id == id }
 
     companion object {
-        val baseFilter = setOf("all", "display", "pvp", "attack", "survive")
-        inline fun List<MapInfo>.filterWhen(b: Boolean, body: (MapInfo) -> Boolean): List<MapInfo> {
+        inline fun <T : BaseMapInfo> List<T>.filterWhen(b: Boolean, body: (T) -> Boolean): List<T> {
             return if (b) filter(body) else this
         }
 
-        fun List<MapInfo>.filterByMode(filter: String) = this
+        fun <T : BaseMapInfo> List<T>.filterByMode(filter: String?) = this
             .filterWhen(filter == "survive") { it.mode == Gamemode.survival }
             .filterWhen(filter == "attack") { it.mode == Gamemode.attack }
             .filterWhen(filter == "pvp") { it.mode == Gamemode.pvp }
     }
 }
 
-class GetNextMapEvent(val previous: MapInfo?, var mapInfo: MapInfo) : Event, Event.Cancellable {
+class GetNextMapEvent(val previous: BaseMapInfo?, var mapInfo: BaseMapInfo) : Event, Event.Cancellable {
     override var cancelled: Boolean = false
     override val handler: Event.Handler get() = Companion
 
@@ -82,9 +71,7 @@ object MapRegistry : MapProvider() {
         providers.add(provider)
     }
 
-    @Deprecated("support search")
-    override val supportFilter: Set<String> get() = providers.flatMapTo(mutableSetOf()) { it.supportFilter }
-    override suspend fun searchMaps(search: String): List<MapInfo> {
+    override suspend fun searchMaps(search: String?): List<BaseMapInfo> {
         return providers.flatMap { it.searchMaps(search) }
     }
 
@@ -93,14 +80,23 @@ object MapRegistry : MapProvider() {
         return providers.asFlow().map { it.findById(id, reply) }.filterNotNull().firstOrNull()
     }
 
-    suspend fun nextMapInfo(previous: MapInfo? = null, mode: Gamemode = Gamemode.survival, filter: String = "all"): MapInfo {
-        val maps = searchMaps(filter)
-        val next = maps.filter { it.mode == mode && it != previous }.randomOrNull()
-            ?: maps.random()
-        if (!SaveIO.isSaveValid(next.map.file)) {
-            ContentHelper.logToConsole("[yellow]invalid map ${next.map.file.nameWithoutExtension()}, auto change")
-            return nextMapInfo(previous, mode)
+    suspend fun nextMapInfo(
+        previous: BaseMapInfo? = null,
+        mode: Gamemode = Gamemode.survival,
+        filter: String = "all"
+    ): MapInfo {
+        val maps = searchMaps(filter).let { maps ->
+            if (maps.isNotEmpty()) return@let maps
+            Log.warn("服务器未安装地图,自动使用内置地图")
+            Vars.maps.defaultMaps()
+                .mapIndexed { i, map -> MapInfo(i + 1, map, Gamemode.survival) }
         }
-        return GetNextMapEvent(previous, next).emitAsync().mapInfo
+        val next = maps.filter { it.mode == mode && it != previous }.randomOrNull() ?: maps.random()
+        val info = GetNextMapEvent(previous, next).emitAsync().mapInfo
+        if (info is MapInfo) return info
+        return findById(info.id) ?: let {
+            Log.err("Get search result ${info}, but can't find MapInfo implementation.")
+            nextMapInfo(previous, mode, filter)
+        }
     }
 }
