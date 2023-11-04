@@ -118,12 +118,14 @@ listen<EventType.GameOverEvent> { event ->
         if (state.rules.pvp) "&lcGame over! Team &ly${event.winner.name}&lc is victorious with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
         else "&lcGame over! Reached wave &ly${state.wave}&lc with &ly${Groups.player.size()}&lc players online on map &ly${state.map.name()}&lc."
     )
+    val now = state.map
     launch(Dispatchers.game) {
         if (GameOverEvent(event.winner).emitAsync().cancelled) return@launch
         val map = MapRegistry.nextMapInfo(
             MapManager.current,
             if (nextSameMode) MapManager.current.mode else Gamemode.survival
         )
+        if (state.map != now) return@launch//已经通过其他方式换图
         val winnerMsg: Any =
             if (state.rules.pvp) "[YELLOW] {team.colorizeName} 队胜利![]".with("team" to event.winner) else ""
         val msg = """
@@ -135,7 +137,6 @@ listen<EventType.GameOverEvent> { event ->
         broadcast(msg, gameOverMsgType, quite = true)
         ContentHelper.logToConsole("Next Map is ${map.map.name()}(ID:${map.id})")
 
-        val now = state.map
         delay(waitingTime.toMillis())
         if (state.map != now) return@launch//已经通过其他方式换图
         MapManager.loadMap(map)
