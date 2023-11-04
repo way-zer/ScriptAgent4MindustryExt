@@ -1,6 +1,5 @@
 package coreMindustry
 
-import coreLibrary.lib.util.nextEvent
 import mindustry.game.EventType.TextInputEvent
 import kotlin.random.Random
 
@@ -9,7 +8,7 @@ data class OnTextInputResult(val player: Player, val id: Int, val text: String?)
 }
 
 listen<TextInputEvent> {
-    OnTextInputResult(it.player, it.textInputId, it.text).launchEmit()
+    OnTextInputResult(it.player, it.textInputId, it.text).launchEmit(coroutineContext + Dispatchers.game)
 }
 
 suspend fun textInput(

@@ -1,7 +1,5 @@
 package coreMindustry
 
-import coreLibrary.lib.util.ReceivedEvent
-
 data class MenuChooseEvent(
     val player: Player, val menuId: Int, val value: Int
 ) : Event, ReceivedEvent {
@@ -11,7 +9,7 @@ data class MenuChooseEvent(
 }
 
 listen<EventType.MenuOptionChooseEvent> {
-    MenuChooseEvent(it.player, it.menuId, it.option).launchEmit(coroutineContext) { e ->
+    MenuChooseEvent(it.player, it.menuId, it.option).launchEmit(coroutineContext + Dispatchers.game) { e ->
         if (!e.received && it.menuId < 0)
             Call.hideFollowUpMenu(e.player.con, e.menuId)
     }
