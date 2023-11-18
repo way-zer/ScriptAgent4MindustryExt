@@ -65,11 +65,14 @@ withContextClassloader {
     net.mamoe.mirai.utils.Services.register(
         MiraiLogger.Factory::class.qualifiedName!!, LoggerFactory::class.qualifiedName!!, ::LoggerFactory
     )
-    QSignService.Factory.apply {
-        init(Config.dataDir.resolve("txlib/8.9.73"))
-        loadProtocols()
-        register()
-    }
+    val txlib = Config.dataDir.resolve("txlib/8.9.73")
+    if (txlib.exists()) {
+        QSignService.Factory.apply {
+            init(Config.dataDir.resolve("txlib/8.9.73"))
+            loadProtocols()
+            register()
+        }
+    } else logger.warning("txLib不存在，跳过QSign")
     globalEventChannel()
 }//init
 Logger.getLogger("com.github.unidbg").level = Level.OFF
