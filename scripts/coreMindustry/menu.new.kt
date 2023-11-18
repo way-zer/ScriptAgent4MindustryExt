@@ -18,7 +18,10 @@ open class MenuV2(
 ) {
     @DslMarker
     annotation class MenuBuilderDsl
-    object RefreshReturn : Throwable("This method should only call in callback", null, false, false)
+    object RefreshReturn : Throwable("This method should only call in callback", null, false, false) {
+        private fun readResolve(): Any = RefreshReturn
+    }
+
     open class FlagOptionBuilder {
         lateinit var name: String
 
@@ -65,6 +68,22 @@ open class MenuV2(
     }
 
     @MenuBuilderDsl
+    fun subMenu(title: String, chooseTimeout: Duration? = 60.seconds, builder: suspend MenuV2.() -> Unit) {
+        option(title) {
+            menu.clear();callback.clear()
+            newRow();builder.invoke(this)
+            var back = false
+            newRow();option("返回") { back = true }
+
+            send(rebuild = false)
+            if (chooseTimeout == null) await()
+            else awaitWithTimeout(chooseTimeout)
+
+            if (back) refresh()
+        }
+    }
+
+    @MenuBuilderDsl
     suspend fun lazyOption(body: suspend FlagOptionBuilder.() -> Unit) {
         val name = FlagOptionBuilder().let {
             try {
@@ -88,15 +107,18 @@ open class MenuV2(
 
     private val _menuId = Random.nextInt()
 
-    suspend fun send() {
-        menu.clear();callback.clear()
-        newRow();build()
+    suspend fun send(rebuild: Boolean = true): MenuV2 {
+        if (rebuild) {
+            menu.clear();callback.clear()
+            newRow();build()
+        }
 
         val options = menu.map { it.toTypedArray() }.toTypedArray()
         if (followup)
             Call.followUpMenu(player.con, _menuId, title, msg, options)
         else
             Call.menu(player.con, _menuId, title, msg, options)
+        return this
     }
 
     suspend fun await() {
