@@ -1,5 +1,5 @@
 import * as core from "npm:@actions/core"
-import {context, getOctokit} from "npm:@actions/github";
+import {context, getOctokit} from "npm:@actions/github@^5.1.1";
 
 
 const token = Deno.env.get("GITHUB_TOKEN") || core.getInput("token")
