@@ -70,6 +70,7 @@ open class MenuV2(
     @MenuBuilderDsl
     fun subMenu(title: String, chooseTimeout: Duration? = 60.seconds, builder: suspend MenuV2.() -> Unit) {
         option(title) {
+            this.title = title
             menu.clear();callback.clear()
             newRow();builder.invoke(this)
             var back = false
