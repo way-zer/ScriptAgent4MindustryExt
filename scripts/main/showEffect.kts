@@ -1,4 +1,4 @@
-package wayzer.ext
+package main
 //WayZer 版权所有(请勿删除版权注解)
 import arc.graphics.Color
 import mindustry.entities.Effect

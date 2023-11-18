@@ -1,4 +1,4 @@
 ID main
 FQ_NAME main.Module
 NAME Main Module
-+DEPENDS coreLibrary
++DEPENDS coreMindustry 
