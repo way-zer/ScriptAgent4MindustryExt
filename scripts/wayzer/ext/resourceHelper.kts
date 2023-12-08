@@ -26,7 +26,7 @@ import mindustry.maps.Map as MdtMap
 name = "资源站配套脚本"
 
 val token by config.key("", "Mindustry资源站服务器Token")
-val webRoot by config.key("https://mdt.wayzer.top", "Mindustry资源站Api")
+val webRoot by config.key("https://api.mindustry.top", "Mindustry资源站Api")
 
 val tokenOk get() = token.isNotBlank()
 
@@ -55,7 +55,7 @@ suspend fun httpGet(url: String) = withContext(Dispatchers.IO) {
 }
 
 fun loadMap(map: Map, hash: String) {
-    val url = URL("$webRoot/api/maps/$hash/downloadServer?token=$token")
+    val url = URL("$webRoot/maps/$hash/downloadServer?token=$token")
     url.openConnection()
         .apply { readTimeout = 10_000 }
         .getInputStream().use { stream ->
@@ -86,7 +86,7 @@ MapRegistry.register(this, object : MapProvider() {
             else -> search
         }
         searchCache.getIfPresent(mappedSearch)?.let { return it }
-        val maps = httpGet("$webRoot/api/maps/list?prePage=100&search=${URLEncoder.encode(mappedSearch, "utf-8")}")
+        val maps = httpGet("$webRoot/maps/list?prePage=100&search=${URLEncoder.encode(mappedSearch, "utf-8")}")
             .map {
                 val id = it.getInt("id")
                 val hash = it.getString("latest")
@@ -102,7 +102,7 @@ MapRegistry.register(this, object : MapProvider() {
             reply?.invoke("[red]本服未开启网络换图，请联系服主开启".with())
             return null
         }
-        val info = httpGet("$webRoot/api/maps/thread/$id/latest")
+        val info = httpGet("$webRoot/maps/thread/$id/latest")
         val hash = info.getString("hash")
         val tags = info.get("tags").toStringMap()
         return newMapInfo(id, hash, tags, info.getString("mode", "unknown")).run {
