@@ -42,17 +42,6 @@ abstract class MapProvider {
     /**@param id may not exist in getMaps*/
     open suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)? = null): MapInfo? =
         searchMaps().filterIsInstance<MapInfo>().find { it.id == id }
-
-    companion object {
-        inline fun <T : BaseMapInfo> List<T>.filterWhen(b: Boolean, body: (T) -> Boolean): List<T> {
-            return if (b) filter(body) else this
-        }
-
-        fun <T : BaseMapInfo> List<T>.filterByMode(filter: String?) = this
-            .filterWhen(filter == "survive") { it.mode == Gamemode.survival }
-            .filterWhen(filter == "attack") { it.mode == Gamemode.attack }
-            .filterWhen(filter == "pvp") { it.mode == Gamemode.pvp }
-    }
 }
 
 class GetNextMapEvent(val previous: BaseMapInfo?, var mapInfo: BaseMapInfo) : Event, Event.Cancellable {

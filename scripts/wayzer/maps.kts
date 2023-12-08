@@ -22,10 +22,19 @@ MapRegistry.register(this, object : MapProvider() {
         if (search == "@internal") return maps.defaultMaps()
             .mapIndexed { i, map -> MapInfo(i + 1, map, Gamemode.survival) }
         maps.reload()
-        val mapList = if (configEnableInternMaps) maps.all() else maps.customMaps()
-        return mapList.sortedBy { it.file.lastModified() }
+        val mapList = (if (configEnableInternMaps) maps.all() else maps.customMaps())
+            .sortedBy { it.file.lastModified() }
             .mapIndexed { i, map -> MapInfo(i + 1, map, bestMode(map)) }
-            .filterByMode(search)
+        return when {
+            search.isNullOrEmpty() -> mapList
+            search == "survive" -> mapList.filter { it.mode == Gamemode.survival }
+            search == "attack" -> mapList.filter { it.mode == Gamemode.attack }
+            search == "pvp" -> mapList.filter { it.mode == Gamemode.pvp }
+            else -> mapList.filter {
+                it.map.name().contains(search, ignoreCase = true) || it.map.description()
+                    .contains(search, ignoreCase = true)
+            }
+        }
     }
 
     private fun bestMode(map: mindustry.maps.Map): Gamemode {
@@ -79,7 +88,7 @@ command("maps", "列出服务器地图") {
                 title = "服务器地图($filter)"
                 msg = "SA4Mindustry By WayZer\n" +
                         "点击选项可发起投票换图"
-                val url = "https://mdt.wayzer.top"
+                val url = "https://www.mindustry.top"
                 option("点击打开Mindustry资源站，查看更多地图\n$url") {
                     Call.openURI(player.con, url)
                 }
