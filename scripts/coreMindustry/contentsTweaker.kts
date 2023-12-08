@@ -1,18 +1,16 @@
 @file:Import("https://www.jitpack.io/", mavenRepository = true)
-@file:Import("cf.wayzer:ContentsTweaker:v2.1.2", mavenDependsSingle = true)
+@file:Import("cf.wayzer:ContentsTweaker:v3.0.1", mavenDependsSingle = true)
 
 package coreMindustry
 
-import arc.util.serialization.Base64Coder
-import cf.wayzer.contentsTweaker.PatchHandler
+import cf.wayzer.contentsTweaker.ContentsTweaker
 import cf.wayzer.placehold.DynamicVar
-import mindustry.game.EventType.PlayEvent
-import mindustry.io.JsonIO
-import java.security.MessageDigest
 
 var patches: String?
-    get() = state.rules.tags.get("ContentsPatch")
+    get() = state.map.tags.get("ContentsPatch")
     set(v) {
+        state.map.tags.put("ContentsPatch", v)
+        //back compatibility
         state.rules.tags.put("ContentsPatch", v!!)
     }
 var patchList: List<String>
@@ -26,53 +24,56 @@ registerVar("scoreBroad.ext.contentsVersion", "ContentsTweaker状态显示", Dyn
     "[violet]特殊修改已加载: [orange](使用[sky]ContentsTweaker[]MOD获得最佳体验)".takeIf { patches != null }
 })
 
-//patch
-@Savable(false)
-val patchMap = mutableMapOf<String, String>()//name->text
-customLoad(::patchMap, patchMap::putAll)
+fun sendPatch(name: String, patch: String) {
+    Call.clientPacketReliable("ContentsLoader|newPatch", "$name\n$patch")
+}
 
-val md5Digest = MessageDigest.getInstance("md5")!!
-
-/**
- * @return 最终保存的patch name(可能带md5)
- */
-fun addPatch(name: String, patch: String): String {
-    val md5 = Base64Coder.encode(md5Digest.digest(patch.toByteArray())).concatToString()
-    val name2 = if (name.startsWith("$")) name else "$name-$md5"
-    patchMap[name2] = patch
-    PatchHandler.handle(JsonIO.read(null, patch))
-    PatchHandler.doAfterHandle()
-    patchList = patchList.toMutableList().apply {
-        remove(name2)
-        add(name2)//put last
+@JvmName("addPatchV3")
+fun addPatch(name: String, patch: String) {
+    if (!name.startsWith("$")) {
+        state.map.tags.put("CT@$name", patch)
+        patchList = patchList.toMutableList().apply {
+            remove(name);add(name)//put last
+        }
     }
-    Call.clientPacketReliable("ContentsLoader|loadPatch", md5)
-    return name2
+    ContentsTweaker.loadPatch(name, patch)
+    sendPatch(name, patch)
+}
+@JvmName("addPatch")
+fun addPatchOld(name: String, patch: String): String {
+    addPatch(name, patch)
+    return name
 }
 export(::addPatch)
-listen<PlayEvent> {
-    patchList.run {
-        if (isEmpty()) return@run
-        forEach {
-            val patch = patchMap[it] ?: return@forEach
-            PatchHandler.handle(JsonIO.read(null, patch))
-        }
-        PatchHandler.doAfterHandle()
-    }
-}
 listen<EventType.ResetEvent> {
-    PatchHandler.recoverAll()
+    ContentsTweaker.recoverAll()
+}
+
+listen<EventType.WorldLoadBeginEvent> {
+    if (ContentsTweaker.worldInReset) return@listen
+    var needAfterHandle = false
+    state.map.tags.get("ContentsPatch")?.split(";")?.forEach { name ->
+        if (name.isBlank()) return@forEach
+        val patch = state.map.tags.get("CT@$name") ?: return@forEach
+        ContentsTweaker.loadPatch(name, patch, doAfter = false)
+        needAfterHandle = true
+    }
+    if (needAfterHandle) ContentsTweaker.afterHandle()
 }
 
 //处理客户端请求
 onEnable {
+    netServer.addPacketHandler("ContentsLoader|version") { p, msg ->
+        logger.info("${p.name} $msg")
+        if (msg.contains("2."))
+            Call.sendMessage(p.con, "你当前安装的CT版本过老，请更新到3.0.1", null, null)
+    }
     netServer.addPacketHandler("ContentsLoader|requestPatch") { p, msg ->
-        patchMap[msg]?.let {
-            Call.clientPacketReliable(p.con, "ContentsLoader|newPatch", msg + "\n" + it)
-        }
+        state.map.tags["CT@$msg"]?.let { sendPatch(msg, it) }
     }
 }
 
 onDisable {
+    netServer.getPacketHandlers("ContentsLoader|version").clear()
     netServer.getPacketHandlers("ContentsLoader|requestPatch").clear()
 }

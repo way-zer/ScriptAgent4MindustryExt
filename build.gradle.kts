@@ -93,8 +93,8 @@ dependencies {
     //coreMindustry/console
     implementation("org.jline:jline-terminal:3.21.0")
     implementation("org.jline:jline-reader:3.21.0")
-    //coreMindustry/utilContentsOverwrite
-    implementation("cf.wayzer:ContentsTweaker:v2.0.1")
+    //coreMindustry/contentsTweaker
+    implementation("cf.wayzer:ContentsTweaker:v3.0.1")
 
     //mirai
     implementation("net.mamoe:mirai-core:2.15.0")
