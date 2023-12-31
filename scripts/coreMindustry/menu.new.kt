@@ -1,16 +1,21 @@
 package coreMindustry
 
 import cf.wayzer.scriptAgent.contextScript
+import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.CommandInfo
+import coreLibrary.lib.util.calPage
 import coreLibrary.lib.util.nextEvent
 import kotlinx.coroutines.withTimeoutOrNull
 import mindustry.gen.Call
 import mindustry.gen.Player
+import kotlin.properties.ReadWriteProperty
 import kotlin.random.Random
+import kotlin.reflect.KProperty
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
+@MenuV2.MenuBuilderDsl
 open class MenuV2(
     val player: Player,
     val followup: Boolean = false,
@@ -54,15 +59,54 @@ open class MenuV2(
     @MenuBuilderDsl
     var msg = ""
 
-    protected open suspend fun build() {
-        block()
+    val sessionState = mutableMapOf<String, Any?>()
+    @MenuBuilderDsl
+    inline fun <reified T : Any?> stateKey(
+        default: T,
+        keyPrefix: String = ""
+    ): DSLBuilder.NameGet<ReadWriteProperty<Any?, T>> =
+        DSLBuilder.NameGet { name ->
+            val key = keyPrefix + name
+            return@NameGet object : ReadWriteProperty<Any?, T> {
+                override fun getValue(thisRef: Any?, property: KProperty<*>): T {
+                    return sessionState.getOrPut(key) { default } as T
+                }
+
+                override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+                    sessionState[key] = value
+                }
+            }
+        }
+
+    var columnPreRow = Int.MAX_VALUE
+
+    protected open suspend fun build() = block()
+
+    @MenuBuilderDsl
+    inline fun column(num: Int, body: () -> Unit) {
+        newRow()
+        val bak = columnPreRow
+        columnPreRow = num
+        body()
+        columnPreRow = bak
+        newRow()
     }
 
     @MenuBuilderDsl
-    fun newRow() = menu.add(mutableListOf())
+    fun newRow() {
+        if (menu.isNotEmpty()) {
+            if (menu.last().size == 0) return
+            while (columnPreRow != Int.MAX_VALUE && menu.last().size < columnPreRow) {
+                option("", ::refresh)
+            }
+        }
+        menu.add(mutableListOf())
+    }
 
     @MenuBuilderDsl
     fun option(name: String, body: suspend () -> Unit) {
+        if (menu.isEmpty() || menu.last().size >= columnPreRow)
+            newRow()
         menu.last().add(name)
         callback.add(body)
     }
@@ -72,7 +116,7 @@ open class MenuV2(
         option(title) {
             this.title = title
             menu.clear();callback.clear()
-            newRow();builder.invoke(this)
+            builder.invoke(this)
             var back = false
             newRow();option("返回") { back = true }
 
@@ -111,9 +155,10 @@ open class MenuV2(
     suspend fun send(rebuild: Boolean = true): MenuV2 {
         if (rebuild) {
             menu.clear();callback.clear()
-            newRow();build()
+            build()
         }
-
+        while (menu.isNotEmpty() && menu.last().isEmpty()) menu.removeLast()
+        if (menu.isEmpty()) error("Menu is Empty")
         val options = menu.map { it.toTypedArray() }.toTypedArray()
         if (followup)
             Call.followUpMenu(player.con, _menuId, title, msg, options)
@@ -153,5 +198,27 @@ open class MenuV2(
 
     companion object {
         private val utilScript = contextScript<Menu>()
+    }
+}
+
+@MenuV2.MenuBuilderDsl
+inline fun <T> MenuV2.renderPaged(
+    list: List<T>,
+    initialPage: Int = 1,
+    prePage: Int = 9,
+    key: String = "",
+    itemRender: (T) -> Unit
+) {
+    var selectedPage by stateKey(initialPage, keyPrefix = "renderPaged@$key-")
+    val (page, totalPage) = calPage(selectedPage, prePage, list.size)
+    repeat(prePage) {
+        val i = (page - 1) * prePage + it
+        if (i >= list.size) return@repeat option("", this::refresh)
+        itemRender(list[i])
+    }
+    column(3) {
+        option("<-") { selectedPage = page - 1;refresh() }
+        option("$page/$totalPage", this::refresh)
+        option("->") { selectedPage = page + 1;refresh() }
     }
 }
