@@ -39,7 +39,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
-          name: "Pre-release build ${{github.run_number}}"
+          name: "${{github.ref_name}} 预发布(Build ${{github.run_number}})"
           body: ${{steps.changelog.outputs.releaseBody}}
           files: |
             build/distributions/*

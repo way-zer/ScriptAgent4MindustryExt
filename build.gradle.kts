@@ -8,7 +8,7 @@ plugins {
 
 group = "cf.wayzer"
 version = "v3.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3为脚本版本
-val loaderVersion get() = version.toString().substringBeforeLast('.')
+val loaderVersion get() = version.toString()
 
 if (projectDir.resolve(".git").isDirectory)
     gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
@@ -143,7 +143,7 @@ tasks {
         dependsOn("scriptsZip")
         from(sourceSets.getByName("plugin").output)
         archiveClassifier.set("")
-        archiveVersion.set(rootProject.version.toString().substringBeforeLast('.'))
+        archiveVersion.set(loaderVersion)
         configurations = listOf(project.configurations.getByName("pluginCompileClasspath"))
         manifest.attributes(
             "Main-Class" to "cf.wayzer.scriptAgent.standalone.LoaderKt"

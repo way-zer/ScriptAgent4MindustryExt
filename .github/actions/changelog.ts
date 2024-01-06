@@ -38,7 +38,7 @@ const changeFiles = (compare.files || []).map(file => {
 }).join("\n")
 
 core.setOutput("releaseBody", `
-## 预发布版本，仅供测试使用
+## 预发布版本，使用前记得备份
 
 正式发布前，可能会多次更新(以标题build号为准)
 
