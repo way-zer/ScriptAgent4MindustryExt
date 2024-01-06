@@ -9,6 +9,7 @@ import cf.wayzer.scriptAgent.version
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import kotlin.system.exitProcess
 
 object Main : CommonMain {
     @JvmStatic
@@ -20,6 +21,10 @@ object Main : CommonMain {
 
         bootstrap()
 
+        if (ScriptRegistry.allScripts { it.enabled }.isEmpty()) {
+            println("No Script Enabled")
+            exitProcess(-1)
+        }
         while (ScriptRegistry.allScripts { it.enabled }.isNotEmpty())
             delay(1_000)
         println("Bye!!")

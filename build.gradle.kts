@@ -156,20 +156,20 @@ tasks {
             println(archiveFile.get())
         }
     }
-    val destPrecompile = buildDir.resolve("tmp/scripts")
-    val destBuiltin = buildDir.resolve("tmp/builtinScripts")
+    val destPrecompile = layout.buildDirectory.dir("tmp/scripts")
+    val destBuiltin = layout.buildDirectory.dir("tmp/builtinScripts")
     val precompile = create<JavaExec>("precompile") {
         dependsOn(buildPlugin)
         group = "plugin"
         classpath(buildPlugin.outputs.files)
         systemProperties["ScriptAgent.PreparePack"] = "true"
-        environment("SAMAIN", "main/generate")
+        environment("SAMain", "main/generate")
 
         inputs.files(sourceSets.main.get().allSource)
         outputs.dirs(destPrecompile, destBuiltin)
         doFirst {
-            destPrecompile.deleteRecursively()
-            destBuiltin.deleteRecursively()
+            destPrecompile.get().asFile.deleteRecursively()
+            destBuiltin.get().asFile.deleteRecursively()
         }
     }
     val precompileZip = create<Zip>("precompileZip") {
