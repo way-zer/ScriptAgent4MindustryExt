@@ -7,13 +7,13 @@ import arc.util.CommandHandler
 import arc.util.Log
 import cf.wayzer.scriptAgent.*
 import cf.wayzer.scriptAgent.define.LoaderApi
-import cf.wayzer.scriptAgent.util.BuiltinScriptRegistry
+import cf.wayzer.scriptAgent.util.CommonMain
 import kotlinx.coroutines.runBlocking
 import mindustry.Vars
 import mindustry.mod.Plugin
 
 @OptIn(LoaderApi::class)
-class Main(private val loader: Plugin) : Plugin() {
+class Main(private val loader: Plugin) : Plugin(), CommonMain {
     override fun getConfig(): Fi = loader.config
 
     override fun registerClientCommands(handler: CommandHandler) {
@@ -26,36 +26,25 @@ class Main(private val loader: Plugin) : Plugin() {
     }
 
     override fun init() {
-        MainScriptsHelper.load()
         Config.version = Vars.mods.getMod(loader.javaClass).meta.version
         Config.rootDir = Vars.dataDirectory.child("scripts").file()
         Config.clientCommands = Vars.netServer?.clientCommands ?: CommandHandler("/")
-        if (!Vars.headless) {
-            Config.serverCommands = CommandHandler("")
-        }
+        if (!Vars.headless) Config.serverCommands = CommandHandler("")
 
-        ScriptRegistry.registries.add(BuiltinScriptRegistry)
-        ScriptRegistry.scanRoot()
-        val script = ScriptRegistry.findScriptInfo(Config.mainScript)
-        if (script != null) runBlocking {
-            ScriptManager.transaction {
-                add(script)
-                load();enable()
+        bootstrap()
+        Core.app.addListener(object : ApplicationListener {
+            override fun pause() {
+                if (Vars.headless)
+                    exit()
             }
-            Core.app.addListener(object : ApplicationListener {
-                override fun pause() {
-                    if (Vars.headless)
-                        exit()
-                }
 
-                override fun exit() {
-                    runBlocking {
-                        ScriptManager.disableAll()
-                    }
-                }
-            })
-        }
+            override fun exit() = runBlocking {
+                ScriptManager.disableAll()
+            }
+        })
+    }
 
+    override fun displayInfo(foundMain: Boolean) {
         Log.info("&y===========================")
         Log.info("&lm&fb     ScriptAgent &b${Config.version}")
         Log.info("&b           By &cWayZer    ")
@@ -65,7 +54,7 @@ class Main(private val loader: Plugin) : Plugin() {
         Log.info(
             "&b共找到${all.size}脚本,加载成功${all.count { it.scriptState.loaded }},启用成功${all.count { it.scriptState.enabled }},出错${all.count { it.failReason != null }}"
         )
-        if (script == null)
+        if (!foundMain)
             Log.warn("&c未找到启动脚本(${Config.mainScript}),请下载安装脚本包,以发挥本插件功能")
         Log.info("&y===========================")
     }

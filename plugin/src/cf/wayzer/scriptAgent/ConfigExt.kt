@@ -27,10 +27,14 @@ object MainScriptsHelper {
     }
 }
 
+var Config.args by DSLBuilder.dataKeyWithDefault<Array<String>> { emptyArray() }
+    internal set
 var Config.version by DSLBuilder.lateInit<String>()
     internal set
 val Config.mainScript get() = MainScriptsHelper.current
 fun Config.nextMainScript() = MainScriptsHelper.next()
+
+//Mindustry
 var Config.clientCommands by DSLBuilder.lateInit<CommandHandler>()
     internal set
 var Config.serverCommands by DSLBuilder.lateInit<CommandHandler>()

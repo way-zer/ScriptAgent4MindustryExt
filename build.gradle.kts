@@ -146,7 +146,7 @@ tasks {
         archiveVersion.set(rootProject.version.toString().substringBeforeLast('.'))
         configurations = listOf(project.configurations.getByName("pluginCompileClasspath"))
         manifest.attributes(
-            "Main-Class" to "cf.wayzer.scriptAgent.mindustry.GenerateMain"
+            "Main-Class" to "cf.wayzer.scriptAgent.standalone.LoaderKt"
         )
         dependencies {
             include(dependency("cf.wayzer:ScriptAgent"))
@@ -163,6 +163,7 @@ tasks {
         group = "plugin"
         classpath(buildPlugin.outputs.files)
         systemProperties["ScriptAgent.PreparePack"] = "true"
+        environment("SAMAIN", "main/generate")
 
         inputs.files(sourceSets.main.get().allSource)
         outputs.dirs(destPrecompile, destBuiltin)
