@@ -1,0 +1,6 @@
+ID coreMindustry/contentsTweaker
+FQ_NAME coreMindustry.ContentsTweaker
+NAME ContentsTweaker Script
++DEPENDS coreMindustry module
++IMPORT MavenDependsSingle cf.wayzer:ContentsTweaker:v3.0.1
++IMPORT MavenRepository https://www.jitpack.io/
