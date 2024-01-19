@@ -39,6 +39,9 @@ repositories {
         maven(url = "https://maven.aliyun.com/repository/public")//mirror for central
 
     mavenCentral()
+
+    maven ( url = "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" )
+
     maven(url = "https://www.jitpack.io") {
         content {
             excludeModule("cf.wayzer", "ScriptAgent")
