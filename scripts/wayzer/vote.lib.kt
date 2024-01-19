@@ -48,7 +48,7 @@ class VoteEvent(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val mainJob = scope.launch(Dispatchers.game + CoroutineName("Vote Service")) main@{
+    val mainJob = scope.launch(Dispatchers.game + CoroutineName("Vote Service"), CoroutineStart.LAZY) main@{
         if ((coolDowns[starter.uuid()] ?: 0) > System.currentTimeMillis()) {
             starter.sendMessage("[yellow]你刚发起的投票投票失败，投票冷却中".with())
             return@main
@@ -197,6 +197,10 @@ class VoteEvent(
             }
         }
         handleAction.close()
+    }
+
+    init {
+        mainJob.start()
     }
 
     object VoteCommands : Commands() {
