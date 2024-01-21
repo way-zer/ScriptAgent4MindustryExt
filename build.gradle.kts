@@ -163,7 +163,7 @@ tasks {
         group = "plugin"
         classpath(buildPlugin.outputs.files)
         systemProperties["ScriptAgent.PreparePack"] = "true"
-        environment("SAMain", "main/generate")
+        environment("SAMain", "bootStrap/generate")
 
         inputs.files(sourceSets.main.get().allSource)
         outputs.dirs(destPrecompile, destBuiltin)

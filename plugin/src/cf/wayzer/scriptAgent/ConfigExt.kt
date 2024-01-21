@@ -7,7 +7,7 @@ import cf.wayzer.scriptAgent.util.DSLBuilder
 
 //Experimental
 object MainScriptsHelper {
-    const val defaultMain = "main/bootStrap"
+    const val defaultMain = "bootStrap/default"
     var list: List<String> = emptyList()
         private set
     private var cur = 0

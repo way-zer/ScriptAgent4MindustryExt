@@ -1,4 +1,4 @@
-package main
+package bootStrap
 
 import cf.wayzer.scriptAgent.util.DependencyManager
 import cf.wayzer.scriptAgent.util.maven.Dependency
