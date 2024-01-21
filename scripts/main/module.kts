@@ -1,6 +1,8 @@
-@file:Depends("coreLibrary")
+@file:Depends("coreMindustry")
 
 package main
 
-//本模块存放SAMain启动脚本
 name = "Main Module"
+/**
+ * 简单脚本请在该模块下编写
+ */

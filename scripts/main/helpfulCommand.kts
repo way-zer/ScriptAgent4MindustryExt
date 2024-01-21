@@ -1,4 +1,4 @@
-package wayzer.ext
+package main
 
 import arc.graphics.Colors
 
