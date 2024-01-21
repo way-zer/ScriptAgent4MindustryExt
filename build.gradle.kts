@@ -61,12 +61,12 @@ repositories {
 
 dependencies {
     val libraryVersion = "1.10.5.6"
-    val mindustryVersion = "800fe5abd2" //v146.001
+    val mindustryVersion = "cf96f4730e" //v146.001
     val pluginImplementation by configurations
     pluginImplementation("cf.wayzer:ScriptAgent:$libraryVersion")
     pluginImplementation("cf.wayzer:LibraryManager:1.6")
 //    pluginImplementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
-    pluginImplementation("com.github.TinyLake.MindustryX:core:$mindustryVersion")
+    pluginImplementation("com.github.TinyLake.MindustryX_tmp:core:$mindustryVersion")
 
     implementation(sourceSets.getByName("plugin").output)
     implementation(kotlin("script-runtime"))
@@ -89,7 +89,7 @@ dependencies {
 
     //coreMindustry
 //    implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
-    implementation("com.github.TinyLake.MindustryX:core:$mindustryVersion")
+    implementation("com.github.TinyLake.MindustryX_tmp:core:$mindustryVersion")
     //coreMindustry/console
     implementation("org.jline:jline-terminal:3.21.0")
     implementation("org.jline:jline-reader:3.21.0")
