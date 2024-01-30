@@ -40,6 +40,7 @@ class MapChangeEvent(val info: MapInfo, val isSave: Boolean, val rules: Rules) :
 object MapManager {
     var current: MapInfo = MapInfo(Vars.state.rules.idInTag, Vars.state.map, Vars.state.rules.mode())
         private set
+    internal var tmpRules: Rules? = null
 
     @JvmOverloads
     fun loadMap(info: MapInfo? = null, isSave: Boolean = false) {
@@ -75,12 +76,14 @@ object MapManager {
 
         current = info
         try {
+            tmpRules = event.rules.copy()
             info.load() // EventType.ResetEvent
-            // EventType.SaveLoadEvent
+            // EventType.WorldLoadBeginEvent : do set state.rules
+            // EventType.WorldLoadEndEvent
             // EventType.WorldLoadEvent
-            if (Vars.state.teams.getActive().none { it.hasCore() })
-                error("Map has no cores!")
+            // EventType.SaveLoadEvent
         } catch (e: Throwable) {
+            tmpRules = null
             broadcast(
                 "[red]地图{info.map.name}无效:{reason}".with(
                     "info" to info,
@@ -91,8 +94,6 @@ object MapManager {
             loadMap()
             throw CancellationException()
         }
-        Vars.state.map = info.map
-        Vars.state.rules = event.rules.copy()
 
 
         if (isSave) {

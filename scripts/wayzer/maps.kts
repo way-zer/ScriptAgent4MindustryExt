@@ -2,6 +2,7 @@ package wayzer
 
 import arc.Events
 import cf.wayzer.placehold.DynamicVar
+import mindustry.game.EventType.WorldLoadBeginEvent
 import mindustry.game.Gamemode
 import mindustry.game.Team
 import mindustry.io.SaveIO
@@ -114,6 +115,12 @@ listen<EventType.GameOverEvent> { event ->
         if (state.map != now) return@launch//已经通过其他方式换图
         MapManager.loadMap(map)
     }
+}
+listen<WorldLoadBeginEvent> {
+    if (MapManager.tmpRules == null) return@listen
+    state.map = MapManager.current.map
+    state.rules = MapManager.tmpRules
+    MapManager.tmpRules = null
 }
 command("host", "管理指令: 换图") {
     usage = "[mapId]"

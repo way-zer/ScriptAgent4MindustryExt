@@ -11,31 +11,24 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import mindustry.Vars
 import mindustry.game.Gamemode
-import mindustry.io.SaveIO
 import mindustry.maps.Map
 
 /** base mapInfo, not for load */
-open class BaseMapInfo(val id: Int, val map: Map, val mode: Gamemode) {
+open class BaseMapInfo(open val id: Int, open val map: Map, open val mode: Gamemode) {
     override fun toString(): String {
         return "BaseMapInfo(id=$id, map=$map, mode=$mode)"
     }
 
-    override fun equals(other: Any?): Boolean = other is BaseMapInfo && id == other.id
-    override fun hashCode(): Int = id
+    final override fun equals(other: Any?): Boolean = other is BaseMapInfo && id == other.id
+    final override fun hashCode(): Int = id
 }
 
-class MapInfo(
-    id: Int, map: Map, mode: Gamemode,
+data class MapInfo(
+    override val id: Int, override val map: Map, override val mode: Gamemode,
     val beforeReset: (() -> Unit)? = null,
     /**use for generator or save*/
-    val load: (() -> Unit) = {
-        @Suppress("INACCESSIBLE_TYPE")
-        SaveIO.load(map.file, Vars.world.filterContext(map))
-    }
-) : BaseMapInfo(id, map, mode) {
-    override fun equals(other: Any?): Boolean = other is MapInfo && id == other.id
-    override fun hashCode(): Int = id
-}
+    val load: (() -> Unit) = { Vars.world.loadMap(map) }
+) : BaseMapInfo(id, map, mode)
 
 abstract class MapProvider {
     abstract suspend fun searchMaps(search: String? = null): Collection<BaseMapInfo>
