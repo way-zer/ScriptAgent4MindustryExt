@@ -61,6 +61,8 @@ object MapRegistry : MapProvider() {
     }
 
     override suspend fun searchMaps(search: String?): List<BaseMapInfo> {
+        @Suppress("NAME_SHADOWING")
+        val search = search.takeUnless { it == "all" || it == "display" }
         return providers.flatMap { it.searchMaps(search) }
     }
 
@@ -72,7 +74,7 @@ object MapRegistry : MapProvider() {
     suspend fun nextMapInfo(
         previous: BaseMapInfo? = null,
         mode: Gamemode = Gamemode.survival,
-        filter: String = "all"
+        filter: String = "survive"
     ): MapInfo {
         val maps = searchMaps(filter).let { maps ->
             if (maps.isNotEmpty()) return@let maps
