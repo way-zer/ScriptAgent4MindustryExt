@@ -3,7 +3,6 @@
 package wayzer.ext
 
 import arc.struct.StringMap
-import arc.util.Http
 import arc.util.Strings
 import arc.util.serialization.JsonReader
 import arc.util.serialization.JsonValue
@@ -17,8 +16,10 @@ import wayzer.BaseMapInfo
 import wayzer.MapInfo
 import wayzer.MapProvider
 import wayzer.MapRegistry
+import java.io.ByteArrayInputStream
 import java.net.URL
 import java.net.URLEncoder
+import java.nio.charset.Charset
 import java.time.Duration
 import java.util.zip.InflaterInputStream
 import mindustry.maps.Map as MdtMap
@@ -44,24 +45,23 @@ fun JsonValue.toStringMap() = StringMap().apply {
     } while (node != null)
 }
 
-suspend fun httpGet(url: String) = withContext(Dispatchers.IO) {
-    runInterruptible {
-        var result: Result<JsonValue> = Result.failure(IllegalStateException("result not set"))
-        Http.get(url)
-            .error { result = Result.failure(it) }
-            .block { result = Result.success(JsonReader().parse(it.resultAsString)) }
-        result.getOrThrow()
+suspend fun httpGet(url: String, retry: Int = 3) = withContext(Dispatchers.IO) {
+    var result: Result<ByteArray> = Result.failure(IllegalStateException("result not set"))
+    repeat(retry + 1) {
+        result = kotlin.runCatching {
+            val stream = URL(url).openConnection()
+                .apply { readTimeout = 1_000 }
+                .getInputStream()
+            runInterruptible { stream.readBytes() }
+        }.onSuccess { return@withContext it }
     }
+    result.getOrThrow()
 }
 
 fun loadMap(map: Map, hash: String) {
-    val url = URL("$webRoot/maps/$hash/downloadServer?token=$token")
-    url.openConnection()
-        .apply { readTimeout = 10_000 }
-        .getInputStream().use { stream ->
-            @Suppress("INACCESSIBLE_TYPE")
-            SaveIO.load(InflaterInputStream(stream), world.filterContext(map))
-        }
+    val bs = runBlocking { httpGet("$webRoot/maps/$hash/downloadServer?token=$token", retry = 3) }
+    @Suppress("INACCESSIBLE_TYPE")
+    SaveIO.load(InflaterInputStream(ByteArrayInputStream(bs)), world.filterContext(map))
 }
 
 fun newMapInfo(id: Int, hash: String, tags: StringMap, mode: String): BaseMapInfo {
@@ -87,6 +87,7 @@ MapRegistry.register(this, object : MapProvider() {
         }
         searchCache.getIfPresent(mappedSearch)?.let { return it }
         val maps = httpGet("$webRoot/maps/list?prePage=100&search=${URLEncoder.encode(mappedSearch, "utf-8")}")
+            .let { JsonReader().parse(it.toString(Charset.defaultCharset())) }
             .map {
                 val id = it.getInt("id")
                 val hash = it.getString("latest")
@@ -103,6 +104,7 @@ MapRegistry.register(this, object : MapProvider() {
             return null
         }
         val info = httpGet("$webRoot/maps/thread/$id/latest")
+            .let { JsonReader().parse(it.toString(Charset.defaultCharset())) }
         val hash = info.getString("hash")
         val tags = info.get("tags").toStringMap()
         return newMapInfo(id, hash, tags, info.getString("mode", "unknown")).run {
