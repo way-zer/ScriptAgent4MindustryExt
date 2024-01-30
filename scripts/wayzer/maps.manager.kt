@@ -15,6 +15,7 @@ import coreMindustry.lib.game
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import mindustry.Vars
 import mindustry.core.GameState
 import mindustry.game.EventType
@@ -67,6 +68,9 @@ object MapManager {
         val players = Groups.player.toList()
         Call.worldDataBegin()
         Vars.logic.reset()
+        //Hack: Some old tasks have posted, so we let they run.
+        Vars.world.resize(0, 0)
+        yield()
 
 
         current = info
