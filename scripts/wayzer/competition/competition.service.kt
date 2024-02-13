@@ -34,7 +34,6 @@ object CompetitionService {
     var loading = false
     @Savable
     var gaming = false
-    @Savable
     var nextMap: MapInfo? = null
 
     fun updateHud() {
@@ -88,15 +87,8 @@ object CompetitionService {
                     canVote = { it.team() != teams.spectateTeam },
                 )
                 if (event.awaitResult()) {
-                    PatchManager.randomOrNull(state.rules)?.let{patch ->
-                        mapPatch.patchesToLoad = setOf(patch)
-                        val msg = """
-                            | [green]本场游戏添加突变：
-                            | [accent][gold]{mapPatch.name}[]
-                            | [gold]{mapPatch.desc}[]
-                        """.trimMargin().with("mapPatch" to patch)
-                        broadcast(msg, quite=true)
-                        broadcast(msg, MsgType.InfoMessage, quite=true)
+                    PatchManager.randomOrNull(state.rules)?.let{
+                        setPatch(it)
                     } ?: player?.sendMessage("没有适用于当前地图的突变".with())
                 }
             }
