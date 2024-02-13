@@ -218,7 +218,7 @@ class VoteEvent(
 
         internal val active = AtomicReference<VoteEvent?>(null)
         internal var lastAction = 0L //最后一次玩家退出或投票成功时间,用于处理单人投票
-        internal val coolDowns = mutableMapOf<String, Long>()
+        public val coolDowns = mutableMapOf<String, Long>()
     }
 }
 
