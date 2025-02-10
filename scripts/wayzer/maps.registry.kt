@@ -33,7 +33,7 @@ data class MapInfo(
     override fun equals(other: Any?): Boolean = other is MapInfo && (provider == other.provider && id == other.id)
     override fun hashCode(): Int = 31 * provider.hashCode() + id
     override fun toString(): String {
-        return "MapInfo(name='$name', meta=$meta, mode=$mode, id=$id, provider=$provider)"
+        return "MapInfo(name='$name', author='$author', mode=$mode, id=$id, provider=$provider)"
     }
 }
 

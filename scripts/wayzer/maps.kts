@@ -132,7 +132,7 @@ command("host", "管理指令: 换图") {
         else arg[0].toIntOrNull()?.let { MapRegistry.findById(it, reply) }
             ?: returnReply("[red]请输入正确的地图ID".with())
         MapManager.loadMap(map)
-        broadcast("[green]强制换图为{info.map.name},模式{info.mode}".with("info" to map))
+        broadcast("[green]强制换图为{info}".with("info" to map))
     }
 }
 command("load", "管理指令: 加载存档") {
