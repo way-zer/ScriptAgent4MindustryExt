@@ -36,7 +36,7 @@ listen<EventType.ResetEvent> {
         ScriptManager.transaction {
             add("$moduleId/")
             removeIf { it.compiledScript?.source.run { this == null || this == it.source } }
-            if (isNotEmpty()) return@transaction
+            if (isEmpty()) return@transaction
 
             logger.info("Unload outdated script: ${toList()}")
             unload()//unload all updatable
