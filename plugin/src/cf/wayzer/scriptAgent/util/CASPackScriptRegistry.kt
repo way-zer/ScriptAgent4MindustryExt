@@ -13,7 +13,7 @@ object CASPackScriptRegistry : ScriptRegistry.IRegistry {
     private var cache = emptyMap<String, SourceImpl>()
 
     class SourceImpl(var file: File, meta: MetadataFile) : CASScriptSource(meta) {
-        override fun getCAS(hash: String): URL? =
+        override fun getURL(hash: String): URL? =
             if (!file.exists()) null else URL("jar:${file.toURI()}!/CAS/$hash")
     }
 

@@ -9,7 +9,7 @@ import java.net.URL
 object BuiltinScriptRegistry : ScriptRegistry.IRegistry {
     @OptIn(SAExperimentalApi::class)
     class SourceImpl(meta: MetadataFile) : CASScriptSource(meta) {
-        override fun getCAS(hash: String): URL = javaClass.getResource("/builtin/CAS/$hash")
+        override fun getURL(hash: String): URL = javaClass.getResource("/builtin/CAS/$hash")
             ?: error("No builtin resource: $hash")
     }
 
