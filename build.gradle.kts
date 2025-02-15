@@ -102,7 +102,7 @@ dependencies {
         //coreLib/kcp/serialization
         api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
         //coreLib/DBApi
-        val exposedVersion = "0.40.1"
+        val exposedVersion = "0.59.0"
         api("org.jetbrains.exposed:exposed-core:$exposedVersion")
         api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
         api("org.jetbrains.exposed:exposed-java-time:$exposedVersion")

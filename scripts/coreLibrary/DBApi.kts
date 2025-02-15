@@ -1,11 +1,10 @@
-@file:Import("org.jetbrains.exposed:exposed-core:0.41.1", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-dao:0.41.1", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-java-time:0.41.1", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-jdbc:0.41.1", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-core:0.59.0", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-dao:0.59.0", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-java-time:0.59.0", mavenDepends = true)
+@file:Import("org.jetbrains.exposed:exposed-jdbc:0.59.0", mavenDepends = true)
 
 package coreLibrary
 
-import coreLibrary.lib.util.ServiceRegistry
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
@@ -31,7 +30,7 @@ object DB : ServiceRegistry<Database>() {
         /**@return 0 if not exist */
         fun get(table: Table): Int {
             val identity = TransactionManager.current().identity(table)
-            return select { id eq identity }.firstOrNull()?.get(version) ?: 0
+            return select(version).where { id eq identity }.firstOrNull()?.get(version) ?: 0
         }
 
         fun update(table: Table, versionV: Int) {
