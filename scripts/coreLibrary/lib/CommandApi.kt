@@ -143,6 +143,10 @@ class CommandInfo(
         Return()
     }
 
+    override fun toString(): String {
+        return "CommandInfo(name='$name', script=$script, description=$description)"
+    }
+
     object Return : CancellationException("Direct return command") {
         @CommandBuilder
         operator fun invoke(): Nothing {
