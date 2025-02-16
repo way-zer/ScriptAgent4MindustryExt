@@ -19,6 +19,7 @@ onEnable {
         Redis.provide(this, JedisPool(addr).apply {
             testOnCreate = true
             testOnBorrow = true
+            resource.use { it.ping() }
         })
     } catch (e: Throwable) {
         logger.log(Level.WARNING, "连接Redis服务器失败: $addr", e)
