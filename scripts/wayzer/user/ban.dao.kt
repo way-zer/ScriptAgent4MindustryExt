@@ -23,8 +23,8 @@ class PlayerBan(id: EntityID<Int>) : IntEntity(id) {
         val ids = text("ids")
         val reason = text("reason", eagerLoading = true)
         val operator = text("operator").nullable()
-        val createTime = timestamp("createTime").defaultExpression(CurrentTimestamp())
-        val endTime = timestamp("endTime").defaultExpression(CurrentTimestamp())
+        val createTime = timestamp("createTime").defaultExpression(CurrentTimestamp)
+        val endTime = timestamp("endTime").defaultExpression(CurrentTimestamp)
     }
 
     companion object : IntEntityClass<PlayerBan>(T) {
@@ -37,10 +37,10 @@ class PlayerBan(id: EntityID<Int>) : IntEntity(id) {
             }
         }
 
-        fun allNotEnd() = find(T.endTime.greater(CurrentTimestamp()))
+        fun allNotEnd() = find(T.endTime.greater(CurrentTimestamp))
 
         fun findNotEnd(id: String): PlayerBan? {
-            return find { (T.ids like "%$${id}$%") and (T.endTime.greater(CurrentTimestamp())) }
+            return find { (T.ids like "%$${id}$%") and (T.endTime.greater(CurrentTimestamp)) }
                 .firstOrNull()
         }
     }
