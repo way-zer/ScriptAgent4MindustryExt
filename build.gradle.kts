@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm") version "2.1.10"
-    id("me.qoomon.git-versioning") version "2.1.1"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("me.qoomon.git-versioning") version "6.4.4"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "cf.wayzer"
@@ -9,15 +9,16 @@ version = "v3.x.x" //采用3位版本号v1.2.3 1为大版本 2为插件版本 3�
 val loaderVersion get() = version.toString()
 
 if (projectDir.resolve(".git").isDirectory)
-    gitVersioning.apply(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig> {
-        tag(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.VersionDescription> {
-            pattern = "v(?<tagVersion>[0-9].*)"
-            versionFormat = "\${tagVersion}"
-        })
-        commit(closureOf<me.qoomon.gradle.gitversioning.GitVersioningPluginConfig.CommitVersionDescription> {
-            versionFormat = "\${commit.short}-SNAPSHOT"
-        })
-    })
+    gitVersioning.apply {
+        refs{
+            tag("v(?<version>[0-9].*)"){
+                version = "\${ref.version}"
+            }
+        }
+        rev {
+            version = "\${commit.short}"
+        }
+    }
 
 sourceSets {
     main {
@@ -32,7 +33,7 @@ dependencies {
     val mindustryVersion = "ca40f700fb" //v146.004
     api("cf.wayzer:ScriptAgent:$libraryVersion")
     implementation("cf.wayzer:LibraryManager:1.6")
-    implementation("com.github.TinyLake.MindustryX:core:$mindustryVersion")
+    compileOnly("com.github.TinyLake.MindustryX:core:$mindustryVersion")
 
     subprojects {
         apply(plugin = "kotlin")
