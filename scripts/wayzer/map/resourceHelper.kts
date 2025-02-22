@@ -37,7 +37,7 @@ suspend fun httpGet(url: String, retry: Int = 3) = withContext(Dispatchers.IO) {
             val stream = URL(url).openConnection()
                 .apply { readTimeout = 1_000 }
                 .getInputStream()
-            runInterruptible { stream.readBytes() }
+            stream.use { runInterruptible { stream.readBytes() } }
         }.onSuccess { return@withContext it }
         delay(1000)
     }

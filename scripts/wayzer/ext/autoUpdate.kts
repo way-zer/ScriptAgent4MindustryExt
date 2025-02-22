@@ -19,7 +19,7 @@ val onlyInNight by config.key(false, "仅在凌晨自动更新", "本地时间1:
 val useMirror by config.key(false, "使用镜像加速下载")
 val mirror by config.key("https://gh.tinylake.tech", "GH镜像源")
 
-suspend fun download(url: String, file: File): Int = runInterruptible {
+suspend fun download(url: String, file: File): Int = runInterruptible(Dispatchers.IO) {
     val steam = URL(url).openStream()
     val buffer = ByteArray(128 * 1024)//128KB
     val logInterval = Interval()
