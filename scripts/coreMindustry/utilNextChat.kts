@@ -1,7 +1,5 @@
 package coreMindustry
 
-import coreLibrary.lib.util.ReceivedEvent
-import coreLibrary.lib.util.nextEvent
 import mindustry.gen.SendChatMessageCallPacket
 
 data class OnChat(val player: Player, val text: String) : Event, ReceivedEvent {

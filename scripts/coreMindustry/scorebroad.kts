@@ -1,8 +1,6 @@
 package coreMindustry
 //WayZer 版权所有(请勿删除版权注解)
 import arc.util.Align
-import coreLibrary.lib.util.loop
-import mindustry.gen.Groups
 import java.time.Duration
 
 name = "扩展功能: 积分榜"

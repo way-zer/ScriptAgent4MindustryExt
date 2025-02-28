@@ -1,7 +1,6 @@
 package coreLibrary.commands
 
 import coreLibrary.lib.PlaceHold.registeredVars
-import coreLibrary.lib.util.menu
 
 data class VarInfo(val script: ScriptInfo, val key: String, val desc: String)
 

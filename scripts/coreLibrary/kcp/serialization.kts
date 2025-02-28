@@ -2,7 +2,6 @@
 
 package coreLibrary.kcp
 
-import cf.wayzer.scriptAgent.define.annotations.Import
 import cf.wayzer.scriptAgent.events.ScriptCompileEvent
 import cf.wayzer.scriptAgent.util.DependencyManager
 import cf.wayzer.scriptAgent.util.maven.Dependency
