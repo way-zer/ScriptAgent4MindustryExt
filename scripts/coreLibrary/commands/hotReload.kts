@@ -40,7 +40,9 @@ fun enableWatch() {
                                     load()
                                     if (oldEnable) enable()
                                 }
-                                logger.info(if (oldEnable) "  新脚本启用成功" else "  新脚本加载成功: 请使用sa enable启用")
+                                logger.info(
+                                    if (oldEnable) "  新脚本启用成功" else "  新脚本加载成功: 请使用sa enable启用"
+                                )
                             }
                         }
                     }
@@ -59,18 +61,16 @@ fun enableWatch() {
     }
 }
 
-onEnable {
-    Commands.controlCommand += CommandInfo(this, "hotReload", "开关脚本自动热重载") {
-        permission = "scriptAgent.control.hotReload"
-        body {
-            if (watcher == null) {
-                enableWatch()
-                reply("[green]脚本自动热重载监测启动".with())
-            } else {
-                watcher?.close()
-                watcher = null
-                reply("[yellow]脚本自动热重载监测关闭".with())
-            }
+command("hotReload", "开关脚本自动热重载".with(), commands = Commands.controlCommand) {
+    permission = "scriptAgent.control.hotReload"
+    body {
+        if (watcher == null) {
+            enableWatch()
+            reply("[green]脚本自动热重载监测启动".with())
+        } else {
+            watcher?.close()
+            watcher = null
+            reply("[yellow]脚本自动热重载监测关闭".with())
         }
     }
 }
