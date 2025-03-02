@@ -83,13 +83,13 @@ MapRegistry.register(this, object : MapProvider() {
     override suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)?): MapInfo? {
         if (id !in 10000..99999) return null
         try {
-            val info = httpGet("$webRoot/maps/thread/$id/latest")
+            val info = httpGet("$webRoot/maps/$id.json")
                 .let { Jval.read(it.toString(Charsets.UTF_8)) }
             val mode = info.getString("mode", "unknown")
             return MapInfo(
                 this, id,
                 Gamemode.all.find { it.name.equals(mode, ignoreCase = true) } ?: Gamemode.survival,
-                meta = info.get("tags").toStringMap() + ("hash" to info.getString("hash")),
+                meta = info.get("tags").toStringMap(),
             )
         } catch (e: Exception) {
             logger.log(Level.WARNING, "Fail to findById($id)", e)
@@ -98,8 +98,7 @@ MapRegistry.register(this, object : MapProvider() {
     }
 
     override suspend fun lazyGetMap(info: MapInfo): mindustry.maps.Map {
-        val hash = info.meta["hash"] ?: info.meta["latest"] ?: error("Not set hash or latest")
-        val bs = runBlocking { httpGet("$webRoot/maps/$hash.msav", retry = 3) }
+        val bs = runBlocking { httpGet("$webRoot/maps/${info.id}.msav", retry = 3) }
         val fi = object : Fi("BYTES.msav") {
             override fun read(): InputStream {
                 return ByteArrayInputStream(bs)
