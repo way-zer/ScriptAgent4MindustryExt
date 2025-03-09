@@ -98,7 +98,7 @@ MapRegistry.register(this, object : MapProvider() {
     }
 
     override suspend fun lazyGetMap(info: MapInfo): mindustry.maps.Map {
-        val bs = runBlocking { httpGet("$webRoot/maps/${info.id}.msav", retry = 3) }
+        val bs = httpGet("$webRoot/maps/${info.id}.msav", retry = 3)
         val fi = object : Fi("BYTES.msav") {
             override fun read(): InputStream {
                 return ByteArrayInputStream(bs)
