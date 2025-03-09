@@ -29,7 +29,7 @@ sourceSets {
 
 
 dependencies {
-    val libraryVersion = "1.11.2.1"
+    val libraryVersion = "1.11.2.2"
     val mindustryVersion = "ca40f700fb" //v146.004
     api("cf.wayzer:ScriptAgent:$libraryVersion")
     implementation("cf.wayzer:LibraryManager:1.6")
