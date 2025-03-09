@@ -1,6 +1,7 @@
 package coreMindustry.lib
 
 import arc.Core
+import arc.util.Interval
 import cf.wayzer.scriptAgent.thisContextScript
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -16,6 +17,7 @@ object MindustryDispatcher : CoroutineDispatcher() {
 
     @Volatile
     private var inBlocking = false
+    private val warnTimer = Interval()
 
     init {
         Core.app.post {
@@ -37,9 +39,10 @@ object MindustryDispatcher : CoroutineDispatcher() {
 
     @OptIn(InternalCoroutinesApi::class)
     override fun dispatchYield(context: CoroutineContext, block: Runnable) {
-        thisContextScript().logger.log(
-            Level.WARNING, "avoid use yield() in Dispatchers.game, use nextTick instead", Exception()
-        )
+        if (warnTimer[10 * 60f])
+            thisContextScript().logger.log(
+                Level.WARNING, "avoid use yield() in Dispatchers.game, use nextTick instead", Exception()
+            )
         Core.app.post(block)
     }
 
