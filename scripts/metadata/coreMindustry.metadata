@@ -1,6 +1,5 @@
 ID coreMindustry
 FQ_NAME coreMindustry.Module
-NAME Mindustry 核心脚本模块
 +DEPENDS coreLibrary 
 +IMPORT DefaultImport arc.Core
 +IMPORT DefaultImport coreMindustry.lib.*
@@ -12,3 +11,42 @@ NAME Mindustry 核心脚本模块
 +IMPORT DefaultImport mindustry.gen.Player
 +IMPORT LibraryByClass arc.Core
 +IMPORT LibraryByClass mindustry.Vars
+
+ID coreMindustry/console
+FQ_NAME coreMindustry.Console
++DEPENDS coreMindustry module
++IMPORT MavenDependsSingle org.fusesource.jansi:jansi:2.4.0
++IMPORT MavenDependsSingle org.jline:jline-reader:3.21.0
++IMPORT MavenDependsSingle org.jline:jline-terminal-jansi:3.21.0
++IMPORT MavenDependsSingle org.jline:jline-terminal:3.21.0
+
+ID coreMindustry/contentsTweaker
+FQ_NAME coreMindustry.ContentsTweaker
++DEPENDS coreMindustry module
++IMPORT MavenDependsSingle cf.wayzer:ContentsTweaker:v3.0.1
++IMPORT MavenRepository https://www.jitpack.io/
+
+ID coreMindustry/menu
+FQ_NAME coreMindustry.Menu
++DEPENDS coreMindustry module
+
+ID coreMindustry/scorebroad
+FQ_NAME coreMindustry.Scorebroad
++DEPENDS coreMindustry module
+
+ID coreMindustry/utilMapRule
+FQ_NAME coreMindustry.UtilMapRule
++DEPENDS coreMindustry module
+
+ID coreMindustry/utilNextChat
+FQ_NAME coreMindustry.UtilNextChat
++DEPENDS coreMindustry module
+
+ID coreMindustry/utilTextInput
+FQ_NAME coreMindustry.UtilTextInput
++DEPENDS coreMindustry module
+
+ID coreMindustry/variables
+FQ_NAME coreMindustry.Variables
++DEPENDS coreMindustry module
+

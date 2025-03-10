@@ -1,7 +1,20 @@
 ID mapScript
 FQ_NAME mapScript.Module
-NAME Module Module
 +DEPENDS coreMindustry 
++DEPENDS wayzer/maps 
 +DEPENDS wayzer/maps 获取地图信息
 +IMPORT DefaultImport mapScript.lib.*
 +SOFT_DEPENDS wayzer/map/mapInfo 显示地图信息
+
+ID mapScript/shared/posMark
+FQ_NAME mapScript.shared.PosMark
++DEPENDS mapScript module
+
+ID mapScript/tags/limitAir
+FQ_NAME mapScript.tags.LimitAir
++DEPENDS mapScript module
+
+ID mapScript/tags/mapRule
+FQ_NAME mapScript.tags.MapRule
++DEPENDS mapScript module
+

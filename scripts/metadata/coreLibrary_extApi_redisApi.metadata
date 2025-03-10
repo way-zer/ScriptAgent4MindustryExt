@@ -1,5 +1,0 @@
-ID coreLibrary/extApi/redisApi
-FQ_NAME coreLibrary.extApi.RedisApi
-NAME RedisApi Script
-+DEPENDS coreLibrary module
-+IMPORT MavenDepends redis.clients:jedis:4.4.3

@@ -1,4 +1,0 @@
-ID coreLibrary/lang
-FQ_NAME coreLibrary.Lang
-NAME 国际化多语言
-+DEPENDS coreLibrary module

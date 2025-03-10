@@ -1,4 +1,0 @@
-ID wayzer/user/userService
-FQ_NAME wayzer.user.UserService
-NAME UserService Script
-+DEPENDS wayzer module

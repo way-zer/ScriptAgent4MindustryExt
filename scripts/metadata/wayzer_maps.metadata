@@ -1,4 +1,0 @@
-ID wayzer/maps
-FQ_NAME wayzer.Maps
-NAME 基础: 地图控制与管理
-+DEPENDS wayzer module

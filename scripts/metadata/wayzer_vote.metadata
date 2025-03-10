@@ -1,5 +1,0 @@
-ID wayzer/vote
-FQ_NAME wayzer.Vote
-+DEPENDS coreMindustry/menu 
-+DEPENDS wayzer module
-

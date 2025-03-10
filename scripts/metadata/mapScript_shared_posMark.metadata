@@ -1,4 +1,0 @@
-ID mapScript/shared/posMark
-FQ_NAME mapScript.shared.PosMark
-NAME PosMark Script
-+DEPENDS mapScript module

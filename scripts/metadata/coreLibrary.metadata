@@ -1,11 +1,77 @@
 ID coreLibrary
 FQ_NAME coreLibrary.Module
-NAME ScriptAgent 库模块
 +IMPORT DefaultImport coreLibrary.lib.*
 +IMPORT DefaultImport coreLibrary.lib.event.*
 +IMPORT DefaultImport coreLibrary.lib.util.*
-+IMPORT MavenDepends io.github.config4k:config4k:0.6.0
++IMPORT MavenDepends io.github.config4k:config4k:0.7.0
 +IMPORT MavenDependsSingle cf.wayzer:PlaceHoldLib:6.0
-+IMPORT MavenDependsSingle org.slf4j:slf4j-api:1.7.29
-+IMPORT MavenDependsSingle org.slf4j:slf4j-simple:1.7.29
++IMPORT MavenDependsSingle org.slf4j:slf4j-api:2.0.16
++IMPORT MavenDependsSingle org.slf4j:slf4j-simple:2.0.16
 +IMPORT MavenRepository https://www.jitpack.io/
+
+ID coreLibrary/DBApi
+FQ_NAME coreLibrary.DBApi
++DEPENDS coreLibrary module
++IMPORT MavenDepends org.jetbrains.exposed:exposed-core:0.59.0
++IMPORT MavenDepends org.jetbrains.exposed:exposed-dao:0.59.0
++IMPORT MavenDepends org.jetbrains.exposed:exposed-java-time:0.59.0
++IMPORT MavenDepends org.jetbrains.exposed:exposed-jdbc:0.59.0
+
+ID coreLibrary/DBConnector
+FQ_NAME coreLibrary.DBConnector
++DEPENDS coreLibrary module
++DEPENDS coreLibrary/DBApi 
+
+ID coreLibrary/commands/configCmd
+FQ_NAME coreLibrary.commands.ConfigCmd
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/control
+FQ_NAME coreLibrary.commands.Control
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/helpful
+FQ_NAME coreLibrary.commands.Helpful
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/hotReload
+FQ_NAME coreLibrary.commands.HotReload
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/permissionCmd
+FQ_NAME coreLibrary.commands.PermissionCmd
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/varsCmd
+FQ_NAME coreLibrary.commands.VarsCmd
++DEPENDS coreLibrary module
+
+ID coreLibrary/extApi/KVStore
+FQ_NAME coreLibrary.extApi.KVStore
++DEPENDS coreLibrary module
++IMPORT MavenDependsSingle com.h2database:h2-mvstore:2.3.232
+
+ID coreLibrary/extApi/redisApi
+FQ_NAME coreLibrary.extApi.RedisApi
++DEPENDS coreLibrary module
++IMPORT MavenDepends redis.clients:jedis:4.4.3
+
+ID coreLibrary/extApi/remoteEventApi
+FQ_NAME coreLibrary.extApi.RemoteEventApi
++DEPENDS coreLibrary module
++DEPENDS coreLibrary/extApi/redisApi 
++DEPENDS coreLibrary/extApi/redisApi 基于redis
+
+ID coreLibrary/kcp/serialization
+FQ_NAME coreLibrary.kcp.Serialization
++DEPENDS coreLibrary module
++IMPORT MavenDepends org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0
+
+ID coreLibrary/lang
+FQ_NAME coreLibrary.Lang
++DEPENDS coreLibrary module
+
+ID coreLibrary/variables
+FQ_NAME coreLibrary.Variables
++DEPENDS coreLibrary module
+

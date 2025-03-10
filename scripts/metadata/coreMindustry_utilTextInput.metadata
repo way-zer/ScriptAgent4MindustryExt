@@ -1,4 +1,0 @@
-ID coreMindustry/utilTextInput
-FQ_NAME coreMindustry.UtilTextInput
-NAME UtilTextInput Script
-+DEPENDS coreMindustry module

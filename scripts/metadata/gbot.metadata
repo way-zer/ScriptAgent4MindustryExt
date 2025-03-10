@@ -1,6 +1,0 @@
-ID gbot
-FQ_NAME gbot.Module
-NAME Module Module
-+DEPENDS coreLibrary 
-+IMPORT MavenDepends love.forte.simbot.component:simbot-component-qq-guild-core:3.1.0.0-alpha.9
-+IMPORT MavenDepends love.forte.simbot:simbot-core:3.2.0
