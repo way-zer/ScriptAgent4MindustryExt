@@ -5,14 +5,12 @@ on:
     branches-ignore:
       - 'private*'
     paths:
-      - 'plugin/'
+      - 'loader/'
       - 'build.gradle.kts'
-      - 'dependencies.gradle.kts'
   pull_request:
     paths:
-      - 'plugin/'
+      - 'loader/'
       - 'build.gradle.kts'
-      - 'dependencies.gradle.kts'
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -30,10 +28,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            libs
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: deps-${{ hashFiles('dependencies.gradle.kts', '**/gradle-wrapper.properties') }}
+          key: deps-${{ hashFiles('build.gradle.kts', '**/gradle-wrapper.properties') }}
           restore-keys: |
             deps-
 

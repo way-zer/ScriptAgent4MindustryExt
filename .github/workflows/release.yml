@@ -26,12 +26,18 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            libs
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: deps-${{ hashFiles('dependencies.gradle.kts', '**/gradle-wrapper.properties') }}
+          key: deps-${{ hashFiles('build.gradle.kts', '**/gradle-wrapper.properties') }}
           restore-keys: |
             deps-
+      - uses: actions/cache@v4
+        with:
+          path: libs
+          key: sa-deps-${{ hashFiles('scripts/build.gradle.kts') }}
+          restore-keys: |
+            sa-deps-
+
       - name: Run unit tests and build JAR
         run: ./gradlew buildPlugin precompileZip allInOneJar
 
