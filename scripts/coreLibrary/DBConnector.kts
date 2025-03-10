@@ -37,6 +37,5 @@ onEnable {
         @OptIn(ExperimentalKeywordApi::class)
         preserveKeywordCasing = thisScript.preserveKeywordCasing
     })
-    println(db.dialect)
     DBApi.DB.provide(this, db)
 }
