@@ -1,9 +1,6 @@
 package coreLibrary.commands
 
 import cf.wayzer.placehold.PlaceHoldApi.with
-import cf.wayzer.scriptAgent.impl.ScriptCache
-import cf.wayzer.scriptAgent.util.CASScriptPacker
-import cf.wayzer.scriptAgent.util.MetadataFile
 
 suspend inline fun runIgnoreCancel(sync: Boolean, crossinline body: suspend () -> Unit) {
     val job = launch(Job()) { body() }
@@ -149,35 +146,5 @@ command("disable", "关闭一个脚本或者模块".with(), commands = Commands.
                 script.scriptInfo.stateUpdate(ScriptState.Loaded)
             reply("[green]关闭脚本成功".with())
         }
-    }
-}
-command("genMetadata", "生成供开发使用的元数据".with(), commands = Commands.controlCommand) {
-    permission = "scriptAgent.control.genMetadata"
-    body {
-        withContext(Dispatchers.Default) {
-            val all = ScriptRegistry.allScripts { it.children(true).isNotEmpty() }
-                .mapNotNull { it.compiledScript }
-            reply("[yellow]共{size}待生成".with("size" to all.size))
-            Config.metadataDir.mkdirs()
-            all.forEach { info ->
-                Config.metadataFile(info.scriptInfo.id).writer().use {
-                    val meta = ScriptCache.asMetadata(info)
-                    MetadataFile(meta.id, meta.attr - "SOURCE_MD5", meta.data).writeTo(it)
-                }
-            }
-            reply("[green]生成完成".with())
-        }
-    }
-}
-command("packModule", "打包模块".with(), commands = Commands.controlCommand) {
-    usage = "<module>"
-    permission = "scriptAgent.control.packModule"
-    body {
-        val module = arg.getOrNull(0) ?: replyUsage()
-        val scripts = ScriptRegistry.allScripts { it.id.startsWith("$module/") }
-            .mapNotNull { it.compiledScript }
-        @OptIn(SAExperimentalApi::class)
-        CASScriptPacker(Config.cacheDir.resolve("$module.packed.zip").outputStream())
-            .use { scripts.forEach(it::add) }
     }
 }
