@@ -1,11 +1,11 @@
-import * as core from "npm:@actions/core"
-import {context, getOctokit} from "npm:@actions/github@^5.1.1";
+import * as core from "@actions/core"
+import {context, getOctokit} from "@actions/github";
 
 
-const token = Deno.env.get("GITHUB_TOKEN") || core.getInput("token")
+const token = process.env["GITHUB_TOKEN"] || core.getInput("token")
 const octokit = getOctokit(token)
 
-const lastRelease = (await octokit.rest.repos.getLatestRelease(context.repo)).data.tag_name
+const lastRelease = (await octokit.rest.repos.listReleases(context.repo)).data[0]?.tag_name
 core.info("Find last release: " + lastRelease)
 
 const compare = (await octokit.rest.repos.compareCommits({
@@ -38,12 +38,6 @@ const changeFiles = (compare.files || []).map(file => {
 }).join("\n")
 
 core.setOutput("releaseBody", `
-## 预发布版本，使用前记得备份
-
-正式发布前，可能会多次更新(以标题build号为准)
-
----
-
 ## 更新日记
 
 ${changes}
