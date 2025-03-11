@@ -4,56 +4,58 @@
 ![GitHub Releases](https://img.shields.io/github/downloads/way-zer/ScriptAgent4MindustryExt/latest/total)
 [![BuildPlugin](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/buildPlugin.yml/badge.svg)](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/buildPlugin.yml)
 [![CheckScript](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/checkScripts.yml/badge.svg)](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/checkScripts.yml)
-# ScriptAgent for Mindustry
-一个强大的Mindustry脚本插件,基于kts定义的DSL  
-> A strong script plugin for Mindustry by kts(for english README see [me](./README_en.md))  
 
-本仓库包含加载器及大量功能性脚本(可使用或做例子),包括 投票/换图/权限/等级/机器人 等(所有服务器需要的基础功能)
-> This repository contains the loader and lots of feature scripts(use or for example)  
-> including vote/map/permission/level/bot and much more (all essitials for server)
+> For English README see [README_en](./README_en.md)
 
-## 插件特性(Plugin Features)
+## ScriptAgent
+一套基于Kotlin脚本(kts)的模块化框架
+- 强大：基于Kotlin，可以访问所有Java接口（所有插件能实现的功能，脚本都能实现）
+- 高效：脚本加载后转换为JVM字节码，与Java插件性能无异
+- 灵活：模块和脚本具有完整生命周期，支持热加载和热重载
+- 快速开发：提供大量实用辅助函数，无需编译即可快速部署到服务器
+- 智能：开发时支持IDEA或Android Studio的智能补全
+- 可定制：除核心部分外，插件功能均通过脚本实现，可根据需求自由修改，模块定义脚本还可扩展DSL
 
-- 强大,基于kotlin,可以访问所有Java接口(所有插件能干的，脚本都能干)
-- 快速,脚本加载完成后，转换为jvm字节码，和java插件没有性能差距
-- 灵活,模块与脚本都有完整的生命周期，随时可进行热加载和热重载
-- 快速,一大堆开发常用的辅助函数,无需编译,即可快速部署到服务器
-- 智能,开发时,拥有IDEA(或AndroidStudio)的智能补全
-- 可定制,插件除核心部分外,均使用脚本实现,可根据自己需要进行修改,另外,模块定义脚本也可以为脚本扩充DSL
+加载器（jar）本身无具体功能，仅负责脚本的加载与管理，所有功能均由脚本实现。
 
-## 具体功能(Scripts Features)
+### ScriptAgent for Mindustry (SA4MDT)
+该框架针对Mindustry的实现，包含加载器（Loader）和一系列功能脚本，具体分为以下6个模块：
+- coreLib（coreLibrary）：框架的标准库
+- core（coreMindustry）：针对Mindustry的具体实现
+- main模块：用于存放简单脚本
+- wayzer模块：一套完整的Mindustry服务器基础插件（By: WayZer）
+  - 交流QQ群：1033116078 或直接在Discussions讨论
+  - 插件测试服务器：cn.mindustry.top
+- mapScript：专为MDT设计的特殊脚本，生命周期与单局游戏绑定，仅在需要时加载
+- ~~mirai模块：QQ机器人库mirai的脚本封装（因上游不可控因素，计划移除）~~
 
-本仓库共含6个模块
-
-* coreLib为该框架的标准库
-* core为针对mindustry的具体实现
-* main模块可用来存放简单脚本
-* wayzer模块为一套完整的Mindustry服务器基础插件(By: WayZer)
-  * 插件测试服务器: mdt.wayzer.cf
-  * 交流QQ群: 1033116078 或者直接在Discussions讨论
-* mapScript 一套专为MDT设计的特殊脚本，脚本生命周期与单局游戏绑定，脚本仅在地图需要时加载。
-* ~~mirai为qq机器人库mirai的脚本封装~~(因为上游不可控因素，计划移除)
-
-快速开始,功能介绍等请查阅[Wiki](https://github.com/way-zer/ScriptAgent4MindustryExt/wiki)
-
-## 功能预览(Preview)
-### 客户端(User/Client)
+### 客户端预览
 ![image](https://user-images.githubusercontent.com/15688938/132090295-59a57f81-cc72-4ab5-8c10-deadf7ae452a.png)
 ![image](https://user-images.githubusercontent.com/15688938/132090317-cc62339d-8ce5-4906-90d0-e8fda1bacf36.png)
 
-### 服务器后台(Server)
+### 服务器后台预览
 ![image](https://user-images.githubusercontent.com/15688938/132090197-e041d11c-e09a-49ee-94e8-d2cdae30038f.png)
 ![image](https://user-images.githubusercontent.com/15688938/132090212-1f924326-4ba7-43be-bbb8-e055599fa75c.png)
 ![image](https://user-images.githubusercontent.com/15688938/132090238-bbfcaf2e-154a-446c-9d1f-92f391835f0a.png)
 
-## 版权(License)
+## 快速入门
+### 插件安装（推荐普通用户使用）
+allInOne版本在加载器内集成了编译好的脚本
+1. 从Release页面下载`xxx.allinone.jar`文件，并将其放置在`config/mods`目录下
+2. 启动服务器（首次启动会从网络下载依赖，耗时较长）
 
-- 插件本体：未经许可禁止转载和用作其他用途
-  Plugin jar: No reproduction or use for other purposes(like modify) without permission.
-- 脚本：归属脚本制作者，本仓库脚本转载需注明本页面链接
-  Scripts(kts): keep all right without noting. Reproduction needs to indicate this page link.
-  - 脚本默认允许私人修改并使用，不允许修改原作者版权信息，公开请folk或引用该仓库(脚本作者声明优先)
-    This repository scripts are free for use, and allow privately modify. Reproduction need keep license and please `fork` or `reference` to this repository.
-    (Additional notes from the script author will be given priority.) 
+### 加载器+脚本安装（高级用户）
+1. 从Release页面下载预编译的jar和脚本包zip
+2. 将jar文件放置在`config/mods`文件夹下，将脚本包解压到`config/scripts`文件夹（需自行创建）
+3. 启动服务器（首次启动会从网络下载依赖，耗时较长）
+4. 等待插件加载完成（脚本首次运行会进行编译，耗时较长，编译完成后会保存缓存）
+
+### 独立运行/脚本开发 
+请查阅[Wiki](https://github.com/way-zer/ScriptAgent4MindustryExt/wiki)
+
+## 版权说明
+- 加载器：免费使用，未经许可禁止转载和用作其他用途
+- 本仓库脚本：
+  - 默认允许私人修改并使用，但禁止修改原作者版权信息，公开使用需注明出处（fork或引用该仓库）
   - mirai模块及依赖该模块的所有代码，遵循AGPLv3协议
-    `mirai` module and all `depends` on it, follow `AGPLv3` license.
+- 其他脚本：归脚本作者所有，作者可自行声明开源协议，不受加载器版权影响
