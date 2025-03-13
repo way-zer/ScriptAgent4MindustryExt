@@ -46,6 +46,10 @@ registerVar("scoreBroad.ext.vote", "投票状态显示", DynamicVar.v {
 command("vote", "发起投票") {
     type = CommandType.Client
     aliases = listOf("投票")
+    +CommandAttr {
+        if (VoteEvent.active.get() != null)
+            returnReply("[red]投票进行中".with())
+    }
     body(VoteEvent.VoteCommands)
 }
 listenTo<ScriptDisableEvent> {

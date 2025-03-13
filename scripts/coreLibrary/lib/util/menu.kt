@@ -17,8 +17,8 @@ fun <E> menu(title: String, list: List<E>, page: Int, prePage: Int, handle: (E) 
     val list2 = list.subList((newPage - 1) * prePage, (newPage * prePage).coerceAtMost(list.size))
         .map(handle)
     return """
-            | [green]==== [white]{title}[green] ====
-            | {list:${"\n"}}
-            | [green]==== [white]{page}/{total}[green] ====
+            |[green]==== [white]{title}[green] ====
+            |{list:${"\n"}}
+            |[green]==== [white]{page}/{total}[green] ====
             """.trimMargin().with("title" to title, "list" to list2, "page" to newPage, "total" to totalPage)
 }

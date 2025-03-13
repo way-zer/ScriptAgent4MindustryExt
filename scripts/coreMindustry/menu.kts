@@ -16,36 +16,34 @@ listen<EventType.MenuOptionChooseEvent> {
 }
 
 onEnable {
-    val bak = Commands.defaultHelpImpl
-    onDisable { Commands.defaultHelpImpl = bak }
-    Commands.defaultHelpImpl = impl@{ context, explicit ->
-        val player = context.player ?: return@impl bak(context, explicit)
-        if (context.arg.isNotEmpty() && !explicit) return@impl context.reply("[red]无效指令,请使用/help查询".with())
-        val showDetail = context.checkArg("-v")
-        if (showDetail && !context.hasPermission("command.detail"))
-            return@impl context.reply("[red]必须拥有command.detail权限才能查看完整help".with())
+    val bak = Commands.helpOverwrite
+    onDisable { Commands.helpOverwrite = bak }
+    Commands.helpOverwrite = impl@{ cmds, showAll, page ->
+        val player = player ?: return@impl
 
-        val commands = getSubCommands(context).values.toSet().filter {
-            showDetail || it.permission.isBlank() || context.hasPermission(it.permission)
-        }
-        PagedMenuBuilder(commands, selectedPage = context.arg.firstOrNull()?.toIntOrNull() ?: 1) { command ->
-            option(buildString {
-                append("[gold]${context.prefix}${command.name}")
-                if (command.aliases.isNotEmpty())
-                    append("[scarlet](${command.aliases.joinToString()})")
-                appendLine(" [white]${command.usage}")
-                append("[cyan]${command.description.toPlayer(player)}")
-                if (showDetail) {
-                    command.script?.let { append(" | ${it.id}") }
-                    command.permission.takeUnless { it == "" }?.let { append(" | $it") }
-                }
-            }) {
-                context.arg = listOf(command.name)
-                context.reply("[yellow][快捷输入指令][] {command}".with("command" to (context.prefix + command.name)))
-                invoke(context)
-            }
-        }.apply {
+        var commands = cmds.subCommands().values.toSet().sortedBy { it.name }
+        if (!showAll) commands = commands.filter { info -> info.attrs.all { it.visible(this) } }
+        MenuV2(player) {
+            title = if (prefix.isEmpty()) "Help" else "Help: $prefix"
             msg = "点击选项将直接执行指令"
-        }.sendTo(player, 60_000)
+            renderPaged(commands, page) {
+                option(buildString {
+                    append("[gold]${prefix}${it.name}")
+                    if (it.aliases.isNotEmpty())
+                        append("[scarlet](${it.aliases.joinToString()})")
+                    appendLine(" [white]${it.usage}")
+                    append("[cyan]${it.description.toPlayer(player)}")
+                    if (showAll) {
+                        it.script?.let { append(" | ${it.id}") }
+                        if (it.permission.isNotBlank()) append(" | ${it.permission}")
+                    }
+                }) {
+                    arg = listOf(it.name)
+                    reply("[yellow][快捷输入指令][] {command}".with("command" to (prefix + it.name)))
+                    cmds(this@impl)
+                }
+            }
+        }.send().awaitWithTimeout()
+        CommandInfo.Return()
     }
 }

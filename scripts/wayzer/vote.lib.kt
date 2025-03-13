@@ -203,12 +203,7 @@ class VoteEvent(
         mainJob.start()
     }
 
-    object VoteCommands : Commands() {
-        override suspend fun invoke(context: CommandContext) {
-            if (active.get() != null) return context.reply("[red]投票进行中".with())
-            super.invoke(context)
-        }
-    }
+    object VoteCommands : Commands()
 
     companion object : Event.Handler() {
         internal val script = contextScript<Vote>()

@@ -11,11 +11,15 @@ import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.PlaceHold.registerForType
 import coreLibrary.lib.util.menu
+import kotlinx.coroutines.asContextElement
+import kotlinx.coroutines.withContext
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.coroutines.cancellation.CancellationException
 
 class CommandContext : DSLBuilder(), Cloneable {
+    var receiver: Any = ConsoleReceiver
+
     // Should init if not empty
     var prefix: String = ""
 
@@ -68,6 +72,10 @@ class CommandContext : DSLBuilder(), Cloneable {
             }
         }
     }
+
+    companion object {
+        val Current = ThreadLocal<CommandContext>()
+    }
 }
 
 typealias CommandHandler = suspend CommandContext.() -> Unit
@@ -84,7 +92,8 @@ class CommandInfo(
     val script: Script?,
     val name: String,
     val description: PlaceHoldString,
-) : DSLBuilder(), CommandHandler, TabCompleter {
+    var aliases: List<String> = emptyList(),
+) : DSLBuilder(), CommandHandler, CommandInfoV2, TabCompleter {
     constructor(script: Script?, name: String, description: PlaceHoldString, init: CommandInfo.() -> Unit)
             : this(script, name, description) {
         init()
@@ -92,22 +101,47 @@ class CommandInfo(
 
     constructor(script: Script?, name: String, description: String, init: CommandInfo.() -> Unit = {})
             : this(script, name, description.with(), init)
+    @Deprecated("", level = DeprecationLevel.HIDDEN)
+    constructor(script: Script?, name: String, description: PlaceHoldString) : this(script, name, description)
 
-    var usage = ""
-    var aliases = emptyList<String>()
-    var permission = ""
+    val attrs: List<CommandAttr> = mutableListOf()
+    var usage: String = ""
+        @Deprecated("use CommandAttr")
+        set
+
+    @Deprecated("use RequirePermission(permission)")
+    var permission: String = ""
     private var onComplete: CommandHandler = {}
+    private var body: CommandHandler = {}
+    private var frozen = false
+
+    override fun addAttr(attr: CommandAttr) {
+        if (frozen) error("This command is already frozen, you must add attr before body")
+        (attrs as MutableList).add(attr)
+    }
+
+    fun freeze() {
+        if (frozen) return
+        @Suppress("DEPRECATION")
+        if (usage.isEmpty())
+            usage = attrs.filterIsInstance<CommandAttr.Param<*>>().mapNotNull { it.usage }.joinToString(" ")
+        @Suppress("DEPRECATION")
+        if (permission.isNotEmpty())
+            addAttr(RequirePermission(permission))
+        frozen = true
+    }
+
 
     @CommandBuilder
     fun onComplete(body: CommandHandler) {
         this.onComplete = body
     }
 
-    private var body: CommandHandler = {}
-
     @CommandBuilder
     fun body(body: CommandHandler) {
+        if (frozen) error("This command is already frozen")
         this.body = body
+        freeze()
     }
 
     override suspend fun onComplete(context: CommandContext) {
@@ -116,9 +150,9 @@ class CommandInfo(
     }
 
     override suspend fun invoke(context: CommandContext) {
+        freeze()
         try {
-            if (permission.isNotBlank() && !context.hasPermission(permission))
-                context.replyNoPermission()
+            attrs.forEach { with(it) { context.beforeBody() } }
             body(context)
         } catch (e: CancellationException) {
             if (e !is Return)
@@ -132,6 +166,7 @@ class CommandInfo(
     }
 
     @CommandBuilder
+    @Deprecated("use +RequirePermission(permission)")
     fun CommandContext.replyNoPermission(): Nothing {
         reply("[red]你没有执行该命令的权限".with())
         Return()
@@ -139,7 +174,7 @@ class CommandInfo(
 
     @CommandBuilder
     fun CommandContext.replyUsage(): Nothing {
-        reply("[red]参数错误: {prefix} {usage}".with("prefix" to prefix, "usage" to (usage)))
+        reply("[red]参数错误: {prefix} {usage}".with("prefix" to prefix, "usage" to usage))
         Return()
     }
 
@@ -147,7 +182,8 @@ class CommandInfo(
         return "CommandInfo(name='$name', script=$script, description=$description)"
     }
 
-    object Return : CancellationException("Direct return command") {
+    data object Return : CancellationException("Direct return command") {
+        private fun readResolve(): Any = Return
         @CommandBuilder
         operator fun invoke(): Nothing {
             throw this
@@ -159,31 +195,28 @@ class CommandInfo(
 }
 
 open class Commands : CommandHandler, TabCompleter {
-    protected val subCommands = mutableMapOf<String, CommandInfo>()
-
-    /**
-     * @return [subCommands] when [context] is null
-     */
-    open fun getSubCommands(context: CommandContext?): Map<String, CommandInfo> = subCommands
-    fun getSub(context: CommandContext): CommandInfo? {
-        return context.arg.getOrNull(0)?.let { getSubCommands(context)[it.lowercase()] }
-    }
+    protected val nameMap = mutableMapOf<String, CommandInfo>()
+    open fun subCommands(): Map<String, CommandInfo> = nameMap
+    fun getSub(name: String): CommandInfo? = subCommands()[name.lowercase()]
 
     override suspend fun onComplete(context: CommandContext) {
-        context.onComplete(0) { getSubCommands(context).keys.toList() }
-        getSub(context)?.onComplete(context.getSub())
+        context.onComplete(0) { subCommands().keys.toList() }
+        if (context.arg.size > 1)
+            getSub(context.arg.first())?.onComplete(context.getSub())
     }
 
     override suspend fun invoke(context: CommandContext) {
-        getSub(context)?.invoke(context.getSub())
-            ?: onHelp(context, false)
+        if (context.arg.isEmpty()) return helpCommand.invoke(context)
+        val name = context.arg.first()
+        getSub(name)?.let { return it(context.getSub()) }
+        return context.reply(
+            "[red]无效指令\"{name}\",请使用 {prefix}help 查询".with("name" to name, "prefix" to context.prefix)
+        )
     }
 
-    open suspend fun onHelp(context: CommandContext, explicit: Boolean) = defaultHelpImpl(context, explicit)
-
     protected open fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
-        val existed = subCommands[name.lowercase()]?.takeIf { it.script?.enabled == true } ?: let {
-            subCommands[name.lowercase()] = command
+        val existed = nameMap[name.lowercase()]?.takeIf { it.script?.enabled == true } ?: let {
+            nameMap[name.lowercase()] = command
             return
         }
         if (existed == command) return
@@ -191,12 +224,8 @@ open class Commands : CommandHandler, TabCompleter {
             Logger.getLogger("[CommandApi]").warning("duplicate aliases $name($command) with $existed")
         } else {
             Logger.getLogger("[CommandApi]").warning("replace command $name: NOW:$command OLD:$existed")
-            subCommands[name.lowercase()] = command //name is more important
+            nameMap[name.lowercase()] = command //name is more important
         }
-    }
-
-    open fun removeSub(name: String) {
-        subCommands.remove(name.lowercase())
     }
 
     fun addSub(command: CommandInfo) {
@@ -207,47 +236,74 @@ open class Commands : CommandHandler, TabCompleter {
     }
 
     fun removeSub(command: CommandInfo) {
-        subCommands.remove(command.name.lowercase(), command)
+        nameMap.remove(command.name.lowercase(), command)
         command.aliases.forEach {
-            subCommands.remove(it.lowercase(), command)
+            nameMap.remove(it.lowercase(), command)
         }
     }
 
     open fun removeAll(script: Script) {
         val toRemove = mutableListOf<String>()
-        subCommands.forEach { (k, s) ->
+        nameMap.forEach { (k, s) ->
             if (s.script == script) toRemove.add(k)
         }
-        toRemove.forEach(::removeSub)
+        toRemove.forEach {
+            nameMap.remove(it.lowercase())
+        }
     }
 
     operator fun plusAssign(command: CommandInfo) = addSub(command)
+    @Deprecated(
+        "recommend listenTo<ScriptDisableEvent> { removeAll(script) }",
+        ReplaceWith("script.onDisable { removeAll(script) }")
+    )
     fun autoRemove(script: Script) {
         script.onDisable {
             removeAll(script)
         }
     }
 
-    init {
-        addSub(CommandInfo(null, "help", "帮助指令".with()).apply {
-            usage = "[-v] [page]"
-            aliases = listOf("帮助")
-            body {
-                prefix = prefix.removeSuffix("help ").removeSuffix("帮助 ")
-                onHelp(this, true)
-            }
-        })
+    val helpCommand = CommandInfo(null, "help", "帮助指令".with()).apply {
+        aliases = listOf("帮助")
+        val showAll by FlagArg("-v")
+        val page by OptionalArg("page", 1) { it.toInt() }
+        body {
+            prefix = prefix.removeSuffix("help ").removeSuffix("帮助 ")
+            if (showAll && !hasPermission("command.detail"))
+                return@body reply("[red]必须拥有command.detail权限才能查看完整help".with())
+
+            helpOverwrite?.invoke(this, this@Commands, showAll, page)
+
+            val title = if (prefix.isEmpty()) "Help" else "Help: $prefix"
+            var commands = subCommands().values.toSet().sortedBy { it.name }
+            if (!showAll) commands = commands.filter { info -> info.attrs.all { it.visible(this) } }
+            reply(menu(title, commands, page, 10) {
+                helpInfo(it, showAll)
+            })
+        }
+        addSub(this)
     }
 
     object Root : Commands() {
         init {
-            this += CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令".with()).apply {
-                aliases = listOf("sa")
-                permission = "scriptAgent.admin"
+            this += CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令".with(), listOf("sa")).apply {
+                +RequirePermission("scriptAgent.admin")
                 body(controlCommand)
             }
             thisContextScript().listenTo<ScriptDisableEvent> {
                 removeAll(script)
+            }
+        }
+
+        var subCommandOverwrite: ((Map<String, CommandInfo>) -> Map<String, CommandInfo>)? = null
+        override fun subCommands(): Map<String, CommandInfo> {
+            val ret = super.subCommands()
+            return subCommandOverwrite?.invoke(ret) ?: ret
+        }
+
+        override suspend fun invoke(context: CommandContext) {
+            withContext(CommandContext.Current.asContextElement(context)) {
+                super.invoke(context)
             }
         }
     }
@@ -268,21 +324,7 @@ open class Commands : CommandHandler, TabCompleter {
             )
         }
 
-        var defaultHelpImpl: suspend Commands.(CommandContext, explicit: Boolean) -> Unit =
-            impl@{ context, explicit ->
-                if (context.arg.isNotEmpty() && !explicit)
-                    return@impl context.reply("[red]无效指令,请使用/help查询".with())
-                val showDetail = context.checkArg("-v")
-                if (showDetail && !context.hasPermission("command.detail"))
-                    return@impl context.reply("[red]必须拥有command.detail权限才能查看完整help".with())
-
-                val page = context.arg.firstOrNull()?.toIntOrNull() ?: 1
-                context.reply(menu(context.prefix, getSubCommands(context).values.toSet().filter {
-                    showDetail || it.permission.isBlank() || context.hasPermission(it.permission)
-                }, page, 10) {
-                    context.helpInfo(it, showDetail)
-                })
-            }
+        var helpOverwrite: (suspend CommandContext.(cmds: Commands, showAll: Boolean, page: Int) -> Unit)? = null
     }
 }
 
