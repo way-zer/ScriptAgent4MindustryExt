@@ -208,7 +208,7 @@ open class Commands : CommandHandler, TabCompleter {
     override suspend fun invoke(context: CommandContext) {
         if (context.arg.isEmpty()) return helpCommand.invoke(context)
         val name = context.arg.first()
-        getSub(name)?.let { return it(context.getSub()) }
+        getSub(name)?.takeIf { c -> c.attrs.all { it.visible(context) } }?.let { return it(context.getSub()) }
         return context.reply(
             "[red]无效指令\"{name}\",请使用 {prefix}help 查询".with("name" to name, "prefix" to context.prefix)
         )

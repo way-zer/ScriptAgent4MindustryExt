@@ -40,7 +40,7 @@ sealed interface CommandInfoV2 {
 
 
 data class RequirePermission(val permission: String) : CommandAttr {
-    override suspend fun visible(context: CommandContext): Boolean = !context.hasPermission(permission)
+    override suspend fun visible(context: CommandContext): Boolean = context.hasPermission(permission)
     override suspend fun CommandContext.beforeBody() {
         if (!hasPermission(permission)) {
             returnReply("[red]你没有执行该命令的权限".with())
