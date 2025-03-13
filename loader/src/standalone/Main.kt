@@ -16,7 +16,7 @@ object Main : CommonMain {
     fun main(args: Array<String>) = runBlocking {
         Config.args = args
         Config.version = javaClass.getResource("/META-INF/ScriptAgent/Version")?.readText() ?: "Unknown Version"
-        Config.rootDir = File("scripts")
+        Config.rootDir = File(System.getenv("SARoot") ?: "scripts")
         (javaClass.classLoader as MutableURLClassLoader).addURL(File("nativeLibs").toURI().toURL())
 
         bootstrap()

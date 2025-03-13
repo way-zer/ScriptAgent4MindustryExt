@@ -11,6 +11,7 @@ import cf.wayzer.scriptAgent.util.CommonMain
 import kotlinx.coroutines.runBlocking
 import mindustry.Vars
 import mindustry.mod.Plugin
+import java.io.File
 
 @OptIn(LoaderApi::class)
 class Main(private val loader: Plugin) : Plugin(), CommonMain {
@@ -27,7 +28,7 @@ class Main(private val loader: Plugin) : Plugin(), CommonMain {
 
     override fun init() {
         Config.version = Vars.mods.getMod(loader.javaClass).meta.version
-        Config.rootDir = Vars.dataDirectory.child("scripts").file()
+        Config.rootDir = System.getenv("SARoot")?.let { File(it) } ?: Vars.dataDirectory.child("scripts").file()
         Config.clientCommands = Vars.netServer?.clientCommands ?: CommandHandler("/")
         if (!Vars.headless) Config.serverCommands = CommandHandler("")
 
