@@ -26,6 +26,7 @@ onEnable {
         MenuV2(player) {
             title = if (prefix.isEmpty()) "Help" else "Help: $prefix"
             msg = "点击选项将直接执行指令"
+            columnPreRow = 1
             renderPaged(commands, page) {
                 option(buildString {
                     append("[gold]${prefix}${it.name}")
