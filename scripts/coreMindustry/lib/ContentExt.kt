@@ -17,6 +17,25 @@ import mindustry.net.Packet
 
 val Net.serverListeners: ObjectMap<Class<*>, Cons2<NetConnection, *>> by reflectDelegate()
 
+@ScriptDsl
+inline fun Script.onEnableForGame(crossinline block: suspend () -> Unit) {
+    onEnable {
+        withContext(Dispatchers.game) {
+            block()
+        }
+    }
+}
+
+@ScriptDsl
+inline fun Script.onDisableForGame(crossinline block: suspend () -> Unit) {
+    onDisable {
+        withContext(Dispatchers.game) {
+            block()
+        }
+    }
+}
+
+
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : Packet> getPacketHandle() =
     (Vars.net.serverListeners[T::class.java] as Cons2<NetConnection, T>?) ?: Cons2 { con: NetConnection, p: T ->
@@ -28,13 +47,13 @@ inline fun <reified T : Packet> getPacketHandle() =
  */
 @ScriptDsl
 inline fun <reified T : Packet> Script.listenPacket2Server(crossinline handle: (NetConnection, T) -> Boolean) {
-    onEnable {
+    onEnableForGame {
         val old = getPacketHandle<T>()
         Vars.net.handleServer(T::class.java) { con, p ->
             if (handle(con, p))
                 old.get(con, p)
         }
-        onDisable {
+        onDisableForGame {
             Vars.net.handleServer(T::class.java, old)
         }
     }
@@ -44,34 +63,26 @@ inline fun <reified T : Packet> Script.listenPacket2Server(crossinline handle: (
 inline fun <reified T : Packet> Script.listenPacket2ServerAsync(
     crossinline handle: suspend (NetConnection, T) -> Boolean
 ) {
-    onEnable {
-        withContext(Dispatchers.game) {
-            val old = getPacketHandle<T>()
-            Vars.net.handleServer(T::class.java) { con, p ->
-                this@listenPacket2ServerAsync.launch(Dispatchers.game) {
-                    if (handle(con, p))
-                        old.get(con, p)
-                }
+    onEnableForGame {
+        val old = getPacketHandle<T>()
+        Vars.net.handleServer(T::class.java) { con, p ->
+            this@listenPacket2ServerAsync.launch(Dispatchers.game) {
+                if (handle(con, p))
+                    old.get(con, p)
             }
-            onDisable {
-                withContext(Dispatchers.game) {
-                    Vars.net.handleServer(T::class.java, old)
-                }
-            }
+        }
+        onDisableForGame {
+            Vars.net.handleServer(T::class.java, old)
         }
     }
 }
 
 @ScriptDsl
 fun Script.registerActionFilter(handle: Administration.ActionFilter) {
-    onEnable {
-        withContext(Dispatchers.game) {
-            Vars.netServer.admins.actionFilters.add(handle)
-        }
-        onDisable {
-            withContext(Dispatchers.game) {
-                Vars.netServer.admins.actionFilters.remove(handle)
-            }
+    onEnableForGame {
+        Vars.netServer.admins.actionFilters.add(handle)
+        onDisableForGame {
+            Vars.netServer.admins.actionFilters.remove(handle)
         }
     }
 }
