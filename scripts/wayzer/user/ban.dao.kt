@@ -20,7 +20,7 @@ class PlayerBan(id: EntityID<Int>) : IntEntity(id) {
     var endTime by T.endTime
 
     object T : IntIdTable("PlayerBanV2") {
-        val ids = text("ids")
+        val ids = text("ids", eagerLoading = true)
         val reason = text("reason", eagerLoading = true)
         val operator = text("operator").nullable()
         val createTime = timestamp("createTime").defaultExpression(CurrentTimestamp)
