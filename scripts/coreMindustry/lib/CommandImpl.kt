@@ -8,7 +8,10 @@ import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.clientCommands
 import cf.wayzer.scriptAgent.serverCommands
 import cf.wayzer.scriptAgent.thisContextScript
-import coreLibrary.lib.*
+import coreLibrary.lib.CommandContext
+import coreLibrary.lib.CommandInfo
+import coreLibrary.lib.Commands
+import coreLibrary.lib.PlaceHoldString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,11 +26,8 @@ object RootCommands {
             val serverCommands = Config.serverCommands.let { cmds ->
                 cmds.commandList.associate {
                     it.text.lowercase() to CommandInfo(null, it.text, it.description) {
-                        +NotForClient
-                        if (it.paramText.isNotBlank())
-                            +object : CommandAttr.Param<Unit>(it.paramText) {
-                                override suspend fun CommandContext.resolveValue() = Unit
-                            }
+                        usage = it.paramText
+                        attr(NotForClient)
                         body {
                             cmds.handleMessage(cmds.prefix + it.text + " " + arg.joinToString(" "), null)
                         }
@@ -37,11 +37,8 @@ object RootCommands {
             val clientCommands = Config.clientCommands.let { cmds ->
                 cmds.commandList.associate {
                     it.text.lowercase() to CommandInfo(null, it.text, it.description) {
-                        +ClientOnly
-                        if (it.paramText.isNotBlank())
-                            +object : CommandAttr.Param<Unit>(it.paramText) {
-                                override suspend fun CommandContext.resolveValue() = Unit
-                            }
+                        usage = it.paramText
+                        attr(ClientOnly)
                         body {
                             cmds.handleMessage(cmds.prefix + it.text + " " + arg.joinToString(" "), player)
                         }
@@ -88,7 +85,7 @@ object RootCommands {
     suspend fun handleInput(text: String, player: Player?, prefix: String = "") {
         if (text.isEmpty()) return
         withContext(Dispatchers.game) {
-            Commands.Root.invoke(CommandContext().apply {
+            CommandContext().apply {
                 receiver = player ?: CommandContext.ConsoleReceiver
                 hasPermission = {
                     player == null || player.admin || player.hasPermission(it)
@@ -96,7 +93,8 @@ object RootCommands {
                 reply = { player.sendMessage(it, MsgType.Message) }
                 this.prefix = prefix.ifEmpty { "* " }
                 this.arg = text.removePrefix(prefix).split(' ')
-            })
+                Commands.Root.handle()
+            }
         }
     }
 }
@@ -145,18 +143,16 @@ enum class CommandType {
 var CommandInfo.type: CommandType
     get() = throw NotImplementedError("use CommandAttr")
     set(value) {
-        if (value == CommandType.Client) +ClientOnly
-        else if (value == CommandType.Server) +NotForClient
+        if (value == CommandType.Client) attr(ClientOnly)
+        else if (value == CommandType.Server) attr(NotForClient)
     }
 
-data object ClientOnly : CommandAttr.Param<Player>(null) {
-    override suspend fun visible(context: CommandContext): Boolean = context.receiver is Player
-    override suspend fun CommandContext.resolveValue(): Player = receiver as Player
+data object ClientOnly : Commands.Hidden {
+    context(CommandContext) override suspend fun visible(): Boolean = receiver is Player
 }
 
-data object NotForClient : CommandAttr.Param<Unit>(null) {
-    override suspend fun visible(context: CommandContext): Boolean = context.receiver !is Player
-    override suspend fun CommandContext.resolveValue(): Unit = Unit
+data object NotForClient : Commands.Hidden {
+    context(CommandContext) override suspend fun visible(): Boolean = receiver !is Player
 }
 
 /**

@@ -27,7 +27,7 @@ enum class Color(val ansiCode: String) {
     //RGB("\u001b[38;2;<r>;<g>;<b>m")  {C:#rrggbb}
 
     companion object {
-        private val consoleCodeMap = values().associate { it.name.lowercase() to it.ansiCode }
+        private val consoleCodeMap = entries.associate { it.name.lowercase() to it.ansiCode }
         fun convertToAnsiCode(color: String) = consoleCodeMap[color]
 
         init {
@@ -89,7 +89,7 @@ object ColorApi {
     }
 
     init {
-        ConsoleColor.values().forEach {
+        ConsoleColor.entries.forEach {
             register(it.name, it)
         }
     }

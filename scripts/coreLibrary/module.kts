@@ -6,6 +6,7 @@
 @file:Import("coreLibrary.lib.*", defaultImport = true)
 @file:Import("coreLibrary.lib.event.*", defaultImport = true)
 @file:Import("coreLibrary.lib.util.*", defaultImport = true)
+@file:Import("-Xcontext-receivers", compileArg = true)
 
 package coreLibrary
 

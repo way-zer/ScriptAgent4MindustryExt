@@ -56,7 +56,8 @@ allprojects {
             freeCompilerArgs = listOf(
                 "-Xinline-classes",
                 "-opt-in=kotlin.RequiresOptIn",
-                "-Xnullability-annotations=@arc.util:strict"
+                "-Xnullability-annotations=@arc.util:strict",
+                "-Xcontext-receivers",
             )
         }
     }
