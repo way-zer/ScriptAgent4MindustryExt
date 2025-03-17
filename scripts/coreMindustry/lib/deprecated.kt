@@ -6,6 +6,7 @@ import coreLibrary.lib.CommandHandler
 import coreLibrary.lib.CommandInfo
 import coreLibrary.lib.command
 import coreLibrary.lib.with
+import mindustry.game.EventType
 import mindustry.gen.Player
 
 /**
@@ -31,12 +32,26 @@ fun Script.command(name: String, description: String, init: CommandInfo.() -> Un
     }
 }
 
-//常见拼写错误，但不报错
-@Suppress("unused")
+/**
+ * Support for utilContentOverwrite
+ * auto re[init] when [EventType.ContentInitEvent]
+ */
+@ScriptDsl
+@Deprecated("no use ContentsLoader", ReplaceWith("lazy{ init() }"), DeprecationLevel.HIDDEN)
+inline fun <T : Any> Script.useContents(crossinline init: () -> T) = lazy { init() }
+
+@Deprecated("use CommandAttr")
+var CommandInfo.type: CommandType
+    get() = throw NotImplementedError("use CommandAttr")
+    set(value) {
+        if (value == CommandType.Client) attr(ClientOnly)
+        else if (value == CommandType.Server) attr(NotForClient)
+    }
+
+
 @Deprecated(
-    "请检查变量是否使用正确, Vars.player 为null",
-    ReplaceWith("error(\"服务器中不允许使用该变量\")"),
+    "use PlaceHoldString", ReplaceWith("sendMessage(text.with(), type, time)", "coreLibrary.lib.with"),
     DeprecationLevel.ERROR
 )
-val Script.player: Player
-    get() = error("服务器中不允许使用该变量")
+fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) =
+    sendMessage(text.with(), type, time)

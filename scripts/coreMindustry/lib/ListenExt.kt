@@ -13,9 +13,11 @@ import cf.wayzer.scriptAgent.events.ScriptEnableEvent
 import cf.wayzer.scriptAgent.getContextScript
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.util.DSLBuilder
+import coreLibrary.lib.PermissionApi
 import coreMindustry.lib.Listener.Companion.listener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import mindustry.gen.Player
 
 open class Listener<T : Any>(
     val script: Script?,

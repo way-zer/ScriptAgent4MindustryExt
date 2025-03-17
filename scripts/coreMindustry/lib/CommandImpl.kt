@@ -139,14 +139,6 @@ enum class CommandType {
     fun server() = this == Server || this == Both
 }
 
-@Deprecated("use CommandAttr")
-var CommandInfo.type: CommandType
-    get() = throw NotImplementedError("use CommandAttr")
-    set(value) {
-        if (value == CommandType.Client) attr(ClientOnly)
-        else if (value == CommandType.Server) attr(NotForClient)
-    }
-
 data object ClientOnly : Commands.Hidden {
     context(CommandContext) override suspend fun visible(): Boolean = receiver is Player
 }

@@ -86,11 +86,3 @@ fun Script.registerActionFilter(handle: Administration.ActionFilter) {
         }
     }
 }
-
-/**
- * Support for utilContentOverwrite
- * auto re[init] when [EventType.ContentInitEvent]
- */
-@ScriptDsl
-@Deprecated("no use ContentsLoader", ReplaceWith("lazy{ init() }"), DeprecationLevel.HIDDEN)
-inline fun <T : Any> Script.useContents(crossinline init: () -> T) = lazy { init() }
