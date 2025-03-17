@@ -73,6 +73,6 @@ fun PlaceHoldString.toPlayer(player: Player): String = ColorApi.handle(
     ContentHelper::mindustryColorHandler
 )
 
-suspend fun Player.hasPermission(permission: String): Boolean {
-    return PermissionApi.handleThoughEvent(this, permission, listOf(uuid())).has
-}
+@Deprecated("use PlaceHoldString", ReplaceWith("sendMessage(text.with(), type, time)", "coreLibrary.lib.with"))
+fun Player?.sendMessage(text: String, type: MsgType = MsgType.Message, time: Float = 10f) =
+    sendMessage(text.with(), type, time)
