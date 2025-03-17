@@ -39,7 +39,8 @@ suspend fun ban(player: PlayerData, time: Int, reason: String, operate: Player?)
         transaction {
             PlayerBan.create(
                 player, Duration.ofMinutes(time.toLong()), reason,
-                operate?.let { PlayerData[it].id })
+                operate?.let { PlayerData[it].id }
+            ).also { it.flush() }
         }
     }
     Groups.player.filter { PlayerData[it].id in player.ids }.forEach {
@@ -56,7 +57,8 @@ command("banX", "管理指令: 禁封") {
         val uuid = netServer.admins.getInfoOptional(arg[0])?.id
             ?: depends("wayzer/user/shortID")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(arg[0])
             ?: returnReply("[red]请输入目标3位ID,不清楚可通过/list查询".with())
-        val snapshot = PlayerData.history.getIfPresent(uuid) ?: returnReply("[red]未找到目标".with())
+        val snapshot = Groups.player.find { it.uuid() == uuid }?.let { PlayerData[it] }
+            ?: PlayerData.history.getIfPresent(uuid) ?: returnReply("[red]未找到目标".with())
         val time = arg[1].toIntOrNull()?.takeIf { it > 0 } ?: replyUsage()
         val reason = arg.slice(2 until arg.size).joinToString(" ")
 
