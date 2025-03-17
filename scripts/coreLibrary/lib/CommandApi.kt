@@ -237,7 +237,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         if (arg.isEmpty()) return helpCommand.handle()
         val name = arg.first()
         with(getSub()) {
-            getSub(name)?.handle()
+            getSub(name)?.handle()?.let { return }
         }
         reply(
             "[red]无效指令\"{name}\",请使用 {prefix}help 查询".with("name" to name, "prefix" to prefix)
