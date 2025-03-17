@@ -3,7 +3,6 @@
 package wayzer.user
 
 import coreLibrary.DBApi.DB.registerTable
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.text.DateFormat
 import java.time.Duration
 import java.time.Instant
@@ -27,7 +26,7 @@ fun Player.kick(ban: PlayerBan) {
 
 listen<EventType.PlayerConnect> {
     launch(Dispatchers.IO) {
-        val ban = transaction { PlayerBan.findNotEnd(PlayerData[it.player].id) } ?: return@launch
+        val ban = PlayerBan.findNotEnd(PlayerData[it.player].id) ?: return@launch
         withContext(Dispatchers.game) {
             it.player.kick(ban)
         }
@@ -36,12 +35,10 @@ listen<EventType.PlayerConnect> {
 
 suspend fun ban(player: PlayerData, time: Int, reason: String, operate: Player?) {
     val ban = withContext(Dispatchers.IO) {
-        transaction {
-            PlayerBan.create(
-                player, Duration.ofMinutes(time.toLong()), reason,
-                operate?.let { PlayerData[it].id }
-            ).also { it.flush() }
-        }
+        PlayerBan.create(
+            player, Duration.ofMinutes(time.toLong()), reason,
+            operate?.let { PlayerData[it].id }
+        )
     }
     Groups.player.filter { PlayerData[it].id in player.ids }.forEach {
         it.kick(ban)
@@ -72,9 +69,7 @@ command("unbanX", "管理指令: 解禁") {
     body {
         if (arg.isEmpty()) replyUsage()
         val id = arg[0].toIntOrNull() ?: replyUsage()
-        val ban = transaction {
-            PlayerBan.findById(id)?.also { it.delete() }
-        } ?: returnReply("[red]找不到封禁记录，检查ID是否正确".with())
+        val ban = PlayerBan.delete(id) ?: returnReply("[red]找不到封禁记录，检查ID是否正确".with())
         logger.info("unban ${ban.ids} ${ban.endTime} ${ban.reason}")
         reply("[green]解禁成功, 禁封原因: {reason}".with("reason" to ban.reason))
     }
