@@ -1,5 +1,7 @@
 package coreMindustry
 
+import coreLibrary.lib.Commands.Hidden
+
 data class MenuChooseEvent(
     val player: Player, val menuId: Int, val value: Int
 ) : Event, ReceivedEvent {
@@ -22,7 +24,9 @@ onEnable {
         val player = player ?: return@impl
 
         var commands = cmds.subCommands().values.toSet().sortedBy { it.name }
-        if (!showAll) commands = commands.filter { info -> info.attrs.all { it.visible(this) } }
+        if (!showAll) commands = commands.filter { info ->
+            info.attrs.all { it !is Hidden || it.visible() }
+        }
         MenuV2(player) {
             title = if (prefix.isEmpty()) "Help" else "Help: $prefix"
             msg = "点击选项将直接执行指令"
