@@ -68,14 +68,14 @@ companion object Api {
     @ScriptDsl
     fun Script.skill(name: String, desc: String, vararg aliases: String, body: SkillScope.() -> Unit) {
         skills += CommandInfo(this, name, desc) {
-            permission = "wayzer.user.skills.$name"
+            attr(RequirePermission("wayzer.user.skills.$name"))
+            attr(ClientOnly)
             this.aliases = aliases.toList()
-            type = CommandType.Client
             body {
                 @Suppress("MemberVisibilityCanBePrivate")
                 if (player!!.dead())
                     returnReply("[red]你已死亡".with())
-                SkillScope(name, player!!, this).body()
+                SkillScope(name, player!!, context).body()
             }
         }
     }
