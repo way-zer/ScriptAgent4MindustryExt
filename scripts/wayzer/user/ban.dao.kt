@@ -2,6 +2,7 @@ package wayzer.user
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -35,14 +36,19 @@ data class PlayerBan(
     }
 
     companion object {
+        private fun getById(id: Int) = transaction {
+            T.selectAll().where { T.id eq id }.firstOrNull()?.let { PlayerBan(it) }
+        }
+
         fun create(ids: PlayerData, time: Duration, reason: String, operator: String?): PlayerBan = transaction {
-            val ban = T.insertReturning {
+            T.insertAndGetId {
                 it[T.ids] = ids.idsInDB
                 it[T.endTime] = Instant.now() + time
                 it[T.operator] = operator
                 it[T.reason] = reason
+            }.let {
+                getById(it.value)!!
             }
-            PlayerBan(ban.first())
         }
 
         fun allNotEnd() = transaction {
@@ -56,8 +62,9 @@ data class PlayerBan(
         }
 
         fun delete(id: Int): PlayerBan? = transaction {
-            T.deleteReturning { T.id eq id }.firstOrNull()
-                ?.let { PlayerBan(it) }
+            getById(id)?.also {
+                T.deleteWhere { T.id eq id }
+            }
         }
     }
 }
