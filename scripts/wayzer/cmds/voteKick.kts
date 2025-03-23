@@ -48,39 +48,37 @@ suspend fun CommandContext.getInput(name: String, whenEmpty: PlaceHoldString): S
 }
 
 val banImpl = contextScript<wayzer.user.Ban>()
-onEnable {
-    val script = this
-    VoteEvent.VoteCommands += CommandInfo(this, "kick", "踢出某人") {
-        aliases = listOf("踢出")
-        usage = "<玩家名/id> <理由>"
-        permission = "wayzer.vote.kick"
-        body {
-            val target = getTarget()
-            val reason = getInput("踢人理由", "[red]投票踢人需要理由".with())
-            val player = player!!
-            val event = VoteEvent(
-                script, player,
-                voteDesc = "踢人(踢出[red]{target}[yellow])".with("target" to target),
-                extDesc = "[red]理由: [yellow]${reason}"
-            )
-            val snapshot = PlayerData[target]
-            if (event.awaitResult()) {
-                if (target.hasPermission("wayzer.admin.skipKick"))
-                    return@body broadcast(
-                        "[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target)
-                    )
-                banImpl.ban(snapshot, 60, "投票踢出: $reason", player)
-            }
+command("kick", "踢出某人".with(), commands = VoteEvent.VoteCommands) {
+    aliases = listOf("踢出")
+    usage = "<玩家名/id> <理由>"
+    attr(RequirePermission("wayzer.vote.kick"))
+    body {
+        val target = getTarget()
+        val reason = getInput("踢人理由", "[red]投票踢人需要理由".with())
+        val player = player!!
+        val event = VoteEvent(
+            thisScript, player,
+            voteDesc = "踢人(踢出[red]{target}[yellow])".with("target" to target),
+            extDesc = "[red]理由: [yellow]${reason}"
+        )
+        val snapshot = PlayerData[target]
+        if (event.awaitResult()) {
+            if (target.hasPermission("wayzer.admin.skipKick"))
+                return@body broadcast(
+                    "[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target)
+                )
+            banImpl.ban(snapshot, 60, "投票踢出: $reason", player)
         }
     }
 }
 
 command("votekick", "(弃用)投票踢人") {
-    this.usage = "<player...>";this.type = CommandType.Client
+    usage = "<player...>"
+    attr(ClientOnly)
     body {
         //Redirect
         arg = listOf("kick", *arg.toTypedArray())
-        VoteEvent.VoteCommands.invoke(this)
+        VoteEvent.VoteCommands.handle()
     }
 }
 PermissionApi.registerDefault("wayzer.admin.skipKick", group = "@admin")
