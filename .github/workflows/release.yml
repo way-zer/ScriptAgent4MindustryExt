@@ -14,12 +14,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: denoland/setup-deno@v1
+      - uses: oven-sh/setup-bun@v2
         with:
-          deno-version: v1.x
+          bun-version: latest
       - name: Generate Changelog
         id: changelog
-        run: deno run -A .github/actions/changelog.ts
+        run: bun run .github/actions/changelog.ts
         env:
           INPUT_TOKEN: ${{ github.token }}
 
