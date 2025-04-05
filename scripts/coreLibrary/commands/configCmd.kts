@@ -2,79 +2,82 @@ package coreLibrary.commands
 
 import cf.wayzer.placehold.PlaceHoldApi.with
 
+val configCommands = Commands()
 command("config", "查看或修改配置".with(), commands = Commands.controlCommand) {
     usage = "[help/arg...]"
-    permission = "scriptAgent.config"
+    requirePermission("scriptAgent.$name")
+    body(configCommands)
+}
+
+command("list", "列出所有配置项".with(), commands = configCommands) {
+    usage = "[page]"
+    body {
+        val page = arg.getOrNull(0)?.toIntOrNull() ?: 1
+        reply(menu("配置项", ConfigBuilder.all.values.sortedBy { it.path }, page, 15) {
+            "[green]{key} [blue]{desc}".with(
+                "key" to it.path,
+                "desc" to (it.desc.firstOrNull() ?: "")
+            )
+        })
+    }
+}
+command("reload", "重载配置文件".with(), commands = configCommands) {
+    requirePermission("scriptAgent.config.$name")
+    body {
+        ConfigBuilder.reloadFile()
+        reply("[green]重载成功".with())
+    }
+}
+
+@CommandInfo.CommandBuilder
+inline fun CommandInfo.subCommand(
+    usage: String,
+    crossinline block: suspend context(CommandContext) (ConfigBuilder.ConfigKey<*>) -> Unit
+) {
+    this.usage = "<key> $usage"
     onComplete {
-        onComplete(0) { listOf("help", "reload") + ConfigBuilder.all.keys }
-        onComplete(1) { listOf("set", "write", "reset") }
+        onComplete(0) { ConfigBuilder.all.keys.toList() }
     }
     body {
-        if (arg.isEmpty() || arg[0].equals("help", true))
-            returnReply(
-                """
-                        [yellow]可用操作
-                        [purple]config reload [light_purple]重载配置文件
-                        [purple]config list [页码] [light_purple]列出配置项
-                        [purple]config <配置项> [light_purple]查看配置项介绍及当前值
-                        [purple]config <配置项> set <value> [light_purple]设置配置值
-                        [purple]config <配置项> write [light_purple]写入默认值到配置文件
-                        [purple]config <配置项> reset [light_purple]恢复默认值（从配置文件移除默认值）
-                    """.trimIndent().with()
-            )
-        if (arg[0].equals("list", true)) {
-            val page = arg.getOrNull(1)?.toIntOrNull() ?: 1
-            returnReply(menu("配置项", ConfigBuilder.all.values.sortedBy { it.path }, page, 15) {
-                "[green]{key} [blue]{desc}".with(
-                    "key" to it.path,
-                    "desc" to (it.desc.firstOrNull() ?: "")
-                )
-            })
-        }
-        if (arg[0].equals("reload", true)) {
-            if (!hasPermission("$permission.reload"))
-                replyNoPermission()
-            ConfigBuilder.reloadFile()
-            returnReply("[green]重载成功".with())
-        }
         val config = arg.firstOrNull()?.let { ConfigBuilder.all[it] } ?: returnReply("[red]找不到配置项".with())
-        if (!hasPermission(permission + "." + config.path))
+        if (!hasPermission("scriptAgent.config." + config.path))
             returnReply("[red]你没有权限修改配置项: {config}".with("config" to config.path))
-        when (arg.getOrNull(1)?.lowercase()) {
-            null -> {
-                returnReply(
-                    """
+        block(context, config)
+    }
+}
+command("get", "获取配置项".with(), commands = configCommands) {
+    subCommand("") { config ->
+        reply(
+            """
                         |[yellow]==== [light_yellow]配置项: {name}[yellow] ====
                         |[purple]{desc:${"\n"}}
                         |[cyan]当前值: [yellow]{value}
                         |[cyan]默认值: [yellow]{default}
                         |[yellow]使用/sa config help查看可用操作
                     """.trimMargin().with(
-                        "name" to config.path, "desc" to config.desc,
-                        "value" to config.getString(), "default" to config.default,
-                    )
-                )
-            }
-
-            "reset" -> {
-                config.reset()
-                returnReply("[green]重置成功,当前:[yellow]{value}".with("value" to config.getString()))
-            }
-
-            "write" -> {
-                config.writeDefault()
-                reply("[green]写入文件成功".with())
-            }
-
-            "set" -> {
-                if (arg.size <= 2) returnReply("[red]请输入值".with())
-                val value = arg.subList(2, arg.size).joinToString(" ")
-                returnReply("[green]设置成功,当前:[yellow]{value}".with("value" to config.setString(value)))
-            }
-
-            else -> {
-                returnReply("[red]未知操作，请查阅help帮助".with())
-            }
-        }
+                "name" to config.path, "desc" to config.desc,
+                "value" to config.getString(), "default" to config.default,
+            )
+        )
+    }
+}
+command("reset", "恢复默认值".with(), commands = configCommands) {
+    subCommand("") { config ->
+        config.reset()
+        reply("[green]恢复成功,当前:[yellow]{value}".with("value" to config.getString()))
+    }
+}
+command("write", "设置配置项".with(), commands = configCommands) {
+    subCommand("") { config ->
+        if (config.get() != config.default)
+            config.writeDefault()
+        reply("[green]写入文件成功".with())
+    }
+}
+command("set", "设置配置项".with(), commands = configCommands) {
+    subCommand("<value>") { config ->
+        if (arg.size <= 1) returnReply("[red]请输入值".with())
+        val value = arg.subList(1, arg.size).joinToString(" ")
+        reply("[green]设置成功,当前:[yellow]{value}".with("value" to config.setString(value)))
     }
 }
