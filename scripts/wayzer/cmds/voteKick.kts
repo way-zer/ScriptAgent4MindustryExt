@@ -51,7 +51,7 @@ val banImpl = contextScript<wayzer.user.Ban>()
 command("kick", "踢出某人".with(), commands = VoteEvent.VoteCommands) {
     aliases = listOf("踢出")
     usage = "<玩家名/id> <理由>"
-    attr(RequirePermission("wayzer.vote.kick"))
+    requirePermission("wayzer.vote.kick")
     body {
         val target = getTarget()
         val reason = getInput("踢人理由", "[red]投票踢人需要理由".with())
@@ -72,13 +72,4 @@ command("kick", "踢出某人".with(), commands = VoteEvent.VoteCommands) {
     }
 }
 
-command("votekick", "(弃用)投票踢人") {
-    usage = "<player...>"
-    attr(ClientOnly)
-    body {
-        //Redirect
-        arg = listOf("kick", *arg.toTypedArray())
-        VoteEvent.VoteCommands.handle()
-    }
-}
 PermissionApi.registerDefault("wayzer.admin.skipKick", group = "@admin")

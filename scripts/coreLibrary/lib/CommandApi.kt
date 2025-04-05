@@ -118,7 +118,7 @@ class CommandInfo(
     val attrs: List<CommandHandler> = mutableListOf()
     var usage: String = ""
 
-    @Deprecated("use RequirePermission(permission)")
+    @Deprecated("use requirePermission(permission)")
     var permission: String = ""
     private var onComplete: CommandHandler = CommandHandler {}
     private var body: CommandHandler = CommandHandler {}
@@ -128,7 +128,7 @@ class CommandInfo(
         if (frozen) return
         @Suppress("DEPRECATION")
         if (permission.isNotEmpty())
-            attr(RequirePermission(permission))
+            attr(Commands.Permission(permission))
         frozen = true
     }
 
@@ -140,6 +140,8 @@ class CommandInfo(
         if (frozen) error("This command is already frozen, you must add attr before body")
         (attrs as MutableList).add(beforeBody)
     }
+
+    inline fun <reified T> attr() = attrs.filterIsInstance<T>()
 
     @Deprecated("replace CommandHandler", level = DeprecationLevel.HIDDEN)
     fun onComplete(block: CommandHandlerOld) = onComplete {
@@ -186,7 +188,7 @@ class CommandInfo(
     }
 
     @CommandBuilder
-    @Deprecated("use +RequirePermission(permission)")
+    @Deprecated("use requirePermission(permission)")
     fun CommandContext.replyNoPermission(): Nothing {
         reply("[red]你没有执行该命令的权限".with())
         Return()
@@ -220,6 +222,13 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         context(CommandContext) suspend fun visible(): Boolean
         context(CommandContext) override suspend fun handle() {
             if (!visible()) returnReply("[red]该命令当前不可用".with())
+        }
+    }
+
+    data class Permission(val permission: String) : Hidden {
+        context(CommandContext) override suspend fun visible(): Boolean = hasPermission(permission)
+        context(CommandContext) override suspend fun handle() {
+            if (!visible()) returnReply("[red]你没有执行该命令的权限".with())
         }
     }
 
@@ -318,7 +327,8 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
     }
 
     //compatibility for [CommandInfo.body]
-    @Deprecated("use CommandHandler instead", level = DeprecationLevel.ERROR,
+    @Deprecated(
+        "use CommandHandler instead", level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("this.handle()")
     )
     override suspend fun invoke(p1: CommandContext) = error("use CommandHandler")
@@ -326,7 +336,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
     object Root : Commands() {
         init {
             this += CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令".with(), listOf("sa")).apply {
-                attr(RequirePermission("scriptAgent.admin"))
+                requirePermission("scriptAgent.admin")
                 body(controlCommand)
             }
             thisContextScript().listenTo<ScriptDisableEvent> {
@@ -349,7 +359,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
             val detail = buildString {
                 if (!showDetail) return@buildString
                 if (it.script != null) append(" | ${it.script.id}")
-                if (it.permission.isNotBlank()) append(" | ${it.permission}")
+                it.attr<Permission>().firstOrNull()?.let { append(" | ${it.permission}") }
             }
             return "[light_yellow]{prefix}{name}[light_red]{aliases} [white]{usage}  [light_cyan]{desc}[cyan]{detail}".with(
                 "prefix" to prefix, "name" to it.name, "aliases" to alias,
@@ -358,13 +368,6 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         }
 
         var helpOverwrite: (suspend CommandContext.(cmds: Commands, showAll: Boolean, page: Int) -> Unit)? = null
-    }
-}
-
-data class RequirePermission(val permission: String) : Commands.Hidden {
-    context(CommandContext) override suspend fun visible(): Boolean = hasPermission(permission)
-    context(CommandContext) override suspend fun handle() {
-        if (!visible()) returnReply("[red]你没有执行该命令的权限".with())
     }
 }
 
@@ -384,4 +387,9 @@ inline fun Script.command(
 @ScriptDsl
 inline fun Script.command(name: String, description: String, init: CommandInfo.() -> Unit) {
     command(name, description.with()) { init() }
+}
+
+@CommandInfo.CommandBuilder
+fun CommandInfo.requirePermission(permission: String) {
+    attr(Commands.Permission(permission))
 }

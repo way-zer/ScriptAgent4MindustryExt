@@ -9,7 +9,7 @@ import java.time.Duration
 import java.time.Instant
 
 val teams = contextScript<BetterTeam>()
-val voteKick = contextScript<wayzer.cmds.VoteKick>()
+val voteKick = contextScript<VoteKick>()
 
 @Savable(false)
 val limitPlayers = mutableMapOf<String, Pair<String, Instant>>()//profile -> reason,time
@@ -85,7 +85,8 @@ listenTo<BetterTeam.AssignTeamEvent>(Event.Priority.Intercept) {
     }
 }
 command("votekick", "(弃用)投票踢人") {
-    this.usage = "<player...>";this.type = CommandType.Client
+    this.usage = "<player...>"
+    attr(ClientOnly)
     body {
         //Redirect
         arg = listOf("ob", *arg.toTypedArray())
@@ -112,4 +113,4 @@ command("forceOB", "管理指令：使某人强制观战") {
         )
     }
 }
-PermissionApi.registerDefault("wayzer.admin.skipKick", "wayzer.admin.forceOb", group = "@admin")
+PermissionApi.registerDefault("wayzer.admin.forceOb", group = "@admin")

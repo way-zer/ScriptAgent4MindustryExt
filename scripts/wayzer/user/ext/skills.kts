@@ -68,7 +68,7 @@ companion object Api {
     @ScriptDsl
     fun Script.skill(name: String, desc: String, vararg aliases: String, body: SkillScope.() -> Unit) {
         skills += CommandInfo(this, name, desc) {
-            attr(RequirePermission("wayzer.user.skills.$name"))
+            requirePermission("wayzer.user.skills.$name")
             attr(ClientOnly)
             this.aliases = aliases.toList()
             body {
