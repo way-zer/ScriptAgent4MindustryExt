@@ -45,7 +45,7 @@ onEnable {
                 }) {
                     arg = listOf(it.name)
                     reply("[yellow][快捷输入指令][] {command}".with("command" to (prefix + it.name)))
-                    cmds(this@impl)
+                    cmds.handle()
                 }
             }
         }.send().awaitWithTimeout()
