@@ -318,6 +318,9 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
     }
 
     //compatibility for [CommandInfo.body]
+    @Deprecated("use CommandHandler instead", level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("this.handle()")
+    )
     override suspend fun invoke(p1: CommandContext) = error("use CommandHandler")
 
     object Root : Commands() {
