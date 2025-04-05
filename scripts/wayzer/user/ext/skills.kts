@@ -98,9 +98,8 @@ skill("mono", "技能: 召唤采矿机,一局限一次,PVP禁用", "矿机") {
         returnReply("[red]该地图采矿机已禁封,禁止召唤".with())
     checkNotPvp()
     checkOrSetCoolDown(-1)
-    val unit = player.unit()
     UnitTypes.mono.create(player.team()).apply {
-        set(unit.x, unit.y)
+        set(player)
         add()
     }
     broadcastSkill("采矿机?")

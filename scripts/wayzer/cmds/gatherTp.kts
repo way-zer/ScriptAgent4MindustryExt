@@ -20,7 +20,7 @@ command("gather", "发出集合请求") {
     body {
         if (state.rules.pvp)
             returnReply("[red]PVP模式禁用".with())
-        if (!player!!.unit().type.targetable)
+        if (player!!.dead() || !player!!.unit().type.targetable)
             returnReply("[red]当前单位无法使用 集合".with())
         if (Duration.between(lastTime, Instant.now()) < Duration.ofSeconds(30)) {
             returnReply("[red]刚刚有人发起请求,请稍等30s再试".with())
@@ -45,7 +45,7 @@ command("tp", "传送到鼠标坐标") {
     permission = "wayzer.ext.tp"
     body {
         val player = player!!
-        player.unit().apply {
+        player.unit()?.apply {
             set(player.mouseX, player.mouseY)
             snapInterpolation()
         }
@@ -65,7 +65,7 @@ fun check(unit: Unit, x: Float, y: Float): Boolean {
 }
 listen<EventType.PlayerChatEvent> {
     if (it.message.equals("go", true) && lastPos != Vec2.ZERO) {
-        it.player.unit().apply {
+        it.player.unit()?.apply {
             if (!check(this, lastPos.x, lastPos.y)) {
                 it.player.sendMessage("[yellow]目标位置无法安全传送")
                 return@listen
