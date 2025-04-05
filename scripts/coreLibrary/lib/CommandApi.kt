@@ -232,7 +232,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         }
     }
 
-    protected val nameMap = mutableMapOf<String, CommandInfo>()
+    protected val nameMap = LinkedHashMap<String, CommandInfo>()
     open fun subCommands(): Map<String, CommandInfo> = nameMap
     fun getSub(name: String): CommandInfo? = subCommands()[name.lowercase()]
 
