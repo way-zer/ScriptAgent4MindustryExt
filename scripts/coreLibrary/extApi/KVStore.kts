@@ -17,7 +17,9 @@ val store by lazy {
         .also { onDisable { it.close() } }
 }
 
-fun <V> open(name: String, type: DataType<V>) = store.openMap(name, MVMap.Builder<String, V>().apply {
-    keyType(StringDataType.INSTANCE)
-    valueType(type)
-})!!
+fun <V> open(name: String, type: DataType<V>) = open(name, type, StringDataType.INSTANCE)
+fun <K, V> open(name: String, key: DataType<K>, type: DataType<V>) =
+    store.openMap(name, MVMap.Builder<K, V>().apply {
+        keyType(key)
+        valueType(type)
+    })!!
