@@ -7,47 +7,29 @@ import mindustry.world.Block
 import mindustry.world.blocks.storage.CoreBlock
 import java.util.*
 
-@Suppress("MemberVisibilityCanBePrivate")
-sealed class Log(val uid: String?, private val desc: () -> String) {
+@Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
+sealed class Log(val uid: String?, val desc: PlaceHoldString) {
     val time = Date()
 
-    class Place(uid: String?, val type: Block) : Log(uid, {
-        "放置了方块${type.name}"
-    })
+    class Place(uid: String?, val type: Block) : Log(uid, "放置了方块{block}".with("block" to type))
+    class Break(uid: String?) : Log(uid, "拆除了方块".with())
+    class Config(uid: String?, val value: String) : Log(uid, "修改了属性: {config}".with("config" to value))
+    class Deposit(uid: String?, val item: Item, val amount: Int) :
+        Log(uid, "往里面丢了{amount}个{item}".with("item" to item, "amount" to amount))
 
-    class Break(uid: String?) : Log(uid, {
-        "拆除了方块"
-    })
-
-    class Config(uid: String?, val value: String) : Log(uid, {
-        "修改了属性: $value"
-    })
-
-    class Deposit(uid: String?, val item: Item, val amount: Int) : Log(uid, {
-        "往里面丢了${amount}个${item.name}"
-    })
-
-    class Destroy : Log(null, {
-        "拆毁了方块"
-    })
-
-    class PickUp(uid: String?) : Log(uid, {
-        "拾起了方块"
-    })
-
-    //TODO no event
-//    class PickDown(uid: String?, val type: Block) : Log(uid, {
-//        "放下了方块: ${type.name}"
-//    })
+    class Destroy : Log(null, "拆毁了方块".with())
+    class PickUp(uid: String?) : Log(uid, "拾起了方块".with())
+    class PickDown(uid: String?, val type: Block) : Log(uid, "放下了方块: {block}".with("block" to type))
 
     fun descLog(descPrefix: String = ""): PlaceHoldString {
-        val desc = descPrefix + desc()
         return if (uid == null) {
-            "[red]{time:HH:mm:ss}[]-[yellow]未知单位[white]{desc}".with("time" to time, "desc" to desc)
+            "[red]{time:HH:mm:ss}[]-[yellow]未知单位[white]{descPrefix}{desc}".with(
+                "time" to time, "descPrefix" to descPrefix, "desc" to desc
+            )
         } else {
             val info = netServer.admins.getInfo(uid)
-            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{desc}"
-                .with("time" to time, "desc" to desc, "info" to info)
+            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{descPrefix}{desc}"
+                .with("time" to time, "descPrefix" to descPrefix, "desc" to desc, "info" to info)
         }
     }
 }
@@ -101,8 +83,11 @@ listen<EventType.BlockDestroyEvent> {
 listen<EventType.PickupEvent> {
     val build = it.build ?: return@listen
     //As the build has removed when pickup, use tileOn instead
-    val tile = build.tileOn()
-    log(tile.array(), Log.PickUp(it.carrier.player?.uuid()))
+    log(build.tileOn().array(), Log.PickUp(it.carrier.player?.uuid()))
+}
+listen<EventType.PayloadDropEvent> {
+    val build = it.build ?: return@listen
+    log(build.tile.array(), Log.PickDown(it.carrier.player?.uuid(), build.block))
 }
 
 fun Player.showLog(xf: Float, yf: Float) {
@@ -131,7 +116,7 @@ fun Player.showLog(xf: Float, yf: Float) {
 //查询
 val enabledPlayer = mutableSetOf<String>()
 command("history", "开关查询模式") {
-    permission = "wayzer.ext.history"
+    requirePermission("wayzer.ext.history")
     usage = "[core(查询核心)]"
     aliases = listOf("历史")
     body {
