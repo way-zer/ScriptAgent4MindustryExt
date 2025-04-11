@@ -4,5 +4,5 @@
   "main": "cf.wayzer.scriptAgent.mindustry.Loader",
   "description": "More commands and features.",
   "version": "@version@",
-  "minGameVersion": 136
+  "minGameVersion": 147
 }

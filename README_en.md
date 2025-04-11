@@ -1,6 +1,6 @@
 ![For Mindustry](https://img.shields.io/badge/For-Mindustry-orange)
 ![Lang CN](https://img.shields.io/badge/Lang-ZH--CN-blue)
-![Support 7.5](https://img.shields.io/badge/Support_Version-7.5(136+)-success)
+![Support 8.0](https://img.shields.io/badge/Support_Version-8.0(147+)-success)
 ![GitHub Releases](https://img.shields.io/github/downloads/way-zer/ScriptAgent4MindustryExt/latest/total)
 [![BuildPlugin](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/buildPlugin.yml/badge.svg)](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/buildPlugin.yml)
 [![CheckScript](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/checkScripts.yml/badge.svg)](https://github.com/way-zer/ScriptAgent4MindustryExt/actions/workflows/checkScripts.yml)

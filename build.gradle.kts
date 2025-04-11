@@ -30,7 +30,7 @@ sourceSets {
 
 dependencies {
     val libraryVersion = "1.11.2.3"
-    val mindustryVersion = "ca40f700fb" //v146.004
+    val mindustryVersion = "v2025.04.X2" //v147
     api("cf.wayzer:ScriptAgent:$libraryVersion")
     implementation("cf.wayzer:LibraryManager:1.6")
     compileOnly("com.github.TinyLake.MindustryX:core:$mindustryVersion")
