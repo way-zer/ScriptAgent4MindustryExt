@@ -11,6 +11,7 @@ import kotlinx.coroutines.coroutineScope
 import mindustry.Vars
 import mindustry.game.Gamemode
 import mindustry.io.SaveIO
+import mindustry.maps.MapException
 import mindustry.maps.Map as MdtMap
 
 data class MapInfo(
@@ -47,7 +48,13 @@ abstract class MapProvider {
         throw NotImplementedError("you must implement `lazyGetMap` and provider when init MapInfo")
 
     open suspend fun loadMap(info: MapInfo) {
-        Vars.world.loadMap(info.loadMap())
+        //note: don't call this, as it catch Throwable inside, and not give result.
+//        Vars.world.loadMap(info.loadMap())
+        val map = info.loadMap()
+        @Suppress("INACCESSIBLE_TYPE")
+        SaveIO.load(map.file, Vars.world.filterContext(map))
+        if (Vars.state.teams.getActive().none { it.hasCore() })
+            throw MapException(map, "Map has no cores!")
     }
 }
 
