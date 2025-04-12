@@ -1,13 +1,13 @@
 package coreLibrary
 
 import cf.wayzer.placehold.DynamicVar
+import cf.wayzer.placehold.VarString
 import com.typesafe.config.Config
 import io.github.config4k.ClassContainer
 import io.github.config4k.CustomType
 import io.github.config4k.registerCustomType
 import io.github.config4k.toConfig
 import java.lang.management.ManagementFactory
-import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -15,32 +15,31 @@ import kotlin.time.toKotlinDuration
 
 name = "基础变量注册"
 
-registerVarForType<Instant>().apply {
-    registerToString("转换为Date，参数格式同Date") { _, obj, arg ->
-        SimpleDateFormat(arg ?: "MM-dd").format(obj)
-    }
-}
-
+registerVar("\\n", "换行符", "\n")
+registerVar("joinLines", "'join \\n'的别名", DynamicVar {
+    VarToken("join", VarString.Parameters(it.params + "\n"))
+})
 registerVarForType<Duration>().apply {
-    registerToString("参数设定单位(天,时,分,秒,d,h,m,s,默认m)") { _, obj, arg ->
-        if (arg.isNullOrEmpty()) {
-            return@registerToString obj.toKotlinDuration().toString()
+    registerToString("参数设定单位(天,时,分,秒,d,h,m,s,默认m)") { obj ->
+        DynamicVar { params ->
+            val arg = params.getOrNull<VarString.VarToken>(0)?.name
+                ?: return@DynamicVar obj.toKotlinDuration().toString()
+            val unit = when (arg[0].lowercaseChar()) {
+                'd', '天' -> ChronoUnit.DAYS
+                'h', '小', '时' -> ChronoUnit.HOURS
+                'm', '分' -> ChronoUnit.MINUTES
+                's', '秒' -> ChronoUnit.SECONDS
+                else -> ChronoUnit.MINUTES
+            }
+            "%.2f%s".format((obj.seconds.toDouble() / unit.duration.seconds), arg)
         }
-        val unit = when (arg[0].lowercaseChar()) {
-            'd', '天' -> ChronoUnit.DAYS
-            'h', '小', '时' -> ChronoUnit.HOURS
-            'm', '分' -> ChronoUnit.MINUTES
-            's', '秒' -> ChronoUnit.SECONDS
-            else -> ChronoUnit.MINUTES
-        }
-        "%.2f%s".format((obj.seconds.toDouble() / unit.duration.seconds), arg)
     }
 }
 
 val startTime = Instant.ofEpochMilli(
     runCatching { ManagementFactory.getRuntimeMXBean().startTime }.getOrElse { System.currentTimeMillis() }
 )!!
-registerVar("state.uptime", "进程运行时间", DynamicVar.v { Duration.between(startTime, Instant.now()) })
+registerVar("state.uptime", "进程运行时间", DynamicVar { Duration.between(startTime, Instant.now()) })
 
 @Suppress("PropertyName")
 val NANO_PRE_SECOND = 1000_000_000L

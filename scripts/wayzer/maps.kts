@@ -1,7 +1,6 @@
 package wayzer
 
 import arc.Events
-import cf.wayzer.placehold.DynamicVar
 import mindustry.game.EventType.WorldLoadBeginEvent
 import mindustry.game.Gamemode
 import mindustry.game.Team
@@ -46,22 +45,22 @@ MapRegistry.register(this, object : MapProvider() {
 })
 
 registerVarForType<MapInfo>().apply {
-    registerChild("id", "在/maps中的id", DynamicVar.obj { it.id.toString().padStart(3, '0') })
-    registerChild("mode", "地图设定模式", DynamicVar.obj { it.mode.name })
-    registerChild("name", "名字", DynamicVar.obj { it.name })
-    registerChild("author", "作者", DynamicVar.obj { it.author })
-    registerChild("description", "介绍", DynamicVar.obj { it.description })
+    registerChild("id", "在/maps中的id") { it.id.toString().padStart(3, '0') }
+    registerChild("mode", "地图设定模式") { it.mode.name }
+    registerChild("name", "名字") { it.name }
+    registerChild("author", "作者") { it.author }
+    registerChild("description", "介绍") { it.description }
 }
 
 registerVarForType<MdtMap>().apply {
-    registerChild("id", "在/maps中的id(仅支持当前地图)", DynamicVar.obj {
+    registerChild("id", "在/maps中的id(仅支持当前地图)") {
         if (it === state.map) MapManager.current.id
         else -1
-    })
-    registerChild("mode", "地图设定模式(仅支持当前地图)", DynamicVar.obj {
+    }
+    registerChild("mode", "地图设定模式(仅支持当前地图)") {
         if (it === state.map) MapManager.current.mode.name
         else "UnSupport"
-    })
+    }
 }
 
 onEnable {

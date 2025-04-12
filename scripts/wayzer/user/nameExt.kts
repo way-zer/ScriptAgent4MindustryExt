@@ -1,24 +1,31 @@
 package wayzer.user
 
-import cf.wayzer.placehold.DynamicVar
-import coreLibrary.lib.registerVarForType
-import coreLibrary.lib.util.loop
-import coreLibrary.lib.with
-import coreMindustry.lib.game
-import coreMindustry.lib.listen
-import mindustry.game.EventType
-import mindustry.gen.Groups
-import mindustry.gen.Player
+import cf.wayzer.placehold.PlaceHoldApi
+import cf.wayzer.placehold.TypeBinder
 
 @Savable(serializable = false)
 val realName = mutableMapOf<String, String>()
 customLoad(::realName) { realName.putAll(it) }
 
+val TypeBinder<*>.tree: Map<String, Any> by reflectDelegate()
+
 registerVarForType<Player>().apply {
-    registerChild(
-        "prefix", "名字前缀,可通过prefix.xxx变量注册", DynamicVar.obj { resolveVar(it, "prefix.*.toString", "") })
-    registerChild(
-        "suffix", "名字后缀,可通过suffix.xxx变量注册", DynamicVar.obj { resolveVar(it, "suffix.*.toString", "") })
+    registerChild("prefix", "名字前缀,可通过prefix.xxx变量注册") { p ->
+        PlaceHoldApi.typeBinder<Player>().run {
+            val keys = tree.keys.filter { it.startsWith("prefix.") }.sorted()
+            keys.joinToString("") { k ->
+                resolve(this@registerChild, p, k)?.let { resolveVarForString(it) }.orEmpty()
+            }
+        }
+    }
+    registerChild("suffix", "名字后缀,可通过suffix.xxx变量注册") { p ->
+        PlaceHoldApi.typeBinder<Player>().run {
+            val keys = tree.keys.filter { it.startsWith("suffix.") }.sorted()
+            keys.joinToString("") { k ->
+                resolve(this@registerChild, p, k)?.let { resolveVarForString(it) }.orEmpty()
+            }
+        }
+    }
 }
 
 
@@ -36,6 +43,10 @@ listen<EventType.PlayerConnect> {
 }
 onEnable {
     loop(Dispatchers.game) {
+        Groups.player.forEach {
+            if (it.uuid() !in realName)
+                realName[it.uuid()] = it.name
+        }
         delay(5000)
         Groups.player.forEach { it.updateName() }
     }

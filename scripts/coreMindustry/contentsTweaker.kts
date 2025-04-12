@@ -26,9 +26,9 @@ class CTHello(val player: Player, val version: String) : Event {
     companion object : Event.Handler()
 }
 
-registerVar("scoreBroad.ext.contentsVersion", "ContentsTweaker状态显示", DynamicVar.v {
-    val patches = patches ?: return@v null
-    val player = getVar("receiver") as Player?
+registerVar("scoreBroad.ext.contentsVersion", "ContentsTweaker状态显示", DynamicVar {
+    val patches = patches ?: return@DynamicVar null
+    val player = VarToken("receiver").get() as? Player
     buildString {
         append("[violet]特殊修改已加载: [orange]")
         if (player == null || player.uuid() !in ctPlayers)
@@ -37,7 +37,7 @@ registerVar("scoreBroad.ext.contentsVersion", "ContentsTweaker状态显示", Dyn
     }
 })
 registerVarForType<Player>().apply {
-    registerChild("suffix.s3-CT", "CT mod 后缀", DynamicVar.obj { p -> Iconc.wrench.takeIf { p.uuid() in ctPlayers } })
+    registerChild("suffix.s3-CT", "CT mod 后缀", { p -> Iconc.wrench.takeIf { p.uuid() in ctPlayers } })
 }
 
 fun sendPatch(name: String, patch: String) {

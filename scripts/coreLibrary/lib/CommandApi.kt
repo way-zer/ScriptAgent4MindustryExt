@@ -2,14 +2,12 @@
 
 package coreLibrary.lib
 
-import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.events.ScriptDisableEvent
 import cf.wayzer.scriptAgent.listenTo
 import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
-import coreLibrary.lib.PlaceHold.registerForType
 import coreLibrary.lib.util.menu
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -47,7 +45,7 @@ class CommandContext : DSLBuilder(), Cloneable {
      * should support async, otherwise set to {} after use
      * should support call from other thread, switch thread when need
      */
-    var reply: (msg: PlaceHoldString) -> Unit = {}
+    var reply: (msg: VarString) -> Unit = {}
 
     // Should not null if do TabComplete
     var replyTabComplete: ((list: List<String>) -> Nothing)? = null
@@ -66,7 +64,7 @@ class CommandContext : DSLBuilder(), Cloneable {
     //===util===
     /**Can't be call in coroutine or other context, use [reply] instead*/
     @CommandInfo.CommandBuilder
-    fun returnReply(msg: PlaceHoldString): Nothing {
+    fun returnReply(msg: VarString): Nothing {
         reply(msg)
         CommandInfo.Return()
     }
@@ -75,13 +73,6 @@ class CommandContext : DSLBuilder(), Cloneable {
 
     /** receiver for reply */
     object ConsoleReceiver {
-        init {
-            registerForType<ConsoleReceiver>(thisContextScript()).apply {
-                registerChild("colorHandler", "颜色变量处理", DynamicVar.obj {
-                    Color::convertToAnsiCode
-                })
-            }
-        }
     }
 }
 
@@ -102,10 +93,10 @@ interface TabCompleter {
 class CommandInfo(
     val script: Script?,
     val name: String,
-    val description: PlaceHoldString,
+    val description: VarString,
     var aliases: List<String> = emptyList(),
 ) : DSLBuilder(), CommandHandler, TabCompleter {
-    constructor(script: Script?, name: String, description: PlaceHoldString, init: CommandInfo.() -> Unit)
+    constructor(script: Script?, name: String, description: VarString, init: CommandInfo.() -> Unit)
             : this(script, name, description) {
         init()
     }
@@ -113,7 +104,7 @@ class CommandInfo(
     constructor(script: Script?, name: String, description: String, init: CommandInfo.() -> Unit = {})
             : this(script, name, description.with(), init)
     @Deprecated("", level = DeprecationLevel.HIDDEN)
-    constructor(script: Script?, name: String, description: PlaceHoldString) : this(script, name, description)
+    constructor(script: Script?, name: String, description: VarString) : this(script, name, description)
 
     val attrs: List<CommandHandler> = mutableListOf()
     var usage: String = ""
@@ -354,7 +345,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
     companion object {
         val controlCommand = Commands()
 
-        fun CommandContext.helpInfo(it: CommandInfo, showDetail: Boolean): PlaceHoldString {
+        fun CommandContext.helpInfo(it: CommandInfo, showDetail: Boolean): VarString {
             val alias = if (it.aliases.isEmpty()) "" else it.aliases.joinToString(prefix = "(", postfix = ")")
             val detail = buildString {
                 if (!showDetail) return@buildString
@@ -374,7 +365,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
 @ScriptDsl
 inline fun Script.command(
     name: String,
-    description: PlaceHoldString,
+    description: VarString,
     commands: Commands = Commands.Root,
     init: CommandInfo.() -> Unit
 ) {

@@ -22,7 +22,7 @@ var PlayerData.lang: String
     }
 
 registerVarForType<Player>()
-    .registerChild("lang", "多语言支持", DynamicVar.obj {
+    .registerChild("lang", "多语言支持",  {
         kotlin.runCatching { PlayerData[it].lang }.getOrNull()
     })
 

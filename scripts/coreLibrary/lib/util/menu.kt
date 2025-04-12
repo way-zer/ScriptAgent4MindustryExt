@@ -18,7 +18,7 @@ fun <E> menu(title: String, list: List<E>, page: Int, prePage: Int, handle: (E) 
         .map(handle)
     return """
             |[green]==== [white]{title}[green] ====
-            |{list:${"\n"}}
+            |{list|joinLines}
             |[green]==== [white]{page}/{total}[green] ====
             """.trimMargin().with("title" to title, "list" to list2, "page" to newPage, "total" to totalPage)
 }

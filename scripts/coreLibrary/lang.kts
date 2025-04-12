@@ -1,8 +1,5 @@
 package coreLibrary
 
-import cf.wayzer.placehold.DynamicVar
-import cf.wayzer.placehold.TemplateHandler
-import cf.wayzer.placehold.TemplateHandlerKey
 import java.io.File
 import java.util.*
 import kotlin.math.max
@@ -122,18 +119,24 @@ fun load() {
     lastSave = file.lastModified()
 }
 
-registerVarForType<CommandContext.ConsoleReceiver>().registerChild("lang", "控制台语言", DynamicVar.obj { console })
+registerVarForType<CommandContext.ConsoleReceiver>().registerChild("lang", "控制台语言", { console })
 
-registerVar(TemplateHandlerKey, "多语言处理", TemplateHandler.new {
-    val lang = getVarString("receiver.lang") ?: return@new it
-    data.getOrPut(it) {
-        needSave = true
-        Sentence(it).also { sentence ->
-            launch { NewSentenceEvent(sentence).emitAsync() }
-        }
-    }.get(lang)
-})
-
+onEnable {
+    val bak = PlaceHold.templateHandler
+    PlaceHold.templateHandler = h@{
+        val str = bak(it)
+        val lang = VarToken("receiver.lang").get()?.toString() ?: return@h str
+        data.getOrPut(str) {
+            needSave = true
+            Sentence(str).also { sentence ->
+                launch { NewSentenceEvent(sentence).emitAsync() }
+            }
+        }.get(lang)
+    }
+    onDisable {
+        PlaceHold.templateHandler = bak
+    }
+}
 
 val commands = Commands()
 commands += CommandInfo(null, "load", "加载语言文件".with()) {
@@ -159,7 +162,7 @@ commands += CommandInfo(null, "set", "设置控制台使用语言".with()) {
 }
 onEnable {
     Commands.controlCommand += CommandInfo(this, "lang", "多语言功能".with()) {
-        permission = dotId
+        requirePermission(dotId)
         body(commands)
     }
     launch {

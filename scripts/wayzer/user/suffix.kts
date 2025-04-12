@@ -49,9 +49,9 @@ onDisable {
 
 registerVarForType<Player>().apply {
 
-    registerChild("suffix.s2-clientType", "客户端类型后缀", DynamicVar.obj { p -> clientType[p.uuid()] })
-    registerChild("suffix.s3-computer", "电脑玩家后缀", DynamicVar.obj { p -> ''.takeIf { !p.con.mobile } })
-    registerChild("suffix.s5-group", "权限组后缀", DynamicVar.obj { it.getSuffix() })
+    registerChild("suffix.s2-clientType", "客户端类型后缀",  { p -> clientType[p.uuid()] })
+    registerChild("suffix.s3-computer", "电脑玩家后缀",  { p -> ''.takeIf { !p.con.mobile } })
+    registerChild("suffix.s5-group", "权限组后缀",  { it.getSuffix() })
 }
 
 PermissionApi.registerDefault("suffix.admin", group = "@admin")

@@ -26,7 +26,7 @@ command("go", "传送到其他服务器") {
             ?.let { infos[it] ?: returnReply("[red]错误的服务器名字".with()) }
             ?: let {
                 val list = infos.values.map { "[gold]{name}:[tan]{desc}".with("name" to it.name, "desc" to it.desc) }
-                returnReply("[violet]可用服务器: \n{list:\n}".with("list" to list))
+                returnReply("[violet]可用服务器: \n{list|joinLines}".with("list" to list))
             }
         Call.connect(player!!.con, info.address, info.port)
         broadcast(

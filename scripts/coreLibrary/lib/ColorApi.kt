@@ -1,52 +1,5 @@
-@file:Suppress("DEPRECATION")
-
 package coreLibrary.lib
 
-import cf.wayzer.placehold.DynamicVar
-import cf.wayzer.scriptAgent.thisContextScript
-
-enum class Color(val ansiCode: String) {
-    Reset("\u001b[0m"),
-    Bold("\u001b[1m"),
-    Italic("\u001b[3m"),
-    Underlined("\u001b[4m"),
-    Blink("\u001b[6m"),
-
-    Black("\u001b[30m"),
-    Red("\u001b[31m"),
-    Green("\u001b[32m"),
-    Yellow("\u001b[33m"),
-    Blue("\u001b[34m"),
-    Purple("\u001b[35m"),
-    Cyan("\u001b[36m"),
-    White("\u001b[37m");
-
-    override fun toString(): String {
-        return "{C:$name}"
-    }
-    //RGB("\u001b[38;2;<r>;<g>;<b>m")  {C:#rrggbb}
-
-    companion object {
-        private val consoleCodeMap = entries.associate { it.name.lowercase() to it.ansiCode }
-        fun convertToAnsiCode(color: String) = consoleCodeMap[color]
-
-        init {
-            thisContextScript().apply {
-                registerVar("receiver.colorHandler", "颜色处理器(仅定义)", null)
-                registerVar("C", "颜色变量", DynamicVar.params {
-                    it?.let { color ->
-                        getVar("receiver.colorHandler")?.let { handler ->
-                            @Suppress("UNCHECKED_CAST")
-                            (handler as (String) -> Any?).invoke(color.lowercase())
-                        }
-                    } ?: ""
-                })
-            }
-        }
-    }
-}
-
-@Deprecated("use code variable")
 enum class ConsoleColor(val code: String) : ColorApi.Color {
     RESET("\u001b[0m"),
     BOLD("\u001b[1m"),
@@ -78,7 +31,6 @@ enum class ConsoleColor(val code: String) : ColorApi.Color {
     }
 }
 
-@Deprecated("use code variable")
 object ColorApi {
     interface Color
 

@@ -8,15 +8,20 @@ package coreLibrary.lib
  * 暴露数据或接口时,注意类型所在的生命周期
  */
 
-import cf.wayzer.placehold.*
+import cf.wayzer.placehold.DynamicVar
+import cf.wayzer.placehold.PlaceHoldApi
+import cf.wayzer.placehold.TypeBinder
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.PlaceHold.Updatable
-import coreLibrary.lib.PlaceHold.dumbTemplateHandler
 import kotlin.reflect.KProperty
 
-typealias PlaceHoldString = PlaceHoldContext
+typealias VarString = cf.wayzer.placehold.VarString
+@Deprecated("use VarString instead", ReplaceWith("VarString"))
+typealias PlaceHoldContext = VarString
+@Deprecated("use VarString instead", ReplaceWith("VarString"))
+typealias PlaceHoldString = VarString
 
 object PlaceHold {
     fun interface Updatable<T> {
@@ -25,7 +30,7 @@ object PlaceHold {
 
     class PlaceHoldKey<T>(val name: String, private val cls: Class<T>) {
         operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
-            val v = PlaceHoldApi.GlobalContext.getVar(name)
+            val v = PlaceHoldApi.GlobalContext.VarToken(name).get()
             if (cls.isInstance(v)) return cls.cast(v)
             error("Can't get globalVar: $name get $v")
         }
@@ -33,7 +38,7 @@ object PlaceHold {
 
     class TypePlaceHoldKey<R>(val name: String, private val cls: Class<R>) {
         operator fun <T : Any> getValue(thisRef: T, prop: KProperty<*>): R {
-            val v = PlaceHoldApi.GlobalContext.resolveVar(thisRef, name)
+            val v = PlaceHoldApi.GlobalContext.resolveVarChild(thisRef, name)
             if (cls.isInstance(v)) return cls.cast(v)
             error("Can't get typeVar $name: FROM $thisRef GET $v")
         }
@@ -45,10 +50,10 @@ object PlaceHold {
         private val namePrefix: String,
         private val binder: TypeBinder<T>
     ) {
-        fun registerToString(desc: String, body: DynamicVar<T, String>) =
-            registerChildAny(PlaceHoldContext.ToString, desc, body)
+        fun registerToString(desc: String, body: TypeBinder.ObjChild<T>) =
+            registerChildAny(VarString.ToString, desc, body)
 
-        fun registerChild(key: String, desc: String, body: DynamicVar<T, Any>) = registerChildAny(key, desc, body)
+        fun registerChild(key: String, desc: String, body: TypeBinder.ObjChild<T>) = registerChildAny(key, desc, body)
         fun registerChildAny(key: String, desc: String, body: Any?) {
             script.registeredVars["$namePrefix.$key"] = desc
             script.onEnable { binder.registerChildAny(key, body) }
@@ -63,7 +68,7 @@ object PlaceHold {
     /**
      * @param v support [cf.wayzer.placehold.DynamicVar] even [PlaceHoldString] or any value
      */
-    fun register(script: Script, name: String, desc: String, v: Any?): Updatable<Any?> {
+    fun <T> register(script: Script, name: String, desc: String, v: T): Updatable<T> {
         script.registeredVars[name] = desc
         script.onEnable { PlaceHoldApi.registerGlobalVar(name, v) }
         script.onDisable { PlaceHoldApi.registerGlobalVar(name, null) }
@@ -101,18 +106,23 @@ object PlaceHold {
      */
     inline fun <reified R> referenceForType(name: String) = TypePlaceHoldKey(name, R::class.java)
 
-    internal val dumbTemplateHandler = TemplateHandler { _, text -> text }
+    var templateHandler: VarString.(String) -> String = { it }
 }
 
 /**
  * @param arg values support [cf.wayzer.placehold.DynamicVar] even [PlaceHoldString] or any value
  */
-fun String.with(vararg arg: Pair<String, Any>): PlaceHoldString = PlaceHoldApi.getContext(this, arg.toMap())
-fun PlaceHoldString.with(vararg arg: Pair<String, Any>): PlaceHoldString =
+fun String.with(vararg arg: Pair<String, Any>): VarString =
+    VarString("{text}", mapOf(*arg, "text" to DynamicVar {
+        val template = PlaceHold.templateHandler(this, this@with)
+        PlaceHoldApi.getVarString(template, arg.toMap())
+    }))
+
+fun VarString.with(vararg arg: Pair<String, Any>): VarString =
     "".with(*arg).createChild(text, vars)
 
 /** Convert String to PlaceHoldString with no PlaceHold and templateHandler */
-fun String.asPlaceHoldString() = "{text}".with("text" to this, TemplateHandlerKey to dumbTemplateHandler)
+fun String.asPlaceHoldString() = "{text}".with("text" to this)
 
 /**
  * @see PlaceHold.register

@@ -33,7 +33,7 @@ command("list", "列出所有模块或模块内所有脚本".with(), commands = 
                 .groupBy { it }.mapValues { it.value.size }
             val list = counts.entries.sortedBy { it.key }
                 .map { "[purple]${it.key.padEnd(20)} [blue]${it.value}" }
-            returnReply("[yellow]==== [light_yellow]已加载模块[yellow] ====\n{list:\n}".with("list" to list))
+            returnReply("[yellow]==== [light_yellow]已加载模块[yellow] ====\n{list|joinLines}".with("list" to list))
         }
         val list = ScriptRegistry.allScripts {
             if (module.equals("fail", true)) it.failReason != null
@@ -43,7 +43,7 @@ command("list", "列出所有模块或模块内所有脚本".with(), commands = 
             else "[reset][${it.scriptState}] ${it.id.padEnd(30)} ${it.failReason.orEmpty()}"
         }
         reply(
-            "[yellow]==== [light_yellow]{module}脚本[yellow] ====\n{list:\n}".with(
+            "[yellow]==== [light_yellow]{module}脚本[yellow] ====\n{list|joinLines}".with(
                 "module" to module, "list" to list
             )
         )

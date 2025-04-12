@@ -33,9 +33,9 @@ listen<EventType.TapEvent> {
     }
 }
 registerVarForType<Player>().apply {
-    registerChild("prefix.3obTeam", "观战队伍显示", DynamicVar.obj {
+    registerChild("prefix.3obTeam", "观战队伍显示") {
         getObTeam(it)?.let { team -> "[观战${team.coloredName()}]" }
-    })
+    }
 }
 fun setObTeam(player: Player, team: Team?) {
     if (team == null) {

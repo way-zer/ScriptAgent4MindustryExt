@@ -44,7 +44,7 @@ companion object Api {
                     ctx.reply("[red]该技能每局限用一次".with())
                     return false
                 } else if (used[key]!! >= System.currentTimeMillis()) {
-                    ctx.reply("[red]技能冷却，还剩{time:秒}".with("time" to Duration.ofMillis(used[key]!! - System.currentTimeMillis())))
+                    ctx.reply("[red]技能冷却，还剩{time 秒}".with("time" to Duration.ofMillis(used[key]!! - System.currentTimeMillis())))
                     return false
                 }
             }

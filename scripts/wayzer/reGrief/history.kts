@@ -23,12 +23,12 @@ sealed class Log(val uid: String?, val desc: PlaceHoldString) {
 
     fun descLog(descPrefix: String = ""): PlaceHoldString {
         return if (uid == null) {
-            "[red]{time:HH:mm:ss}[]-[yellow]未知单位[white]{descPrefix}{desc}".with(
+            "[red]{time HH:mm:ss}[]-[yellow]未知单位[white]{descPrefix}{desc}".with(
                 "time" to time, "descPrefix" to descPrefix, "desc" to desc
             )
         } else {
             val info = netServer.admins.getInfo(uid)
-            "[red]{time:HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{descPrefix}{desc}"
+            "[red]{time HH:mm:ss}[]-[yellow]{info.name}[yellow]({info.shortID})[white]{descPrefix}{desc}"
                 .with("time" to time, "descPrefix" to descPrefix, "desc" to desc, "info" to info)
         }
     }
@@ -105,7 +105,7 @@ fun Player.showLog(xf: Float, yf: Float) {
         val list = logs.map { log -> log.descLog() }
         Call.label(
             con,
-            "====[gold]操作记录({x},{y})[]====\n{list:\n}"
+            "====[gold]操作记录({x},{y})[]====\n{list|joinLines}"
                 .with("x" to x, "y" to y, "list" to list)
                 .toPlayer(this),
             10f, xf, yf
@@ -122,7 +122,7 @@ command("history", "开关查询模式") {
     body {
         when (arg.getOrElse(0) { "" }) {
             "core" -> returnReply(
-                "[green]核心破坏周边情况:\n{list:\n}".with("list" to lastCoreLog)
+                "[green]核心破坏周边情况:\n{list|joinLines}".with("list" to lastCoreLog)
             )
         }
         if (player == null) returnReply("[red]控制台仅可查询核心破坏记录".with())

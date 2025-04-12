@@ -58,7 +58,7 @@ onEnable {
             val delta = Duration.between(time, Instant.now())
             val event = VoteEvent(
                 script, player,
-                voteDesc = "解除强制(已持续{delta:分钟})".with("delta" to delta),
+                voteDesc = "解除强制(已持续{delta 分钟})".with("delta" to delta),
                 extDesc = "[yellow]被限制时的理由: $reason"
             )
             if (event.awaitResult()) {
@@ -75,7 +75,7 @@ listenTo<BetterTeam.AssignTeamEvent>(Event.Priority.Intercept) {
         player.sendMessage(
             """
                 [red]你已被限制强制观战.
-                [yellow]投票原因: [white]{reason}({delta:分钟}前)
+                [yellow]投票原因: [white]{reason}({delta 分钟}前)
                 [yellow]如有疑问，请在聊天区交流
                 [green]可通过[gold]/vote quitOb[]投票，取消限制
             """.trimIndent().with("reason" to reason, "delta" to delta),

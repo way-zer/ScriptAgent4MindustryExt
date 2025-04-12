@@ -8,7 +8,7 @@ dependencies {
 
     defineModule("bootStrap") {}
     defineModule("coreLibrary") {
-        api("cf.wayzer:PlaceHoldLib:6.0")
+        api("com.github.way-zer:PlaceHoldLib:v7.3")
         api("io.github.config4k:config4k:0.7.0")
         api("org.slf4j:slf4j-api:2.0.16")
         //coreLib/kcp/serialization

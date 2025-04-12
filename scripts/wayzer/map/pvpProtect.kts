@@ -46,7 +46,7 @@ listen<EventType.WorldLoadEvent> {
     }
     launch(Dispatchers.game) {
         broadcast(
-            "[yellow]PVP保护时间,禁止在其他基地攻击(持续{time:分钟})".with(
+            "[yellow]PVP保护时间,禁止在其他基地攻击(持续{time 分钟})".with(
                 "time" to Duration.ofSeconds(leftTime.toLong())
             ),
             quite = true
