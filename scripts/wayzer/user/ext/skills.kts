@@ -99,7 +99,7 @@ skill("mono", "技能: 召唤采矿机,一局限一次,PVP禁用", "矿机") {
     checkNotPvp()
     checkOrSetCoolDown(-1)
     UnitTypes.mono.create(player.team()).apply {
-        set(player)
+        set(this@skill.player)
         add()
     }
     broadcastSkill("采矿机?")
