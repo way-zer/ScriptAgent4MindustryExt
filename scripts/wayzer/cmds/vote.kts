@@ -8,6 +8,7 @@ import mindustry.game.EventType.GameOverEvent
 import wayzer.VoteService
 import java.time.Instant
 import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.random.Random
 
 fun VoteService.register() {
@@ -41,22 +42,23 @@ fun VoteService.register() {
         val t = (arg.firstOrNull()?.toIntOrNull() ?: 10).coerceIn(1, 50)
         start(player!!, "跳波({t}波)".with("t" to t), supportSingle = true) {
             val startTime = Instant.now()
-            var waitTime = 3
             repeat(t) {
-                while (state.enemies > 300) {//延长等待时间
-                    if (waitTime > 60) return@start //等待超时
-                    delay(waitTime * 1000L)
-                    waitTime *= 2
-                }
                 if (lastResetTime > startTime) return@start //Have change map
-                Core.app.post { logic.runWave() }
-                delay(waitTime * 1000L)
+                val before = state.enemies
+                logic.runWave()
+                while (spawner.isSpawning) delay(1000L)
+                val after = state.enemies
+                while (state.enemies > max(before, (after - before) * 3 / 10)) {
+                    delay(1000L)
+                }
+                delay(3000L)
             }
         }
     }
     addSubVote("清理本队建筑记录", "", "clear", "清理", "清理记录") {
         val team = player!!.team()
-        start(player!!, "清理建筑记录({team.colorizeName}[yellow]队|需要2/5同意)".with("team" to team),
+        start(
+            player!!, "清理建筑记录({team.colorizeName}[yellow]队|需要2/5同意)".with("team" to team),
             canVote = { it.team() == team }, requireNum = { ceil(it * 0.4).toInt() }
         ) {
             team.data().plans.clear()
