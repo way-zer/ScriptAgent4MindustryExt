@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm")
 }
 dependencies {
-    val mindustryVersion = "ca40f700fb" //v146.004
+    val mindustryVersion = "v2025.04.X3" //v146.004
 
     defineModule("bootStrap") {}
     defineModule("coreLibrary") {
@@ -60,8 +60,5 @@ allprojects {
                 "-Xcontext-receivers",
             )
         }
-    }
-    tasks.named("build") {
-        enabled = false
     }
 }

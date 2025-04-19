@@ -30,19 +30,10 @@ sourceSets {
 
 dependencies {
     val libraryVersion = "1.11.2.3"
-    val mindustryVersion = "v2025.04.X2" //v147
+    val mindustryVersion = "v2025.04.X3" //v147
     api("cf.wayzer:ScriptAgent:$libraryVersion")
     implementation("cf.wayzer:LibraryManager:1.6")
     compileOnly("com.github.TinyLake.MindustryX:core:$mindustryVersion")
-
-    subprojects {
-        apply(plugin = "kotlin")
-        dependencies {
-            api(rootProject)
-            api(kotlin("script-runtime"))
-            kotlinScriptDef(rootProject)
-        }
-    }
 }
 
 kotlin {

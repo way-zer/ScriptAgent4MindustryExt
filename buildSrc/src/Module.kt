@@ -4,6 +4,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.project
 
 class ModuleScope(val moduleId: String, private val project: Project, private val sourceSet: SourceSet) {
@@ -31,7 +32,8 @@ fun Project.defineModule(
     }
     ModuleScope(name, project, sourceSet).apply {
         dependencies.apply {
-            api(project("::scripts"))
+            implementation(kotlin("script-runtime"))
+            implementation(rootProject)
         }
         body()
     }
