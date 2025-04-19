@@ -24,7 +24,7 @@ fun voteMap(player: Player, map: MapInfo) {
 }
 
 fun VoteService.register() {
-    addSubVote("换图投票", "<地图ID> [网络换图类型参数]", "map", "换图") {
+    addSubVote("换图投票", "<地图ID>", "map", "换图") {
         if (arg.isEmpty())
             returnReply("[red]请输入地图序号".with())
         val map = arg[0].toIntOrNull()?.let { MapRegistry.findById(it, reply) }
@@ -32,11 +32,11 @@ fun VoteService.register() {
         voteMap(player!!, map)
     }
     addSubVote("回滚到某个存档(使用/slots查看)", "<存档ID>", "rollback", "load", "回档") {
-        if (arg.firstOrNull()?.toIntOrNull() == null)
-            returnReply("[red]请输入正确的存档编号".with())
-        val map = MapManager.getSlot(arg[0].toInt())
+        val save = arg.firstOrNull()?.toIntOrNull()
+            ?: returnReply("[red]请输入正确的存档编号".with())
+        val map = MapManager.getSlot(save)
             ?: returnReply("[red]存档不存在或存档损坏".with())
-        start(player!!, "回档".with(), supportSingle = true) {
+        start(player!!, "回档({save})".with("save" to save), supportSingle = true) {
             MapManager.loadSave(map)
             broadcast("[green]回档成功".with(), quite = true)
         }
