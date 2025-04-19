@@ -119,7 +119,7 @@ fun load() {
     lastSave = file.lastModified()
 }
 
-registerVarForType<CommandContext.ConsoleReceiver>().registerChild("lang", "控制台语言", { console })
+registerVarForType<CommandContext.ConsoleReceiver>().registerChild("lang", "控制台语言") { console }
 
 onEnable {
     val bak = PlaceHold.templateHandler
@@ -160,11 +160,11 @@ commands += CommandInfo(null, "set", "设置控制台使用语言".with()) {
         reply("[green]控制台语言已设为 {v}".with("v" to console))
     }
 }
+command("lang", "多语言功能".with(), commands = Commands.controlCommand) {
+    requirePermission(dotId)
+    body(commands)
+}
 onEnable {
-    Commands.controlCommand += CommandInfo(this, "lang", "多语言功能".with()) {
-        requirePermission(dotId)
-        body(commands)
-    }
     launch {
         load()
         while (isActive) {
