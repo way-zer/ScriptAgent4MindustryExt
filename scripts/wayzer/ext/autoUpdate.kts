@@ -4,6 +4,7 @@ package wayzer.ext
 
 import arc.util.Interval
 import arc.util.Log
+import arc.util.Reflect
 import arc.util.serialization.Jval
 import mindustry.core.Version
 import mindustry.net.BeControl
@@ -39,6 +40,14 @@ suspend fun download(url: String, file: File): Int = runInterruptible(Dispatcher
     len
 }
 
+val isMdtX = source.contains("MindustryX")
+fun isNewVersion(build: String): Boolean {
+    if (isMdtX) kotlin.runCatching {
+        return build > Reflect.get(Version::class.java, "mdtxBuild")
+    }
+    return build > Version.buildString()
+}
+
 onEnable {
     loop {
         if (enableUpdate) {
@@ -48,9 +57,7 @@ onEnable {
                         URL("https://api.github.com/repos/$source/releases".let { if (useMirror) "$mirror/$it" else it }).readText()
                     val json = Jval.read(txt).asArray().first()
                     val newBuild = json.getString("tag_name", "")
-                    val (version, revision) = ("$newBuild.0").removePrefix("v")
-                        .split(".").map { it.toInt() }
-                    if (version > Version.build || (version == Version.build && revision > Version.revision)) {
+                    if (isNewVersion(newBuild.removePrefix("v"))) {
                         val asset = json.get("assets").asArray().find {
                             it.getString("name", "").contains("server", ignoreCase = true)
                         } ?: error("New version $newBuild, but can't find asset")
@@ -95,7 +102,7 @@ suspend fun update(version: String, url: String) {
 }
 
 command("forceUpdate", "强制更新服务器版本") {
-    permission = dotId
+    requirePermission(dotId)
     usage = "<url>"
     body {
         arg.firstOrNull()?.let { kotlin.runCatching { URL(it) }.getOrNull() } ?: replyUsage()
