@@ -29,6 +29,7 @@ class Main : JavaPlugin(), CommonMain {
             require(Dependency.parse("org.jetbrains.kotlin:kotlin-reflect:${Config.kotlinVersion}"))
             require(Dependency.parse("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Config.kotlinCoroutineVersion}"))
             addAsGlobal()
+            load()
         }
 
         bootstrap()
