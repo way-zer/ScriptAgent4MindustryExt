@@ -1,0 +1,17 @@
+name: ScriptAgent
+main: cf.wayzer.scriptAgent.bukkit.Main
+version: "${version}"
+author: Way__Zer
+api-version: 1.21
+folia-supported: true
+libraries:
+  - org.jetbrains.kotlin:kotlin-stdlib:2.1.10
+  - org.jetbrains.kotlin:kotlin-reflect:2.1.10
+  - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1
+  - com.google.guava:guava:31.1-jre
+  - org.jetbrains.kotlin:kotlin-scripting-jvm:2.1.10
+commands:
+  ScriptAgent:
+    description: ScriptAgent Main Command
+    usage: Please load coreBukkit module to use command
+    aliases: ["sa"]

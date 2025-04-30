@@ -30,6 +30,12 @@ sourceSets {
         java.srcDir("loader/mindustry/src")
         resources.srcDir("loader/mindustry/res")
     }
+    create("bukkit") {
+        compileClasspath += main.get().output
+        configurations[compileOnlyConfigurationName].extendsFrom(configurations["runtimeClasspath"])
+        java.srcDir("loader/bukkit/src")
+        resources.srcDir("loader/bukkit/res")
+    }
 }
 
 
@@ -40,10 +46,11 @@ dependencies {
     implementation("cf.wayzer:LibraryManager:1.6")
 
     "mindustryCompileOnly"("com.github.TinyLake.MindustryX:core:$mindustryVersion")
+    "bukkitCompileOnly"("dev.folia:folia-api:1.21.4-R0.1-SNAPSHOT")
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 tasks {
     allprojects {
@@ -77,6 +84,7 @@ tasks {
         dependsOn("scriptsZip")
         from(sourceSets.main.map { it.output })
         from(sourceSets.named("mindustry").map { it.output })
+        from(sourceSets.named("bukkit").map { it.output })
         archiveClassifier.set("")
         archiveVersion.set(loaderVersion)
         configurations = listOf(project.configurations.runtimeClasspath.get())

@@ -8,6 +8,7 @@ dependencyResolutionManagement {
                 excludeModule("cf.wayzer", "ScriptAgent")
             }
         }
+        maven(url = "https://repo.papermc.io/repository/maven-public/")
 
         //ScriptAgent
         if (!inChina) {
