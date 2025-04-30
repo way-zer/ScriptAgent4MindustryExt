@@ -13,16 +13,18 @@ import org.bukkit.plugin.java.JavaPlugin
 
 @OptIn(LoaderApi::class)
 class Main : JavaPlugin(), CommonMain {
-    var Config.pluginMain by DSLBuilder.dataKey<JavaPlugin>()
-    var Config.pluginCommand by DSLBuilder.dataKey<PluginCommand>()
-    val Config.delayEnable by DSLBuilder.dataKeyWithDefault { mutableListOf<Runnable>() }
+    private var Config.pluginMain by DSLBuilder.lateInit<JavaPlugin>()
+    private var Config.pluginCommand by DSLBuilder.lateInit<PluginCommand>()
+    private var Config.delayEnable by DSLBuilder.lateInit<MutableList<Runnable>>()
 
     override fun onLoad() {
         if (!dataFolder.exists()) dataFolder.mkdirs()
         initConfigInfo(dataFolder, pluginMeta.version)
         Config.libraryDir = Config.cacheDir.resolve("libs").toPath()
         Config.logger = logger
+
         Config.pluginMain = this
+        Config.delayEnable = mutableListOf()
 
         DependencyManager {
             require(Dependency.parse("org.jetbrains.kotlin:kotlin-stdlib:${Config.kotlinVersion}"))
@@ -36,7 +38,7 @@ class Main : JavaPlugin(), CommonMain {
     }
 
     override fun onEnable() {
-        Config.pluginCommand = getCommand("ScriptAgent")
+        Config.pluginCommand = getCommand("ScriptAgent")!!
         Config.delayEnable.toList().let { list ->
             Config.delayEnable.clear()
             list.forEach { it.run() }
