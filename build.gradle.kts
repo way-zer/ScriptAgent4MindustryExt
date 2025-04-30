@@ -10,8 +10,8 @@ val loaderVersion get() = version.toString()
 
 if (projectDir.resolve(".git").isDirectory)
     gitVersioning.apply {
-        refs{
-            tag("v(?<version>[0-9].*)"){
+        refs {
+            tag("v(?<version>[0-9].*)") {
                 version = "\${ref.version}"
             }
         }
@@ -22,8 +22,13 @@ if (projectDir.resolve(".git").isDirectory)
 
 sourceSets {
     main {
-        java.srcDir("loader/src")
-        resources.srcDir("loader/res")
+        java.srcDir("loader/common")
+    }
+    create("mindustry") {
+        compileClasspath += main.get().output
+        configurations[compileOnlyConfigurationName].extendsFrom(configurations["runtimeClasspath"])
+        java.srcDir("loader/mindustry/src")
+        resources.srcDir("loader/mindustry/res")
     }
 }
 
@@ -33,7 +38,8 @@ dependencies {
     val mindustryVersion = "v2025.04.X3" //v147
     api("cf.wayzer:ScriptAgent:$libraryVersion")
     implementation("cf.wayzer:LibraryManager:1.6")
-    compileOnly("com.github.TinyLake.MindustryX:core:$mindustryVersion")
+
+    "mindustryCompileOnly"("com.github.TinyLake.MindustryX:core:$mindustryVersion")
 }
 
 kotlin {
@@ -62,10 +68,15 @@ tasks {
             println(archiveFile.get())
         }
     }
+    withType<ProcessResources>().configureEach {
+        exclude("META-INF")
+        expand("version" to loaderVersion)
+    }
     val buildPlugin by registering(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
         group = "plugin"
         dependsOn("scriptsZip")
         from(sourceSets.main.map { it.output })
+        from(sourceSets.named("mindustry").map { it.output })
         archiveClassifier.set("")
         archiveVersion.set(loaderVersion)
         configurations = listOf(project.configurations.runtimeClasspath.get())

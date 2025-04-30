@@ -3,6 +3,7 @@ package cf.wayzer.scriptAgent.util
 import cf.wayzer.scriptAgent.*
 import cf.wayzer.scriptAgent.define.SAExperimentalApi
 import kotlinx.coroutines.runBlocking
+import java.io.File
 
 interface CommonMain {
     private suspend fun doStart(): Boolean {
@@ -12,6 +13,12 @@ interface CommonMain {
             load();enable()
         }
         return true
+    }
+
+    fun initConfigInfo(rootDir: File, version: String, args: Array<String> = emptyArray()) {
+        Config.rootDir = rootDir
+        Config.version = version
+        Config.args = args
     }
 
     fun bootstrap() {

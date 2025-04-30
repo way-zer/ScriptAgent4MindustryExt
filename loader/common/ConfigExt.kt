@@ -2,7 +2,6 @@
 
 package cf.wayzer.scriptAgent
 
-import arc.util.CommandHandler
 import cf.wayzer.scriptAgent.util.DSLBuilder
 
 //Experimental
@@ -33,9 +32,3 @@ var Config.version by DSLBuilder.lateInit<String>()
     internal set
 val Config.mainScript get() = MainScriptsHelper.current
 fun Config.nextMainScript() = MainScriptsHelper.next()
-
-//Mindustry
-var Config.clientCommands by DSLBuilder.lateInit<CommandHandler>()
-    internal set
-var Config.serverCommands by DSLBuilder.lateInit<CommandHandler>()
-    internal set

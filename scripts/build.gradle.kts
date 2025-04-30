@@ -4,8 +4,6 @@ plugins {
     kotlin("jvm")
 }
 dependencies {
-    val mindustryVersion = "v2025.04.X3" //v146.004
-
     defineModule("bootStrap") {}
     defineModule("coreLibrary") {
         api("com.github.way-zer:PlaceHoldLib:v7.3")
@@ -28,6 +26,7 @@ dependencies {
     }
 
     defineModule("coreMindustry") {
+        val mindustryVersion = "v2025.04.X3" //v146.004
         dependsModule("coreLibrary")
 //    implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
         api("com.github.TinyLake.MindustryX:core:$mindustryVersion")

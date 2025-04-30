@@ -5,9 +5,8 @@ package coreMindustry.lib
 import arc.struct.Seq
 import arc.util.CommandHandler
 import cf.wayzer.scriptAgent.Config
-import cf.wayzer.scriptAgent.clientCommands
-import cf.wayzer.scriptAgent.serverCommands
 import cf.wayzer.scriptAgent.thisContextScript
+import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.CommandContext
 import coreLibrary.lib.CommandInfo
 import coreLibrary.lib.Commands
@@ -18,6 +17,9 @@ import kotlinx.coroutines.withContext
 import mindustry.gen.Player
 
 object RootCommands {
+    private val Config.clientCommands by DSLBuilder.lateInit<CommandHandler>()
+    private val Config.serverCommands by DSLBuilder.lateInit<CommandHandler>()
+
     init {
         arrayOf(Config.clientCommands, Config.serverCommands).forEach {
             it.removeCommand("help")
