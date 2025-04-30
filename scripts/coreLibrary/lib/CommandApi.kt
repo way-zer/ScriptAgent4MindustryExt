@@ -223,6 +223,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         }
     }
 
+    private val watchers = mutableListOf<CommandsWatcher>()
     protected val nameMap = LinkedHashMap<String, CommandInfo>()
     open fun subCommands(): Map<String, CommandInfo> = nameMap
     fun getSub(name: String): CommandInfo? = subCommands()[name.lowercase()]
@@ -244,7 +245,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         )
     }
 
-    protected open fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
+    protected fun addSub(name: String, command: CommandInfo, isAliases: Boolean) {
         val existed = nameMap[name.lowercase()]?.takeIf { it.script?.enabled == true } ?: let {
             nameMap[name.lowercase()] = command
             return
@@ -272,14 +273,9 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         }
     }
 
-    open fun removeAll(script: Script) {
-        val toRemove = mutableListOf<String>()
-        nameMap.forEach { (k, s) ->
-            if (s.script == script) toRemove.add(k)
-        }
-        toRemove.forEach {
-            nameMap.remove(it.lowercase())
-        }
+    fun removeAll(script: Script) {
+        val toRemove = nameMap.values.filter { it.script == script }
+        toRemove.forEach { removeSub(it) }
     }
 
     operator fun plusAssign(command: CommandInfo) = addSub(command)
@@ -291,6 +287,26 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         script.onDisable {
             removeAll(script)
         }
+    }
+
+    interface CommandsWatcher {
+        fun onAdd(command: CommandInfo)
+        fun onRemove(command: CommandInfo)
+    }
+
+    fun addWatcher(script: Script, watcher: CommandsWatcher, fireOnRegister: Boolean = true) {
+        synchronized(watchers) {
+            watchers.add(watcher)
+            script.onDisable {
+                synchronized(watchers) {
+                    watchers.remove(watcher)
+                }
+                if (fireOnRegister)
+                    nameMap.values.toSet().forEach { watcher.onRemove(it) }
+            }
+        }
+        if (fireOnRegister)
+            nameMap.values.toSet().forEach { watcher.onAdd(it) }
     }
 
     val helpCommand = CommandInfo(null, "help", "帮助指令".with()).apply {
@@ -326,7 +342,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
 
     object Root : Commands() {
         init {
-            this += CommandInfo(null, "ScriptAgent", "ScriptAgent 控制指令".with(), listOf("sa")).apply {
+            this += CommandInfo(thisContextScript(), "ScriptAgent", "ScriptAgent 控制指令".with(), listOf("sa")).apply {
                 requirePermission("scriptAgent.admin")
                 body(controlCommand)
             }
