@@ -264,9 +264,11 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         command.aliases.forEach {
             addSub(it, command, true)
         }
+        watchers.forEach { it.onAdd(command) }
     }
 
     fun removeSub(command: CommandInfo) {
+        watchers.forEach { it.onRemove(command) }
         nameMap.remove(command.name.lowercase(), command)
         command.aliases.forEach {
             nameMap.remove(it.lowercase(), command)
