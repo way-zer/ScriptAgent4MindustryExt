@@ -2,6 +2,7 @@
 
 package coreMindustry.lib
 
+import arc.Core
 import arc.struct.Seq
 import arc.util.CommandHandler
 import cf.wayzer.scriptAgent.Config
@@ -14,6 +15,7 @@ import coreLibrary.lib.PlaceHoldString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import mindustry.Vars.netServer
 import mindustry.gen.Player
 
 object RootCommands {
@@ -98,6 +100,31 @@ object RootCommands {
                 Commands.Root.handle()
             }
         }
+    }
+
+    private fun updateOriginCommandHandler(client: CommandHandler, server: CommandHandler) {
+        netServer?.apply {
+            javaClass.getDeclaredField("clientCommands").let {
+                it.isAccessible = true
+                it.set(this, client)
+            }
+        }
+        Core.app.listeners.find { it.javaClass.simpleName == "ServerControl" }?.let {
+            it.javaClass.getDeclaredField("handler").apply {
+                isAccessible = true
+                set(it, server)
+            }
+        }
+    }
+
+    fun hookGameHandler() {
+        thisContextScript().onDisable {
+            updateOriginCommandHandler(Config.clientCommands, Config.serverCommands)
+        }
+        updateOriginCommandHandler(
+            MyCommandHandler("/", Config.clientCommands),
+            MyCommandHandler("", Config.serverCommands)
+        )
     }
 }
 
