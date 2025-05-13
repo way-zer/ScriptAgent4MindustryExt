@@ -2,13 +2,6 @@ package coreMindustry
 
 import coreLibrary.lib.Commands.Hidden
 
-data class MenuChooseEvent(
-    val player: Player, val menuId: Int, val value: Int
-) : Event, ReceivedEvent {
-    override var received: Boolean = false
-
-    companion object : Event.Handler()
-}
 
 listen<EventType.MenuOptionChooseEvent> {
     MenuChooseEvent(it.player, it.menuId, it.option).launchEmit(coroutineContext + Dispatchers.game) { e ->

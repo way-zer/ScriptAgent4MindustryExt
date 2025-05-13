@@ -1,6 +1,6 @@
 package coreMindustry
 
-import cf.wayzer.scriptAgent.contextScript
+import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.CommandInfo
 import coreLibrary.lib.util.calPage
@@ -168,7 +168,7 @@ open class MenuV2(
     }
 
     suspend fun await() {
-        val ret = utilScript.nextEvent<Menu.MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
+        val ret = script.nextEvent<MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
         try {
             (callback.getOrNull(ret) ?: onCancel).invoke()
         } catch (e: RefreshReturn) {
@@ -181,7 +181,7 @@ open class MenuV2(
         val callback = withTimeoutOrNull(chooseTimeout) {
             //原版返回值，代表选中n个选项，可能 -1 代表主动关闭
             val ret =
-                utilScript.nextEvent<Menu.MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
+                script.nextEvent<MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
             callback.getOrNull(ret)
         } ?: onCancel
         try {
@@ -197,7 +197,7 @@ open class MenuV2(
     }
 
     companion object {
-        private val utilScript = contextScript<Menu>()
+        private val script = thisContextScript()
     }
 }
 

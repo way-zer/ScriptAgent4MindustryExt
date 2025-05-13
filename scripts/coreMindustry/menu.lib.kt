@@ -1,13 +1,24 @@
 package coreMindustry
 
-import cf.wayzer.scriptAgent.contextScript
+import cf.wayzer.scriptAgent.Event
+import cf.wayzer.scriptAgent.getContextScript
 import coreLibrary.lib.CommandInfo
+import coreLibrary.lib.util.ReceivedEvent
 import coreLibrary.lib.util.calPage
 import coreLibrary.lib.util.nextEvent
 import kotlinx.coroutines.withTimeoutOrNull
 import mindustry.gen.Call
 import mindustry.gen.Player
 import kotlin.random.Random
+
+
+data class MenuChooseEvent(
+    val player: Player, val menuId: Int, val value: Int
+) : Event, ReceivedEvent {
+    override var received: Boolean = false
+
+    companion object : Event.Handler()
+}
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class MenuBuilder<T : Any>(
@@ -104,8 +115,9 @@ open class MenuBuilder<T : Any>(
                 else
                     Call.menu(player.con, _menuId, title, msg, options)
                 //原版返回值，代表选中n个选项，可能 -1 代表主动关闭
-                val ret =
-                    utilScript.nextEvent<Menu.MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
+                val ret = MenuBuilder::class.java.getContextScript().nextEvent<MenuChooseEvent> {
+                    it.player == player && it.menuId == _menuId
+                }.value
                 callback.getOrNull(ret)
             }?.let {
                 try {
@@ -124,10 +136,6 @@ open class MenuBuilder<T : Any>(
     fun close() {
         if (!followup) return
         Call.hideFollowUpMenu(_menuId)
-    }
-
-    companion object {
-        private val utilScript = contextScript<Menu>()
     }
 }
 
