@@ -154,7 +154,7 @@ object MapManager {
     }
 
     //private
-    private val configTempSaveSlot by contextScript<Maps>().config.key(111, "临时缓存的存档格位")
+    private val configTempSaveSlot by thisContextScript().config.key(111, "临时缓存的存档格位")
 
     /** Use for identity Save */
     private var Rules.idInTag: Int

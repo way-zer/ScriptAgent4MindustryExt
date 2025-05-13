@@ -1,10 +1,10 @@
 package wayzer
 
 import cf.wayzer.scriptAgent.Event
-import cf.wayzer.scriptAgent.contextScript
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.emitAsync
+import cf.wayzer.scriptAgent.thisContextScript
 import coreLibrary.lib.*
 import coreMindustry.MenuBuilder
 import coreMindustry.lib.*
@@ -205,7 +205,7 @@ class VoteEvent(
     object VoteCommands : Commands()
 
     companion object : Event.Handler() {
-        internal val script = contextScript<Vote>()
+        internal val script = thisContextScript()
         private val voteTime by script.config.key(Duration.ofSeconds(60)!!, "投票时间")
         private val voteCoolDown by script.config.key(Duration.ofMinutes(5)!!, "投票失败冷却时间")
         private val menuDelay by script.config.key(20, "弹窗投票显示时间,单位秒", "0为立即显示，-1纯文字投票")
