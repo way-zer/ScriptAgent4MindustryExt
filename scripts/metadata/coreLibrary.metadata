@@ -1,10 +1,12 @@
 ID coreLibrary
 FQ_NAME coreLibrary.Module
++IMPORT CompileArg -Xcontext-receivers
++IMPORT DefaultImport cf.wayzer.placehold.*
 +IMPORT DefaultImport coreLibrary.lib.*
 +IMPORT DefaultImport coreLibrary.lib.event.*
 +IMPORT DefaultImport coreLibrary.lib.util.*
 +IMPORT MavenDepends io.github.config4k:config4k:0.7.0
-+IMPORT MavenDependsSingle cf.wayzer:PlaceHoldLib:6.0
++IMPORT MavenDependsSingle com.github.way-zer:PlaceHoldLib:v7.3
 +IMPORT MavenDependsSingle org.slf4j:slf4j-api:2.0.16
 +IMPORT MavenDependsSingle org.slf4j:slf4j-simple:2.0.16
 +IMPORT MavenRepository https://www.jitpack.io/
@@ -61,6 +63,10 @@ FQ_NAME coreLibrary.extApi.RemoteEventApi
 +DEPENDS coreLibrary module
 +DEPENDS coreLibrary/extApi/redisApi 
 +DEPENDS coreLibrary/extApi/redisApi 基于redis
+
+ID coreLibrary/extApi/rpcService
+FQ_NAME coreLibrary.extApi.RpcService
++DEPENDS coreLibrary module
 
 ID coreLibrary/kcp/serialization
 FQ_NAME coreLibrary.kcp.Serialization
