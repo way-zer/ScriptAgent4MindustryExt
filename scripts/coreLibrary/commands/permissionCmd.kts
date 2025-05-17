@@ -1,8 +1,8 @@
 package coreLibrary.commands
 
 val handler = PermissionApi.StringPermissionHandler()
-onEnable { PermissionApi.handlers.add(0, handler) }
-onDisable { PermissionApi.handlers.remove(handler) }
+onEnable { PermissionApi.Global.ByGroup.add(0, handler) }
+onDisable { PermissionApi.Global.ByGroup.remove(handler) }
 
 var groups by config.key(
     "groups", mapOf("@default" to emptyList<String>()),

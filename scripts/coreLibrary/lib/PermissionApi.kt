@@ -5,6 +5,8 @@ package coreLibrary.lib
 import cf.wayzer.scriptAgent.emitAsync
 import coreLibrary.lib.PermissionApi.*
 import coreLibrary.lib.event.RequestPermissionEvent
+import java.io.Serializable
+import java.time.Instant
 
 /**
  * 权限系统Api
@@ -30,8 +32,9 @@ interface PermissionApi {
      * 权限处理器抽象接口
      * 本接口主要用于支持lambda
      */
-    fun interface PermissionHandler<T> {
-        fun T.invoke(permission: String): Result
+    interface PermissionHandler<T> {
+        fun findAll(subject: T): List<PermissionNode>
+        fun find(subject: T, permission: String): Sequence<PermissionNode>
         val allKnownSubject: Set<T> get() = emptySet()
     }
 
@@ -41,20 +44,25 @@ interface PermissionApi {
      */
     companion object Global : PermissionHandler<List<String>> {
         val default = StringPermissionHandler()
-        val handlers = mutableListOf<PermissionHandler<String>>(default)
-        val allKnownGroup: Set<String> get() = handlers.flatMapTo(mutableSetOf()) { it.allKnownSubject }
 
-        fun handleGroup(group: String, permission: String): Result {
-            return handlers.fold(Result.Default) { it, handler ->
-                it.fallback { handler.handle(group, permission) }
-            }
+        object ByGroup : MutableList<PermissionHandler<String>> by mutableListOf(default),
+            PermissionHandler<String> {
+            override fun findAll(subject: String): List<PermissionNode> = flatMap { it.findAll(subject) }
+            override fun find(
+                subject: String,
+                permission: String,
+            ): Sequence<PermissionNode> = asSequence().flatMap { it.find(subject, permission) }
+
+            override val allKnownSubject: Set<String> get() = flatMapTo(mutableSetOf()) { it.allKnownSubject }
         }
 
-        override fun List<String>.invoke(permission: String): Result {
-            return fold(Result.Default) { r, g -> r.fallback { handleGroup(g, permission) } }
-                .fallback { handleGroup("@default", permission) }
+        override fun findAll(subject: List<String>): List<PermissionNode> = subject.flatMap { ByGroup.findAll(it) }
+        override fun find(subject: List<String>, permission: String): Sequence<PermissionNode> = sequence {
+            subject.forEach { yieldAll(ByGroup.find(it, permission)) }
+            yieldAll(ByGroup.find("@default", permission))
         }
 
+        val allKnownGroup: Set<String> get() = ByGroup.allKnownSubject
 
         fun registerDefault(vararg permission: String, group: String = "@default") {
             default.registerPermission(group, permission.asIterable())
@@ -66,11 +74,36 @@ interface PermissionApi {
         ): Result {
             val event = RequestPermissionEvent(subject, permission, defaultGroup).emitAsync()
             event.directReturn?.let { return it }
-            return handle(event.group, permission)
+            return find(event.group, permission).query().asResult()
         }
 
+        fun check(subject: List<String>, permission: String) = find(subject, permission).query()?.value ?: false
+
+        fun findNode(map: Map<String, PermissionNode>, node: String) = sequence {
+            map[node]?.let { yield(it) }
+            var sp = node.lastIndexOf('.')
+            while (sp > 0) {
+                val prefix = node.substring(0, sp)
+                map["$prefix.*"]?.let { yield(it) }
+                sp = node.lastIndexOf('.', sp - 1)
+            }
+        }
+
+        @Deprecated("use check", ReplaceWith(expression = "PermissionApi.check(subject)"))
         fun <T> PermissionHandler<T>.handle(subject: T, permission: String): Result {
-            return subject.invoke(permission)
+            return find(subject, permission).query().asResult()
+        }
+
+        fun Sequence<PermissionNode>.query(
+            time: Instant = Instant.now(),
+            context: Set<String> = emptySet()
+        ) = firstOrNull {
+            (it.expire == null || it.expire.isAfter(time)) && context.containsAll(it.context)
+        }
+
+        fun PermissionNode?.asResult(): Result {
+            val data = this ?: return Result.Default
+            return if (data.value) Result.Has else Result.Reject
         }
     }
 
@@ -80,115 +113,71 @@ interface PermissionApi {
      * 支持查询“@group”或者其他用string表示的权限节点
      */
     class StringPermissionHandler : PermissionHandler<String> {
-        val groups = mutableMapOf<String, PermissionGroup.Mutable>()
-        override val allKnownSubject: Set<String> get() = groups.keys
-
-        override fun String.invoke(permission: String): Result {
-            return groups[this]?.run {
-                extend.fold(get(permission)) { r, g ->
-                    r.fallback { Global.handleGroup(g, permission) }
-                }
-            } ?: Result.Default
-        }
+        val groups = mutableMapOf<String, PermissionGroup>()
+        override val allKnownSubject: Set<String> get() = groups.keys + groups.values.flatMap { it.extend }
 
         fun registerPermission(subject: String, permission: Iterable<String>) {
-            groups.getOrPut(subject, PermissionGroup::Mutable)
-                .add(PermissionGroup(permission.map(PermissionGroup::convertToInternal)))
-        }
-
-        fun unRegisterPermission(subject: String, permission: Iterable<String>) {
-            groups[subject]?.apply {
-                remove(PermissionGroup(permission.map(PermissionGroup::convertToInternal)))
-                if (isEmpty()) groups.remove(subject)
+            groups.getOrPut(subject, ::PermissionGroup).apply {
+                permission.forEach { add(it) }
             }
         }
 
         fun clear() {
             groups.clear()
         }
-    }
 
-    @Suppress("MemberVisibilityCanBePrivate")
-    open class PermissionGroup(
-        open val has: Set<String>,
-        open val reject: Set<String>,
-        open val extend: List<String>
-    ) {
-        class Mutable(
-            override val has: MutableSet<String> = mutableSetOf(),
-            override val reject: MutableSet<String> = mutableSetOf(),
-            override val extend: MutableList<String> = mutableListOf()
-        ) : PermissionGroup(has, reject, extend) {
-            fun add(group: PermissionGroup) {
-                has += group.has
-                reject += group.reject
-                extend += group.extend
-            }
-
-            fun remove(group: PermissionGroup) {
-                has -= group.has
-                reject -= group.reject
-                extend -= group.extend.toSet()
+        override fun findAll(subject: String): List<PermissionNode> {
+            val group = groups[subject] ?: return emptyList()
+            return buildList {
+                addAll(group.map.values)
+                group.extend.forEach {
+                    addAll(Global.ByGroup.findAll(it))
+                }
             }
         }
 
-        /**@param nodes @开头为组, $结尾表示绝对权限,否则为通配权限 */
-        constructor(nodes: List<String>) : this(
-            nodes.asSequence()
-                .filter { it[0] != '-' }.toSet(),
-            nodes.asSequence()
-                .filter { it[0] == '-' }
-                .map { it.substring(1) }.toSet(),
-            nodes.filter { it[0] == '@' }
-        )
+        override fun find(subject: String, permission: String): Sequence<PermissionNode> {
+            val group = groups[subject] ?: return emptySequence()
+            return sequence {
+                yieldAll(group.find(permission))
+                group.extend.forEach {
+                    yieldAll(Global.ByGroup.find(it, permission))
+                }
+            }
+        }
+    }
 
-        fun get(node: String): Result {
-            val prefix = allPrefix(node)
-            return when {
-                prefix.any { it in reject } -> Result.Reject
-                prefix.any { it in has } -> Result.Has
-                else -> Result.Default
+    data class PermissionNode(
+        val name: String,
+        val value: Boolean = true,
+        val expire: Instant? = null,
+        val context: List<String> = emptyList()
+    ) : Serializable
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    class PermissionGroup(
+        val map: MutableMap<String, PermissionNode> = mutableMapOf(),
+        val extend: MutableList<String> = mutableListOf(),
+    ) {
+        fun find(node: String) = Global.findNode(map, node)
+        fun add(node: String) {
+            if (node[0] == '@') {
+                extend.add(node)
+            } else if (node[0] == '-') {
+                val name = node.substring(1)
+                map[name] = PermissionNode(name, false)
+            } else {
+                map[node] = PermissionNode(node)
             }
         }
 
         fun allNodes(): List<String> = buildList {
-            addAll(has.asSequence().map(::convertFromInternal))
-            addAll(reject.asSequence().map(::convertFromInternal).map { "-$it" })
-        }
-
-        fun isEmpty() = has.isEmpty() && reject.isEmpty() //extend included in has
-
-
-        companion object {
-            fun convertToInternal(permission: String): String {
-                return when {
-                    permission.startsWith("@") -> permission
-                    permission.endsWith(".*") -> permission.removeSuffix(".*")
-                    else -> "$permission$"
-                }
-            }
-
-            fun convertFromInternal(permission: String): String {
-                return when {
-                    permission.startsWith("@") -> permission
-                    permission.endsWith("$") -> permission.removeSuffix("$")
-                    else -> "$permission.*"
-                }
-            }
-
-            /**
-             * Input a.b.c
-             * Output "a.b.c$" "a.b.c" "a.b" "a"
-             */
-            fun allPrefix(node: String) = buildList {
-                add("$node$")
-                var index = node.length
-                while (true) {
-                    add(node.substring(0, index))
-                    index = node.lastIndexOf('.', index - 1)
-                    if (index < 0) break
-                }
+            extend.forEach { add("@$it") }
+            map.forEach { (k, v) ->
+                add((if (v.value) "-$k" else k))
             }
         }
+
+        fun isEmpty() = map.isEmpty() && extend.isEmpty()
     }
 }
