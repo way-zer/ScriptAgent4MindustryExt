@@ -1,14 +1,40 @@
-@file:Depends("coreLibrary/DBApi", "数据库储存")
+@file:Depends("coreLibrary/extApi/rpcService", "远程调用")
 
 package wayzer.user
 
-import coreLibrary.DBApi.DB.registerTable
+import java.io.Serializable
+import java.rmi.Remote
+import java.rmi.RemoteException
 import java.text.DateFormat
 import java.time.Duration
 import java.time.Instant
 import java.util.*
 
-registerTable(PlayerBan.T)
+data class PlayerBan(
+    val recordId: Int,
+    val ids: Set<String>,
+    val reason: String,
+    val operator: String?,
+    val createTime: Instant,
+    val endTime: Instant
+) : Serializable
+
+interface PlayerBanStore : Remote {
+    @Throws(RemoteException::class)
+    fun findNotEnd(id: String): PlayerBan?
+    @Throws(RemoteException::class)
+    fun create(
+        ids: Set<String>,
+        duration: Duration,
+        reason: String,
+        operator: String?
+    ): PlayerBan
+    @Throws(RemoteException::class)
+    fun delete(record: Int): PlayerBan?
+}
+
+val rpcService = contextScript<coreLibrary.extApi.RpcService>()
+val store get() = rpcService.get<PlayerBanStore>()
 
 fun Player.kick(ban: PlayerBan) {
     fun format(instant: Instant) = DateFormat.getDateTimeInstance().format(Date.from(instant))
@@ -16,7 +42,7 @@ fun Player.kick(ban: PlayerBan) {
         """
         [red]你已在该服被禁封[]
         [yellow]名字: ${name()}
-        [green]原因: ${ban.reason} (封禁ID#${ban.id})
+        [green]原因: ${ban.reason} (封禁ID#${ban.recordId})
         [green]禁封时间: ${format(ban.createTime)}
         [green]解禁时间: ${format(ban.endTime)}
         [yellow]如有问题,请截图此页咨询管理员
@@ -26,7 +52,7 @@ fun Player.kick(ban: PlayerBan) {
 
 listen<EventType.PlayerConnect> {
     launch(Dispatchers.IO) {
-        val ban = PlayerBan.findNotEnd(PlayerData[it.player].id) ?: return@launch
+        val ban = store.findNotEnd(PlayerData[it.player].id) ?: return@launch
         withContext(Dispatchers.game) {
             it.player.kick(ban)
         }
@@ -35,8 +61,9 @@ listen<EventType.PlayerConnect> {
 
 suspend fun ban(player: PlayerData, time: Int, reason: String, operate: Player?) {
     val ban = withContext(Dispatchers.IO) {
-        PlayerBan.create(
-            player, Duration.ofMinutes(time.toLong()), reason,
+        store.create(
+            player.ids,
+            Duration.ofMinutes(time.toLong()), reason,
             operate?.let { PlayerData[it].id }
         )
     }
@@ -48,7 +75,7 @@ suspend fun ban(player: PlayerData, time: Int, reason: String, operate: Player?)
 
 command("banX", "管理指令: 禁封") {
     usage = "<3位id> <时间|分钟> <原因>"
-    permission = "wayzer.admin.ban"
+    requirePermission("wayzer.admin.ban")
     body {
         if (arg.size < 3) replyUsage()
         val uuid = netServer.admins.getInfoOptional(arg[0])?.id
@@ -65,11 +92,12 @@ command("banX", "管理指令: 禁封") {
 }
 command("unbanX", "管理指令: 解禁") {
     usage = "<id>"
-    permission = "wayzer.admin.unban"
+    requirePermission("wayzer.admin.unban")
     body {
         if (arg.isEmpty()) replyUsage()
         val id = arg[0].toIntOrNull() ?: replyUsage()
-        val ban = PlayerBan.delete(id) ?: returnReply("[red]找不到封禁记录，检查ID是否正确".with())
+        val ban = withContext(Dispatchers.IO) { store.delete(id) }
+            ?: returnReply("[red]找不到封禁记录，检查ID是否正确".with())
         logger.info("unban ${ban.ids} ${ban.endTime} ${ban.reason}")
         reply("[green]解禁成功, 禁封原因: {reason}".with("reason" to ban.reason))
     }
