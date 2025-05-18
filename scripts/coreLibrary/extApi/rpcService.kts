@@ -21,8 +21,6 @@ onEnable {
             logger.info("RPC server stopped")
         }
     } else {
-        val sp = host!!.split(":")
-        registry = LocateRegistry.getRegistry(sp[0], sp.getOrNull(1)?.toInt() ?: port)
         logger.info("RPC started as client, host $host")
     }
 }
@@ -31,6 +29,8 @@ inline fun <reified T : Remote> get(): T = get(T::class.java) as T
 inline fun <reified T : Remote> register(noinline factory: () -> T) = register(T::class.java, factory)
 
 fun <T : Remote> get(inf: Class<T>): Remote {
+    val sp = host!!.split(":")
+    val registry = LocateRegistry.getRegistry(sp[0], sp.getOrNull(1)?.toInt() ?: port)
     withContextClassloader(inf.classLoader) {
         return registry.lookup(inf.name)
     }
@@ -50,5 +50,6 @@ fun <T : Remote> register(inf: Class<T>, factory: () -> T) {
     logger.info("RPC service registered: $name")
     service.thisContextScript().onDisable {
         registry.unbind(name)
+        UnicastRemoteObject.unexportObject(service, true);
     }
 }
