@@ -8,7 +8,7 @@ import java.rmi.server.UnicastRemoteObject
 
 val port by config.key(10099, "RPC,监听端口")
 
-val host: String? = System.getenv("RPC_HOST")
+val host: String? = System.getenv("RPC_MASTER_HOST")
 val isMaster = host == null
 
 lateinit var registry: Registry
@@ -21,7 +21,8 @@ onEnable {
             logger.info("RPC server stopped")
         }
     } else {
-        LocateRegistry.getRegistry(host)
+        val sp = host!!.split(":")
+        registry = LocateRegistry.getRegistry(sp[0], sp.getOrNull(1)?.toInt() ?: port)
         logger.info("RPC started as client, host $host")
     }
 }
@@ -30,7 +31,9 @@ inline fun <reified T : Remote> get(): T = get(T::class.java) as T
 inline fun <reified T : Remote> register(noinline factory: () -> T) = register(T::class.java, factory)
 
 fun <T : Remote> get(inf: Class<T>): Remote {
-    return registry.lookup(inf.name)
+    withContextClassloader(inf.classLoader) {
+        return registry.lookup(inf.name)
+    }
 }
 
 fun <T : Remote> register(inf: Class<T>, factory: () -> T) {
