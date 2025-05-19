@@ -21,7 +21,7 @@ onEnable {
         return@onEnable ScriptManager.disableScript(this, "仅可通过SAMAIN启用")
     DependencyManager {
         addRepository("https://www.jitpack.io/")
-        require(Dependency.parse("com.github.TinyLake.MindustryX:core:v2025.04.X2"))
+        require(Dependency.parse("com.github.TinyLake.MindustryX:core:v2025.05.X9"))
         loadToClassLoader(Config.mainClassloader)
     }
     ScriptManager.transaction {

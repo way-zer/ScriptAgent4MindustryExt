@@ -26,7 +26,7 @@ dependencies {
     }
 
     defineModule("coreMindustry") {
-        val mindustryVersion = "v2025.04.X3" //v146.004
+        val mindustryVersion = "v2025.05.X9" //v149
         dependsModule("coreLibrary")
 //    implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
         api("com.github.TinyLake.MindustryX:core:$mindustryVersion")
