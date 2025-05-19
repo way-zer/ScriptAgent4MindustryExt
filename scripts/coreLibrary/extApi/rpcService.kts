@@ -29,6 +29,7 @@ inline fun <reified T : Remote> get(): T = get(T::class.java) as T
 inline fun <reified T : Remote> register(noinline factory: () -> T) = register(T::class.java, factory)
 
 fun <T : Remote> get(inf: Class<T>): Remote {
+    if (isMaster) return registry.lookup(inf.name)
     val sp = host!!.split(":")
     val registry = LocateRegistry.getRegistry(sp[0], sp.getOrNull(1)?.toInt() ?: port)
     withContextClassloader(inf.classLoader) {
