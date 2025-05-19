@@ -43,7 +43,9 @@ suspend fun download(url: String, file: File): Int = runInterruptible(Dispatcher
 val isMdtX = source.contains("MindustryX")
 fun isNewVersion(build: String): Boolean {
     if (isMdtX) kotlin.runCatching {
-        return build > Reflect.get(Version::class.java, "mdtxBuild")
+        return build > Reflect.get(Version::class.java, "mdtXBuild")
+    }.onFailure {
+        logger.warning("获取MDTX版本失败，当前版本可能不是MDTX服务端: $it")
     }
     return build > Version.buildString()
 }
