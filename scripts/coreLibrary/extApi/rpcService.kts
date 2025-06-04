@@ -47,6 +47,8 @@ fun <T : Remote> register(inf: Class<T>, factory: () -> T) {
         return
     }
     val service = factory()
+    if (service !is UnicastRemoteObject)
+        UnicastRemoteObject.exportObject(service, port)
     registry.bind(name, service)
     logger.info("RPC service registered: $name")
     service.thisContextScript().onDisable {
