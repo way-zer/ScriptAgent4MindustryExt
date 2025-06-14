@@ -66,6 +66,7 @@ MapRegistry.register(this, object : MapProvider() {
                     .asIterable().map { info ->
                         val id = info.getInt("id", -1)
                         val mode = info.getString("mode", "unknown")
+                        info.put("description", info.remove("desc"))
                         MapInfo(
                             provider, id,
                             Gamemode.all.find { it.name.equals(mode, ignoreCase = true) } ?: Gamemode.survival,
