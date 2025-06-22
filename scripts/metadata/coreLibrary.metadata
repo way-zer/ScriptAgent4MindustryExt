@@ -68,11 +68,6 @@ ID coreLibrary/extApi/rpcService
 FQ_NAME coreLibrary.extApi.RpcService
 +DEPENDS coreLibrary module
 
-ID coreLibrary/kcp/serialization
-FQ_NAME coreLibrary.kcp.Serialization
-+DEPENDS coreLibrary module
-+IMPORT MavenDepends org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0
-
 ID coreLibrary/lang
 FQ_NAME coreLibrary.Lang
 +DEPENDS coreLibrary module

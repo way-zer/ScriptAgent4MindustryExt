@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm")
 }
 dependencies {
+    defineModule("kcp") {}
     defineModule("bootStrap") {}
     defineModule("coreLibrary") {
         api("com.github.way-zer:PlaceHoldLib:v7.3")
