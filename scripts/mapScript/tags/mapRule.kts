@@ -11,7 +11,7 @@ fun whiteList(it: String) =
 @Savable(false)
 var permissions: List<String> = emptyList()
 onEnable {
-    PermissionApi.default.unRegisterPermission(group, permissions)
+    PermissionApi.default.groups.remove(group)
     permissions = state.rules.tags.get("@permission")?.split(";").orEmpty()
         .filter { whiteList(it) }
     PermissionApi.default.registerPermission(group, permissions)
