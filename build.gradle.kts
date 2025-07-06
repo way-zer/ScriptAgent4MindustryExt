@@ -40,6 +40,36 @@ sourceSets {
     }
 }
 
+fun RepositoryHandler.saRepository() {
+    val inChina = System.getProperty("user.timezone") in arrayOf("Asia/Shanghai", "GMT+08:00")
+    maven {
+        if (!inChina) {
+            url = uri("https://maven.tinylake.top/")//cloudFlare mirror
+        } else {
+            url = uri("https://packages.aliyun.com/maven/repository/2102713-release-0NVzQH/")
+            credentials {
+                username = "609f6fb4aa6381038e01fdee"
+                password = "h(7NRbbUWYrN"
+            }
+        }
+        content {
+            includeModule("cf.wayzer", "ScriptAgent")
+        }
+    }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        saRepository()
+        maven(url = "https://www.jitpack.io") {
+            content {
+                excludeModule("cf.wayzer", "ScriptAgent")
+            }
+        }
+        maven(url = "https://repo.papermc.io/repository/maven-public/")
+    }
+}
 
 dependencies {
     val libraryVersion = "1.11.3.1"
@@ -80,7 +110,7 @@ tasks {
             println(archiveFile.get())
         }
     }
-    withType<ProcessResources>().configureEach {
+    processResources {
         exclude("META-INF")
         expand("version" to loaderVersion)
     }
