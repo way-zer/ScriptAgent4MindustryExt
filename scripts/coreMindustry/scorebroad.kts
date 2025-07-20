@@ -8,8 +8,9 @@ name = "扩展功能: 积分榜"
 val msg = """
 [magenta]欢迎[goldenrod]{player.name}[magenta]来到WZ服务器[red](请在语言文件中修改)
 [violet]当前地图为: [yellow][{map.id}][orange]{map.name}
+[violet]本局游戏时间: [orange]{state.gameTime 分钟}
+{listPrefix scoreBroad.ext|joinLines}
 [violet]本局游戏时间: [orange]{state.gameTime:分钟}
-{scoreBroad.ext.*:${"\n"}}
 [royal]输入/broad可以开关该显示
 """.trimIndent()
 
