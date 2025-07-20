@@ -9,6 +9,7 @@ val msg = """
 [magenta]欢迎[goldenrod]{player.name}[magenta]来到WZ服务器[red](请在语言文件中修改)
 [violet]当前地图为: [yellow][{map.id}][orange]{map.name}
 [violet]本局游戏时间: [orange]{state.gameTime 分钟}
+{listPrefix scoreboard.ext|joinLines}
 {listPrefix scoreBroad.ext|joinLines}
 [violet]本局游戏时间: [orange]{state.gameTime:分钟}
 [royal]输入/broad可以开关该显示
@@ -16,8 +17,9 @@ val msg = """
 
 val disabled = mutableSetOf<String>()
 
-command("broad", "开关积分板显示") {
-    this.type = CommandType.Client
+command("board", "开关积分板显示") {
+    aliases = listOf("broad", "scoreboard")
+    attr(ClientOnly)
     body {
         if (!disabled.remove(player!!.uuid()))
             disabled.add(player!!.uuid())
@@ -25,8 +27,9 @@ command("broad", "开关积分板显示") {
     }
 }
 
-//避免找不到 scoreBroad.ext.* 变量
-registerVar("scoreBroad.ext.null", "空占位", null)
+//避免找不到 scoreboard.ext.* 变量
+registerVar("scoreboard.ext.null", "空占位", null)
+registerVar("scoreBroad.ext.null", "空占位(兼容)", null)
 
 onEnable {
     loop(Dispatchers.game) {

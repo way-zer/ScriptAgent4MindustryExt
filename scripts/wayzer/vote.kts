@@ -33,7 +33,7 @@ listen<EventType.PlayerChatEvent> {
 
 listen<EventType.ResetEvent> { VoteEvent.coolDowns.clear() }
 
-registerVar("scoreBroad.ext.vote", "投票状态显示", DynamicVar {
+registerVar("scoreboard.ext.vote", "投票状态显示", DynamicVar {
     VoteEvent.active.get()?.run {
         "[violet]投票[orange]{desc}: {status} [violet]\uE867{left 秒}".with(
             "desc" to voteDesc,

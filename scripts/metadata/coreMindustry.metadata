@@ -30,8 +30,8 @@ ID coreMindustry/menu
 FQ_NAME coreMindustry.Menu
 +DEPENDS coreMindustry module
 
-ID coreMindustry/scorebroad
-FQ_NAME coreMindustry.Scorebroad
+ID coreMindustry/scoreboard
+FQ_NAME coreMindustry.Scoreboard
 +DEPENDS coreMindustry module
 
 ID coreMindustry/utilMapRule

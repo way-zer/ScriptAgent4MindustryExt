@@ -26,7 +26,7 @@ class CTHello(val player: Player, val version: String) : Event {
     companion object : Event.Handler()
 }
 
-registerVar("scoreBroad.ext.contentsVersion", "ContentsTweaker状态显示", DynamicVar {
+registerVar("scoreboard.ext.contentsVersion", "ContentsTweaker状态显示", DynamicVar {
     val patches = patches ?: return@DynamicVar null
     val player = VarToken("receiver").get() as? Player
     buildString {
