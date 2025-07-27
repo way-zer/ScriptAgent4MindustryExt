@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.lang.reflect.Proxy
 import kotlin.properties.ReadOnlyProperty
 
 /**
@@ -52,7 +53,18 @@ open class ServiceRegistry<T : Any> {
     val nullable get() = ReadOnlyProperty<Any?, T?> { _, _ -> getOrNull() }
     val notNull get() = ReadOnlyProperty<Any?, T> { _, _ -> get() }
 
+    fun createProxy(cls: Class<T>): T {
+        check(cls.isInterface) { "$cls is not an interface" }
+        @Suppress("UNCHECKED_CAST")
+        return Proxy.newProxyInstance(cls.classLoader, arrayOf(cls)) { _, method, args ->
+            val inst = getOrNull() ?: error("No Provider for ${cls.canonicalName}")
+            method.invoke(inst, *args)
+        } as T
+    }
+
     companion object {
         val Script.providedService by DSLBuilder.dataKeyWithDefault { mutableSetOf<Pair<ServiceRegistry<*>, *>>() }
     }
 }
+
+inline fun <reified T : Any> ServiceRegistry<T>.createProxy(): T = createProxy(T::class.java)
