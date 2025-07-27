@@ -44,6 +44,8 @@ dependencies {
     defineModule("wayzer") {
         dependsModule("coreMindustry")
         api("com.google.guava:guava:30.1-jre")
+        //wayzer/ext/profiler
+        implementation("tools.profiler:async-profiler:4.1")
     }
     defineModule("mapScript") {
         dependsModule("wayzer")
