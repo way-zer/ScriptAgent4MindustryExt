@@ -14,7 +14,7 @@ fun addModeIntroduce(mode: String, introduce: String) {
 export(this::addModeIntroduce)
 listen<EventType.ResetEvent> { customModeIntroduce.clear() }
 
-registerVar("scoreBroad.ext.customMode", "自定义模式Tip", DynamicVar {
+registerVar("scoreboard.ext.customMode", "自定义模式Tip", DynamicVar {
     "[violet]本地图有自定义模式,详情使用[orange]/mapInfo[]查看".takeIf { customModeIntroduce.isNotEmpty() }
 })
 
