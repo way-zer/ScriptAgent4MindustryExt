@@ -4,7 +4,8 @@ package wayzer.map
 
 import arc.files.Fi
 import arc.util.Strings
-import arc.util.serialization.Jval
+import arc.util.serialization.JsonReader
+import arc.util.serialization.JsonValue
 import com.google.common.cache.CacheBuilder
 import mindustry.game.Gamemode
 import mindustry.io.MapIO
@@ -22,12 +23,19 @@ name = "资源站配套脚本"
 
 val webRoot by config.key("https://api.mindustry.top", "Mindustry资源站Api")
 
-fun Jval.toStringMap(): Map<String, String> = buildMap {
-    asObject().forEach {
-        if (it.value.isString) {
-            put(it.key, it.value.asString())
+fun parseJson(json: String): JsonValue {
+    return JsonReader().parse(json)
+}
+
+fun JsonValue.toStringMap(): Map<String, String> {
+    check(isObject)
+    val map = mutableMapOf<String, String>()
+    forEach {
+        if (it.isString) {
+            map[it.name()] = it.asString()
         }
     }
+    return map
 }
 
 suspend fun httpGet(url: String, retry: Int = 3) = withContext(Dispatchers.IO) {
@@ -62,15 +70,16 @@ MapRegistry.register(this, object : MapProvider() {
             @Suppress("BlockingMethodInNonBlockingContext")
             val maps =
                 httpGet("$webRoot/maps/list?prePage=100&search=${URLEncoder.encode(mappedSearch, "utf-8")}", retry = 1)
-                    .let { Jval.read(it.toString(Charsets.UTF_8)).asArray() }
-                    .asIterable().map { info ->
+                    .let { parseJson(it.toString(Charsets.UTF_8)) }
+                    .map { info ->
                         val id = info.getInt("id", -1)
                         val mode = info.getString("mode", "unknown")
-                        info.put("description", info.remove("desc"))
                         MapInfo(
                             provider, id,
                             Gamemode.all.find { it.name.equals(mode, ignoreCase = true) } ?: Gamemode.survival,
-                            meta = info.toStringMap()
+                            meta = info.toStringMap().apply {
+                                (this as MutableMap).put("description", remove("desc").orEmpty())
+                            }
                         )
                     }
             searchCache.put(mappedSearch, maps)
@@ -85,7 +94,7 @@ MapRegistry.register(this, object : MapProvider() {
         if (id !in 10000..99999) return null
         try {
             val info = httpGet("$webRoot/maps/$id.json")
-                .let { Jval.read(it.toString(Charsets.UTF_8)) }
+                .let { parseJson(it.toString(Charsets.UTF_8)) }
             val mode = info.getString("mode", "unknown")
             return MapInfo(
                 this, id,
