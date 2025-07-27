@@ -1,6 +1,8 @@
 package wayzer.lib
 
 import com.google.common.cache.CacheBuilder
+import coreLibrary.lib.util.ServiceRegistry
+import mindustry.gen.Groups
 import mindustry.gen.Player
 import mindustry.net.Packets.ConnectPacket
 import java.time.Duration
@@ -16,7 +18,19 @@ class PlayerData(val name: String, val uuid: String, val ids: Set<String> = muta
         if (asPrimary) this.id = id
     }
 
-    val idsInDB = ids.joinToString("$", "$", "$") { it }
+    val shortId: String get() = IGetUidByShortId.getOrNull()?.getShortId(this) ?: id
+
+    override fun toString(): String {
+        return "PlayerData(id='$id', name='$name', authed=$authed)"
+    }
+
+
+    interface IGetUidByShortId {
+        fun getShortId(data: PlayerData): String
+        fun getUidByShortId(id: String): String?
+
+        companion object : ServiceRegistry<IGetUidByShortId>()
+    }
 
     companion object {
         val history = CacheBuilder.newBuilder()
@@ -40,6 +54,12 @@ class PlayerData(val name: String, val uuid: String, val ids: Set<String> = muta
             online.remove(player)
             history.put(player.uuid(), data)
             data.player = null
+        }
+
+        fun findByShortId(id: String): PlayerData? {
+            val uuid = IGetUidByShortId.getOrNull()?.getUidByShortId(id) ?: id
+            return Groups.player.find { it.uuid() == uuid }?.let { PlayerData[it] }
+                ?: history.getIfPresent(uuid)
         }
     }
 }

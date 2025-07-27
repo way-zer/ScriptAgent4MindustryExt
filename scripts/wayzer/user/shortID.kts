@@ -1,7 +1,6 @@
 package wayzer.user
 
 import arc.util.serialization.Base64Coder
-import cf.wayzer.placehold.DynamicVar
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import mindustry.net.Administration
@@ -29,10 +28,7 @@ fun shortStr(str: String): String {
     }.joinToString("")
 }
 
-@JvmName("shortIDExt")
 fun Player.shortID() = shortStr(uuid())
-fun shortID(p: Player) = shortStr(p.uuid())
-export(::shortStr, ::shortID)
 
 val shortIDs: Cache<String, String> = CacheBuilder.newBuilder()
     .expireAfterWrite(Duration.ofMinutes(60)).build()
@@ -45,16 +41,20 @@ listen<EventType.PlayerLeave> {
         logger.warning("3位ID碰撞: $uuid $old")
 }
 
-fun getUUIDbyShort(id: String): String? {
-    return Groups.player.find { it.uuid() == id || it.shortID() == id }?.uuid()
-        ?: shortIDs.getIfPresent(id)
+onEnable {
+    PlayerData.IGetUidByShortId.provide(this, object : PlayerData.IGetUidByShortId {
+        override fun getShortId(data: PlayerData): String = shortStr(data.uuid)
+
+        override fun getUidByShortId(id: String): String? =
+            Groups.player.find { it.uuid() == id || it.shortID() == id }?.uuid()
+                ?: shortIDs.getIfPresent(id)
+    })
 }
-export(this::getUUIDbyShort)
 
 registerVarForType<Player>().apply {
-    registerChild("shortID", "uuid 3位前缀,可以展现给其他玩家",  { it.shortID() })
-    registerChild("suffix.9shortID", "名字后缀：3位ID",  { "|[gray]${it.shortID()}[]" })
+    registerChild("shortID", "uuid 3位前缀,可以展现给其他玩家") { it.shortID() }
+    registerChild("suffix.9shortID", "名字后缀：3位ID") { "|[gray]${it.shortID()}[]" }
 }
 registerVarForType<Administration.PlayerInfo>().apply {
-    registerChild("shortID", "uuid 3位前缀,可以展现给其他玩家",  { shortStr(it.id) })
+    registerChild("shortID", "uuid 3位前缀,可以展现给其他玩家") { shortStr(it.id) }
 }

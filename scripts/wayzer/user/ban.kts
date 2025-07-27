@@ -78,16 +78,13 @@ command("banX", "管理指令: 禁封") {
     requirePermission("wayzer.admin.ban")
     body {
         if (arg.size < 3) replyUsage()
-        val uuid = netServer.admins.getInfoOptional(arg[0])?.id
-            ?: depends("wayzer/user/shortID")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(arg[0])
-            ?: returnReply("[red]请输入目标3位ID,不清楚可通过/list查询".with())
-        val snapshot = Groups.player.find { it.uuid() == uuid }?.let { PlayerData[it] }
-            ?: PlayerData.history.getIfPresent(uuid) ?: returnReply("[red]未找到目标".with())
+        val target = PlayerData.findByShortId(arg[0])
+            ?: returnReply("[red]未找到目标, 请输入目标UUID/3位ID.".with())
         val time = arg[1].toIntOrNull()?.takeIf { it > 0 } ?: replyUsage()
         val reason = arg.slice(2 until arg.size).joinToString(" ")
 
-        ban(snapshot, time, reason, player)
-        reply("[green]已禁封{qq}".with("qq" to (uuid)))
+        ban(target, time, reason, player)
+        reply("[green]已禁封{qq}".with("qq" to (target)))
     }
 }
 command("unbanX", "管理指令: 解禁") {

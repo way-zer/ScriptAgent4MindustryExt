@@ -104,7 +104,7 @@ fun changeTeam(p: Player, team: Team = randomTeam(p)) {
 export(::changeTeam)
 command("team", "管理指令: 修改自己或他人队伍(PVP模式)") {
     usage = "[队伍,不填列出] [玩家3位id,默认自己]"
-    permission = "wayzer.ext.team.change"
+    requirePermission("wayzer.ext.team.change")
     body {
         if (!state.rules.pvp) returnReply("[red]仅PVP模式可用".with())
         val team = arg.getOrNull(0)?.toIntOrNull()?.let { Team.get(it) } ?: let {
@@ -112,10 +112,9 @@ command("team", "管理指令: 修改自己或他人队伍(PVP模式)") {
             returnReply("[yellow]可用队伍: []{list}".with("list" to teams))
         }
         val player = arg.getOrNull(1)?.let {
-            depends("wayzer/user/shortID")?.import<(String) -> String?>("getUUIDbyShort")?.invoke(it)
-                ?.let { id -> Groups.player.find { it.uuid() == id } }
+            PlayerData.findByShortId(it)?.player
                 ?: returnReply("[red]找不到玩家,请使用/list查询正确的3位id".with())
-        } ?: player ?: returnReply("[red]请输入玩家ID".with())
+        } ?: (player ?: returnReply("[red]请输入玩家ID".with()))
         changeTeam(player, team)
         broadcast(
             "[green]管理员更改了{player.name}[green]为{team.colorizeName}".with("player" to player, "team" to team)

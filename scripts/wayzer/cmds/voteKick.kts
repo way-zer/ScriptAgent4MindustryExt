@@ -5,6 +5,7 @@
 
 package wayzer.cmds
 
+import coreLibrary.lib.VarString
 import coreMindustry.PagedMenuBuilder
 import wayzer.VoteEvent
 
@@ -33,13 +34,12 @@ suspend fun CommandContext.getTarget(): Player {
         return found
     }
     //find by uuid
-    return thisContextScript().depends("wayzer/user/shortID")?.import<(String) -> String?>("getUUIDbyShort")
-        ?.invoke(id)?.let { uuid -> Groups.player.find { it.uuid() == uuid } }
+    return PlayerData.findByShortId(id)?.player
         ?: returnReply("[red]请输入正确的玩家名".with())
 }
 
 val textInput = contextScript<coreMindustry.UtilTextInput>()
-suspend fun CommandContext.getInput(name: String, whenEmpty: PlaceHoldString): String {
+suspend fun CommandContext.getInput(name: String, whenEmpty: VarString): String {
     return arg.takeIf { it.isNotEmpty() }?.joinToString(" ")
         ?: player?.let { p ->
             (textInput.textInput(p, "请在60s内输入$name") ?: returnReply("[yellow]已取消输入".with()))
