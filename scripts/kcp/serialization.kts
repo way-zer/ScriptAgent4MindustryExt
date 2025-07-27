@@ -17,8 +17,7 @@ val pluginFile by lazy {
 
 @OptIn(SAExperimentalApi::class)
 listenTo<ScriptCompileEvent> {
+    if (!script.scriptInfo.dependsOn(thisScript.scriptInfo)) return@listenTo
     registerImportData(ImportData(ImportData.Type.MavenDepends, library))
-    if (script.scriptInfo.dependsOn(thisScript.scriptInfo)) {
-        addCompileOptions("-Xplugin=${pluginFile.absolutePath}")
-    }
+    addCompileOptions("-Xplugin=${pluginFile.absolutePath}")
 }
