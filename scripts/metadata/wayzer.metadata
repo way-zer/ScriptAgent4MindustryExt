@@ -4,6 +4,10 @@ FQ_NAME wayzer.Module
 +IMPORT DefaultImport wayzer.lib.*
 +IMPORT MavenDepends com.google.guava:guava:30.1-jre
 
+ID wayzer/cmds/clearUnit
+FQ_NAME wayzer.cmds.ClearUnit
++DEPENDS wayzer module
+
 ID wayzer/cmds/gatherTp
 FQ_NAME wayzer.cmds.GatherTp
 +DEPENDS wayzer module
@@ -66,6 +70,14 @@ FQ_NAME wayzer.cmds.VoteMap
 +DEPENDS wayzer/maps 地图管理
 +DEPENDS wayzer/vote 
 +DEPENDS wayzer/vote 投票实现
+
+ID wayzer/cmds/voteOb
+FQ_NAME wayzer.cmds.VoteOb
++DEPENDS wayzer module
++DEPENDS wayzer/cmds/voteKick 
++DEPENDS wayzer/cmds/voteKick 功能控制，使用util，覆盖votekick
++DEPENDS wayzer/map/betterTeam 
++DEPENDS wayzer/map/betterTeam 强制观察者
 
 ID wayzer/ext/alert
 FQ_NAME wayzer.ext.Alert
@@ -131,6 +143,24 @@ ID wayzer/maps
 FQ_NAME wayzer.Maps
 +DEPENDS wayzer module
 
+ID wayzer/pvp/autoGameover
+FQ_NAME wayzer.pvp.AutoGameover
++DEPENDS wayzer module
++DEPENDS wayzer/map/betterTeam 
++DEPENDS wayzer/map/betterTeam 获取可用队伍
+
+ID wayzer/pvp/pvpAlert
+FQ_NAME wayzer.pvp.PvpAlert
++DEPENDS wayzer module
+
+ID wayzer/pvp/pvpChat
+FQ_NAME wayzer.pvp.PvpChat
++DEPENDS wayzer module
+
+ID wayzer/reGrief/bugFixer
+FQ_NAME wayzer.reGrief.BugFixer
++DEPENDS wayzer module
+
 ID wayzer/reGrief/history
 FQ_NAME wayzer.reGrief.History
 +DEPENDS wayzer module
@@ -145,9 +175,16 @@ FQ_NAME wayzer.reGrief.UnitLimit
 
 ID wayzer/user/ban
 FQ_NAME wayzer.user.Ban
++DEPENDS coreLibrary/extApi/rpcService 
++DEPENDS coreLibrary/extApi/rpcService 远程调用
++DEPENDS wayzer module
+
+ID wayzer/user/banStore
+FQ_NAME wayzer.user.BanStore
 +DEPENDS coreLibrary/DBApi 
 +DEPENDS coreLibrary/DBApi 数据库储存
 +DEPENDS wayzer module
++DEPENDS wayzer/user/ban 
 
 ID wayzer/user/ext/skills
 FQ_NAME wayzer.user.ext.Skills

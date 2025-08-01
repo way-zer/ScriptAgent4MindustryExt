@@ -30,8 +30,20 @@ ID coreMindustry/menu
 FQ_NAME coreMindustry.Menu
 +DEPENDS coreMindustry module
 
-ID coreMindustry/scoreboard
-FQ_NAME coreMindustry.Scoreboard
+ID coreMindustry/scorebroad
+FQ_NAME coreMindustry.Scorebroad
++DEPENDS coreMindustry module
+
+ID coreMindustry/util/packetHelper
+FQ_NAME coreMindustry.util.PacketHelper
++DEPENDS coreMindustry module
+
+ID coreMindustry/util/spawnAround
+FQ_NAME coreMindustry.util.SpawnAround
++DEPENDS coreMindustry module
+
+ID coreMindustry/util/trackBuilding
+FQ_NAME coreMindustry.util.TrackBuilding
 +DEPENDS coreMindustry module
 
 ID coreMindustry/utilMapRule

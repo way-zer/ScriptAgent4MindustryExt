@@ -6,6 +6,33 @@ FQ_NAME mapScript.Module
 +IMPORT DefaultImport mapScript.lib.*
 +SOFT_DEPENDS wayzer/map/mapInfo 显示地图信息
 
+ID mapScript/1001
+FQ_NAME mapScript._1001
++DEPENDS coreMindustry/utilMapRule 
++DEPENDS coreMindustry/utilMapRule 参数平衡
++DEPENDS mapScript module
++DEPENDS mapScript/shared/hexed 
+
+ID mapScript/1002
+FQ_NAME mapScript._1002
++DEPENDS mapScript module
++DEPENDS mapScript/shared/hexed 
++SOFT_DEPENDS mapScript/tags/autoExchange 等价交换
+
+ID mapScript/1003
+FQ_NAME mapScript._1003
++DEPENDS coreMindustry/utilMapRule 
++DEPENDS coreMindustry/utilMapRule 参数平衡
++DEPENDS mapScript module
++DEPENDS mapScript/shared/hexed 
+
+ID mapScript/1009
+FQ_NAME mapScript._1009
++DEPENDS coreMindustry/utilMapRule 
++DEPENDS coreMindustry/utilMapRule 参数平衡
++DEPENDS mapScript module
++DEPENDS mapScript/shared/hexed 
+
 ID mapScript/shared/posMark
 FQ_NAME mapScript.shared.PosMark
 +DEPENDS mapScript module

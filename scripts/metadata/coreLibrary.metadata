@@ -53,17 +53,6 @@ FQ_NAME coreLibrary.extApi.KVStore
 +DEPENDS coreLibrary module
 +IMPORT MavenDependsSingle com.h2database:h2-mvstore:2.3.232
 
-ID coreLibrary/extApi/redisApi
-FQ_NAME coreLibrary.extApi.RedisApi
-+DEPENDS coreLibrary module
-+IMPORT MavenDepends redis.clients:jedis:4.4.3
-
-ID coreLibrary/extApi/remoteEventApi
-FQ_NAME coreLibrary.extApi.RemoteEventApi
-+DEPENDS coreLibrary module
-+DEPENDS coreLibrary/extApi/redisApi 
-+DEPENDS coreLibrary/extApi/redisApi 基于redis
-
 ID coreLibrary/extApi/rpcService
 FQ_NAME coreLibrary.extApi.RpcService
 +DEPENDS coreLibrary module
