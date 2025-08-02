@@ -1,6 +1,6 @@
 package bootStrap
 
-import cf.wayzer.scriptAgent.impl.LoaderBridgeHost
+import cf.wayzer.scriptAgent.events.ScriptStateChangeEvent
 import cf.wayzer.scriptAgent.util.CASScriptPacker
 import cf.wayzer.scriptAgent.util.DependencyManager
 import cf.wayzer.scriptAgent.util.maven.Dependency
@@ -26,8 +26,22 @@ suspend fun compileOnlyLoad(script: ScriptInfo) {
         script.failReason = "编译失败： $msg"
         return
     }
+    try {
+        compiled.loadLibraries()
+    } catch (e: Exception) {
+        script.failReason = "依赖下载失败：$e"
+        return
+    }
     script.compiledScript = compiled
     script.stateUpdateForce(ScriptState.Loaded).join()
+}
+
+//Replaced with compileOnlyLoad
+listenTo<ScriptStateChangeEvent.Cancellable> {
+    if (next == ScriptState.Loading) {
+        cancelled = true
+        compileOnlyLoad(script)
+    }
 }
 
 onEnable {
@@ -44,10 +58,7 @@ onEnable {
         else
             Config.args.forEach { add(it) }
 
-        LoaderBridgeHost.withScriptLoader {
-            forEach { compileOnlyLoad(it) }
-        }
-
+        load()
     }
     val fail = ScriptRegistry.allScripts { it.failReason != null }
     println("共加载${ScriptRegistry.allScripts { it.scriptState != ScriptState.Found }.size}个脚本，失败${fail.size}个")
