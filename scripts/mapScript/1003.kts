@@ -20,11 +20,10 @@ import kotlin.time.Duration.Companion.minutes
  * 私有脚本，仅供参考 */
 name = "HEXed*海洋领域*无限火力"
 
-val coreSchema: Schematic by lazy {
+val coreSchema: Schematic =
     Schematics.readBase64(
         "bXNjaAF4nE2Kyw3CMBBEx5+EBBBUkooiDmaziCDHjmxH4k4jlMGNaqAONjc00nz0BhW2Bja4idFe+f59vj7vB3YDZ0rjXMYYANTendln6P5U43iJibibU7wxlZiwp5i4Cwt5XjIOE4fhjzZL8NENnGBcImwyuVJkAS2gREZBo4IY0EAbKY1Mpa20FlrDCFEWK1GVhLwsVmp+DXcoHQ=="
     )
-}
 
 val generator = HexedGenerator(spacing = 88, wallWidth = 5)
 mapMode = Gamemode.pvp
