@@ -17,9 +17,11 @@ import kotlin.time.Duration.Companion.minutes
  * 私有脚本，仅供参考 */
 name = "HEXed PVP 无限火力"
 
-val coreSchema: Schematic = Schematics.readBase64(
-    "bXNjaAF4nC2NWw6CMBBFLw95Gv1wHazI+FHKRKojJaVI3L1DSyaZMz2906JFmyGf1IeQeLQDLdqZ2Rs7AShY9cQL0vujRNuvhofO240cit6R0iMuPbkfs1k/3aaYcdbWUaeNVwMxqnViK5PD1dGTpm529kXaWxHLaPV7U186XgRuQCIVWg2kyEQGJBEppJ2kkMtQRXkkG4QbSRaCIMu4Xu4yF6TxVEUckQbht2TP1rv8A96+LDU="
-)
+val coreSchema: Schematic by lazy {
+    Schematics.readBase64(
+        "bXNjaAF4nC2NWw6CMBBFLw95Gv1wHazI+FHKRKojJaVI3L1DSyaZMz2906JFmyGf1IeQeLQDLdqZ2Rs7AShY9cQL0vujRNuvhofO240cit6R0iMuPbkfs1k/3aaYcdbWUaeNVwMxqnViK5PD1dGTpm529kXaWxHLaPV7U186XgRuQCIVWg2kyEQGJBEppJ2kkMtQRXkkG4QbSRaCIMu4Xu4yF6TxVEUckQbht2TP1rv8A96+LDU="
+    )
+}
 
 val generator = HexedGenerator(4, 5, 96, 11, 9)
 mapMode = Gamemode.pvp

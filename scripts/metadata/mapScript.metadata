@@ -33,15 +33,24 @@ FQ_NAME mapScript._1009
 +DEPENDS mapScript module
 +DEPENDS mapScript/shared/hexed 
 
+ID mapScript/shared/hexed
+FQ_NAME mapScript.shared.Hexed
++DEPENDS mapScript module
++DEPENDS wayzer/map/betterTeam
++DEPENDS wayzer/map/betterTeam 队伍分配
+
 ID mapScript/shared/posMark
 FQ_NAME mapScript.shared.PosMark
 +DEPENDS mapScript module
 
-ID mapScript/tags/limitAir
-FQ_NAME mapScript.tags.LimitAir
+ID mapScript/tags/autoExchange
+FQ_NAME mapScript.tags.AutoExchange
++DEPENDS coreMindustry/utilMapRule
++DEPENDS coreMindustry/utilMapRule 修改核心容量
 +DEPENDS mapScript module
 
-ID mapScript/tags/mapRule
-FQ_NAME mapScript.tags.MapRule
+ID mapScript/tags/voidProduce
+FQ_NAME mapScript.tags.VoidProduce
++DEPENDS coreMindustry/contentsTweaker
 +DEPENDS mapScript module
 
