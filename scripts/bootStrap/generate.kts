@@ -1,5 +1,6 @@
 package bootStrap
 
+import cf.wayzer.scriptAgent.impl.LoaderBridgeHost
 import cf.wayzer.scriptAgent.util.CASScriptPacker
 import cf.wayzer.scriptAgent.util.DependencyManager
 import cf.wayzer.scriptAgent.util.maven.Dependency
@@ -16,6 +17,19 @@ fun prepareBuiltin(outputFile: File = File("build/tmp/builtin.packed.zip")) {
         .use { scripts.forEach(it::add) }
 }
 
+suspend fun compileOnlyLoad(script: ScriptInfo) {
+    val compiled = try {
+        @OptIn(SAExperimentalApi::class)
+        ScriptManager.compileScript(script.source)
+    } catch (e: Exception) {
+        val msg = if (e is IllegalStateException) e.message else e.toString()
+        script.failReason = "编译失败： $msg"
+        return
+    }
+    script.compiledScript = compiled
+    script.stateUpdateForce(ScriptState.Loaded).join()
+}
+
 onEnable {
     if (id != Config.mainScript)
         return@onEnable ScriptManager.disableScript(this, "仅可通过SAMAIN启用")
@@ -25,15 +39,15 @@ onEnable {
         loadToClassLoader(Config.mainClassloader)
     }
     ScriptManager.transaction {
-        //compiler plugin
-        add("coreLibrary/kcp")
-        load();enable()
-
         if (Config.args.isEmpty())
             addAll()
         else
             Config.args.forEach { add(it) }
-        load()
+
+        LoaderBridgeHost.withScriptLoader {
+            forEach { compileOnlyLoad(it) }
+        }
+
     }
     val fail = ScriptRegistry.allScripts { it.failReason != null }
     println("共加载${ScriptRegistry.allScripts { it.scriptState != ScriptState.Found }.size}个脚本，失败${fail.size}个")
