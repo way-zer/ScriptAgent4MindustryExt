@@ -1,106 +1,25 @@
 package wayzer.user.ext
 
-import arc.util.io.Writes
-import mindustry.gen.Building
-import wayzer.user.ext.Skills.Api.skill
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
-import java.time.Duration
 
-@Savable(false)
-val used = mutableMapOf<String, Long>()
-customLoad(::used, used::putAll)
-listen<EventType.ResetEvent> { used.clear() }
+listen<EventType.ResetEvent> {
+    SkillCommands.allCooldown.forEach { it.reset() }
+}
 command("skill", "技能菜单") {
     aliases = listOf("技能")
-    body(Api.skills)
+    attr(SkillPrecheck)
+    body(SkillCommands)
 }
 
-@Suppress("unused")
-companion object Api {
-    val skills = Commands()
-    lateinit var script: Skills
-    private val used get() = script.used
-
-    @DslMarker
-    annotation class SkillScopeMarker
-
-    @Suppress("MemberVisibilityCanBePrivate")
-    class SkillScope(val name: String, val player: Player, val ctx: CommandContext) {
-        @SkillScopeMarker
-        fun returnReply(msg: PlaceHoldString): Nothing = ctx.returnReply(msg)
-
-        @SkillScopeMarker
-        fun checkNotPvp() {
-            if (state.rules.pvp)
-                returnReply("[red]当前模式禁用".with())
-        }
-
-        /** @param coolDown in ms,  -1一局冷却 */
-        fun checkCoolDown(coolDown: Int, set: Boolean = true): Boolean {
-            val key = "${name}@${player.uuid()}"
-            if (key in used) {
-                if (coolDown < 0) {
-                    ctx.reply("[red]该技能每局限用一次".with())
-                    return false
-                } else if (used[key]!! >= System.currentTimeMillis()) {
-                    ctx.reply("[red]技能冷却，还剩{time 秒}".with("time" to Duration.ofMillis(used[key]!! - System.currentTimeMillis())))
-                    return false
-                }
-            }
-            if (set) used[key] = System.currentTimeMillis() + coolDown
-            return true
-        }
-
-        /** @param coolDown in ms,  -1一局冷却 */
-        @SkillScopeMarker
-        fun checkOrSetCoolDown(coolDown: Int) {
-            if (!checkCoolDown(coolDown)) CommandInfo.Return()
-        }
-
-        @SkillScopeMarker
-        fun broadcastSkill(skill: String) = broadcast(
-            "[yellow][技能][green]{player.name}[white]使用了[green]{skill}[white]技能."
-                .with("player" to player, "skill" to skill), quite = true
-        )
+command("mono", "技能: 召唤采矿机,一局限一次,PVP禁用".with(), commands = SkillCommands) {
+    aliases = listOf("矿机")
+    attr(SkillPrecheck)
+    attr(SkillNoPvp)
+    attr(SkillCooldown())
+    requirePermission("wayzer.user.skills.mono")
+    skillBody {
+        UnitTypes.mono.create(player.team()).also {
+            it.set(player)
+        }.add()
+        broadcastSkill("采矿机?")
     }
-
-    @ScriptDsl
-    fun Script.skill(name: String, desc: String, vararg aliases: String, body: SkillScope.() -> Unit) {
-        skills += CommandInfo(this, name, desc) {
-            requirePermission("wayzer.user.skills.$name")
-            attr(ClientOnly)
-            this.aliases = aliases.toList()
-            body {
-                @Suppress("MemberVisibilityCanBePrivate")
-                if (player!!.dead())
-                    returnReply("[red]你已死亡".with())
-                SkillScope(name, player!!, context).body()
-            }
-        }
-    }
-
-    fun syncTile(vararg builds: Building) {
-        val outStream = ByteArrayOutputStream()
-        val write = DataOutputStream(outStream)
-        builds.forEach {
-            write.writeInt(it.pos())
-            write.writeShort(it.block.id.toInt())
-            it.writeAll(Writes.get(write))
-        }
-        Call.blockSnapshot(builds.size.toShort(), outStream.toByteArray())
-    }
-}
-Api.script = this
-
-skill("mono", "技能: 召唤采矿机,一局限一次,PVP禁用", "矿机") {
-    if (state.rules.bannedBlocks.contains(Blocks.airFactory))
-        returnReply("[red]该地图采矿机已禁封,禁止召唤".with())
-    checkNotPvp()
-    checkOrSetCoolDown(-1)
-    UnitTypes.mono.create(player.team()).apply {
-        set(this@skill.player)
-        add()
-    }
-    broadcastSkill("采矿机?")
 }
