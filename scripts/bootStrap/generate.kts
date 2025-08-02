@@ -18,6 +18,7 @@ fun prepareBuiltin(outputFile: File = File("build/tmp/builtin.packed.zip")) {
 }
 
 suspend fun compileOnlyLoad(script: ScriptInfo) {
+    Config.logger.info("编译脚本 ${script.id}")
     val compiled = try {
         @OptIn(SAExperimentalApi::class)
         ScriptManager.compileScript(script.source)
@@ -47,6 +48,10 @@ listenTo<ScriptStateChangeEvent.Cancellable> {
 onEnable {
     if (id != Config.mainScript)
         return@onEnable ScriptManager.disableScript(this, "仅可通过SAMAIN启用")
+    //so we can use `listenTo` in main
+    launch { main() }
+}
+suspend fun main() {
     DependencyManager {
         addRepository("https://www.jitpack.io/")
         require(Dependency.parse("com.github.TinyLake.MindustryX:core:v2025.06.X10"))
