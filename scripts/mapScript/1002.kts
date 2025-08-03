@@ -42,7 +42,7 @@ genRound += "baseResource" to {
     generator.chunkCenters.forEach { chunk ->
         arrayOf(-20, 20).forEach { dx ->
             Geometry.circle(chunk.x + dx, chunk.y, it.width, it.height, 3) { x, y ->
-                it[x, y].setFloorUnder(Blocks.sandWater as Floor)
+                it[x, y].setFloor(Blocks.sandWater as Floor)
             }
         }
         Geometry.circle(chunk.x, chunk.y, it.width, it.height, 15) { x, y ->
