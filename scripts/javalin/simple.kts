@@ -1,6 +1,6 @@
 package javalin
 
-routing {
+webRoutes {
     get("/about") { ctx ->
         ctx.result("Powered by Javalin and ScriptAgent")
     }
