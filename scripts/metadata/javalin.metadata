@@ -1,0 +1,11 @@
+ID javalin
+FQ_NAME javalin.Module
++DEPENDS coreLibrary 
++IMPORT DefaultImport javalin.lib.*
++IMPORT MavenDepends io.javalin:javalin:6.7.0
++IMPORT MavenDepends org.slf4j:slf4j-simple:2.0.16
+
+ID javalin/simple
+FQ_NAME javalin.Simple
++DEPENDS javalin module
+

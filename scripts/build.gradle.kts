@@ -26,6 +26,11 @@ dependencies {
         api("com.h2database:h2-mvstore:2.3.232")
     }
 
+    defineModule("javalin") {
+        dependsModule("coreLibrary")
+        api("io.javalin:javalin:6.7.0")
+    }
+
     defineModule("coreMindustry") {
         val mindustryVersion = "v2025.07.X13" //v150.1
         dependsModule("coreLibrary")
