@@ -110,7 +110,7 @@ tasks {
             println(archiveFile.get())
         }
     }
-    processResources {
+    withType<ProcessResources>().configureEach {
         exclude("META-INF")
         expand("version" to loaderVersion)
     }
