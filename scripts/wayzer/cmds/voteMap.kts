@@ -18,8 +18,8 @@ fun voteMap(player: Player, map: MapInfo) {
         )
         if (!event.awaitResult()) return@launch
         broadcast("[yellow]异步加载地图中，请耐心等待".with())
-        MapManager.loadMapSync(map)
-        broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
+        if (MapManager.loadMapSync(map))
+            broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
     }
 }
 

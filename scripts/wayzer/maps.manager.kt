@@ -5,7 +5,6 @@ package wayzer
 import arc.files.Fi
 import arc.struct.StringMap
 import cf.wayzer.scriptAgent.Event
-import cf.wayzer.scriptAgent.contextScript
 import cf.wayzer.scriptAgent.emitAsync
 import cf.wayzer.scriptAgent.thisContextScript
 import coreLibrary.lib.config
@@ -13,7 +12,10 @@ import coreLibrary.lib.with
 import coreMindustry.lib.broadcast
 import coreMindustry.lib.game
 import coreMindustry.lib.nextTick
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import mindustry.Vars
 import mindustry.core.GameState
 import mindustry.game.Rules
@@ -58,7 +60,7 @@ object MapManager {
         }
     }
 
-    suspend fun loadMapSync(info: MapInfo? = null) {
+    suspend fun loadMapSync(info: MapInfo? = null): Boolean {
         @Suppress("NAME_SHADOWING") var info: MapInfo? = info
         try {
             info = info ?: MapRegistry.nextMapInfo()
@@ -66,6 +68,7 @@ object MapManager {
                 Map(file, width, height, StringMap(tags), custom, version, build) //copy tags
             }
             loadMapSync(info, map)
+            return true
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             broadcast(
@@ -74,9 +77,11 @@ object MapManager {
                     "reason" to (e.message ?: "")
                 )
             )
-            delay(1000)
-            loadMap()
-            throw CancellationException()
+            thisContextScript().launch(Dispatchers.game) {
+                delay(1000)
+                loadMapSync()
+            }
+            return false
         }
     }
 
