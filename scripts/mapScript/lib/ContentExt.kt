@@ -4,6 +4,7 @@ import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.depends
 import cf.wayzer.scriptAgent.import
+import cf.wayzer.scriptAgent.util.DSLBuilder
 
 @ScriptDsl
 fun Script.modeIntroduce(mode: String, introduce: String) {
@@ -12,3 +13,6 @@ fun Script.modeIntroduce(mode: String, introduce: String) {
             ?.invoke(mode, introduce)
     }
 }
+
+@ScriptDsl
+val Script.mapScriptController by DSLBuilder.dataKey<Boolean>()

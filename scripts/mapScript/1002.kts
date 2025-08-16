@@ -12,46 +12,45 @@ import mindustry.type.ItemStack
 import mindustry.world.blocks.environment.Floor
 import kotlin.time.Duration.Companion.minutes
 
-/** @author WayZer
- * 私有脚本，仅供参考 */
-name = "HEXed PVP 超大区块"
+/** @author WayZer */
 
 val generator = HexedGenerator(4, 5, 144, 34)
-mapMode = Gamemode.pvp
-mapFilters = setOf("all", "display", "pvp", "hexed")
-setMapInfo(generator.width, generator.height, tagsApply = {
-    put("name", "HEXed PVP 超大区块")
-    put("author", "WayZer")
-    put("description", "插件控制的随机pvp图[@pvpProtect=480]")
-}, rulesApply = {
-    generator.applyRules(this)
-    loadout = ItemStack.list(
-        Items.copper, 500,
-        Items.lead, 500,
-        Items.silicon, 200,
-        Items.plastanium, 50
-    )
-    enemyCoreBuildRadius = 65f * tilesize
-})
-
-genRound += "topography" to { GeneratorHelper.genTopography(it) }
-genRound += "genHex" to generator::genHex
-genRound += "genPath" to generator::genPath
-genRound += "ores" to { GeneratorHelper.genOres(it) }
-genRound += "baseResource" to {
-    generator.chunkCenters.forEach { chunk ->
-        arrayOf(-20, 20).forEach { dx ->
-            Geometry.circle(chunk.x + dx, chunk.y, it.width, it.height, 3) { x, y ->
-                it[x, y].setFloor(Blocks.sandWater as Floor)
+registerGenerator(
+    "HEXed PVP 超大区块", "WayZer", """插件控制的随机pvp图[@pvpProtect=480]""",
+    mode = Gamemode.pvp,
+    filter = setOf("all", "display", "pvp", "hexed"),
+    width = generator.width, height = generator.height
+) {
+    rules.apply {
+        generator.applyRules(this)
+        loadout = ItemStack.list(
+            Items.copper, 500,
+            Items.lead, 500,
+            Items.silicon, 200,
+            Items.plastanium, 50
+        )
+        enemyCoreBuildRadius = 65f * tilesize
+    }
+    genRound("topography") { GeneratorHelper.genTopography(it) }
+    genRound("genHex", generator::genHex)
+    genRound("genPath", generator::genPath)
+    genRound("ores", GeneratorHelper::genOres)
+    genRound("baseResource") {
+        generator.chunkCenters.forEach { chunk ->
+            arrayOf(-20, 20).forEach { dx ->
+                Geometry.circle(chunk.x + dx, chunk.y, it.width, it.height, 3) { x, y ->
+                    it[x, y].setFloor(Blocks.sandWater as Floor)
+                }
+            }
+            Geometry.circle(chunk.x, chunk.y, it.width, it.height, 15) { x, y ->
+                it[x, y].setFloor(Blocks.sand as Floor)
             }
         }
-        Geometry.circle(chunk.x, chunk.y, it.width, it.height, 15) { x, y ->
-            it[x, y].setFloor(Blocks.sand as Floor)
-        }
     }
+    genRound("genRandomStone", GeneratorHelper::genRandomStone)
+    genRound("initHexData") { HexData.init(generator.chunkCenters) }
 }
-genRound += "genRandomStone" to GeneratorHelper::genRandomStone
-genRound += "initHexData" to { HexData.init(generator.chunkCenters) }
+
 
 onEnable {
     HexData.extraLoadout.add {

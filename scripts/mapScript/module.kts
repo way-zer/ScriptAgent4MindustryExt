@@ -9,18 +9,23 @@
  * */
 package mapScript
 
-import cf.wayzer.scriptAgent.events.ScriptStateChangeEvent
 import wayzer.MapManager
 
-val moduleId = id
+val children get() = ScriptRegistry.allScripts { it != scriptInfo && it.dependsOn(scriptInfo) }
 
-val toEnable = mutableSetOf<ScriptInfo>()
+onEnable {
+    //Disable all non-controller scripts
+    children.forEach {
+        if (it.scriptState == ScriptState.ToEnable && it.inst?.mapScriptController != true) {
+            it.stateUpdateForce(ScriptState.Loaded)
+        }
+    }
+}
 
 listen<EventType.ResetEvent> {
-    toEnable.clear()
     MindustryDispatcher.safeBlocking {
         ScriptManager.transaction {
-            add("$moduleId/")
+            addAll(children)
             disable()
             getForState(ScriptState.ToEnable).forEach {
                 it.stateUpdateForce(ScriptState.Loaded)
@@ -34,7 +39,7 @@ listen<EventType.ResetEvent> {
     ScriptRegistry.scanRoot()
     MindustryDispatcher.safeBlocking {
         ScriptManager.transaction {
-            add("$moduleId/")
+            addAll(children)
             removeIf { it.compiledScript?.source.run { this == null || this == it.source } }
             if (isEmpty()) return@transaction
 
@@ -46,37 +51,21 @@ listen<EventType.ResetEvent> {
 
 listen<EventType.WorldLoadEvent> {
     //load scripts
-    val scriptId = ScriptManager.getScriptNullable("$moduleId/${MapManager.current.id}")?.id
-        ?: state.rules.tags.get("@mapScript")
-            ?.run { "$moduleId/${toIntOrNull() ?: MapManager.current.id}" }
-    MindustryDispatcher.safeBlocking {
-        if (scriptId != null)
-            loadMapScript(scriptId)
-        TagSupport.findTags(state.rules).values.toSet().forEach { loadMapScript(it) }
-    }
-}
-
-//阻止其他脚本启用
-listenTo<ScriptStateChangeEvent.Cancellable>(Event.Priority.Intercept) {
-    if (!script.id.startsWith("$moduleId/")) return@listenTo
-    fun allowEnable() = toEnable.any { it.dependsOn(script.scriptInfo, includeSoft = true) }
-    when (next) {
-        ScriptState.ToEnable -> if (!allowEnable()) cancelled = true
-        ScriptState.Enabling -> if (!allowEnable()) {
-            cancelled = true
-            script.stateUpdateForce(ScriptState.Loaded).join()
+    val toLoad = buildList {
+        ScriptManager.getScriptNullable("mapScript/${MapManager.current.id}")?.id?.let { add(it) }
+        state.rules.tags.get("@mapScript")?.let { add("mapScript/${it.toIntOrNull() ?: MapManager.current.id}") }
+        addAll(TagSupport.findTags(state.rules).values)
+    }.mapNotNull { scriptId ->
+        ScriptRegistry.getScriptInfo(scriptId) ?: null.also {
+            delayBroadcast("[red]该服务器不存在对应地图脚本，请联系管理员: {id}".with("id" to scriptId))
         }
-
-        else -> {}
     }
-}
-
-GeneratorSupport//init
-command("mapScriptLoad", "测试: 加载指定地图脚本") {
-    permission = "$dotId.load"
-    usage = "<script>"
-    body {
-        val script = arg.firstOrNull() ?: replyUsage()
-        loadMapScript(script)
+    if (toLoad.isEmpty()) return@listen
+    MindustryDispatcher.safeBlocking {
+        ScriptManager.transaction {
+            addAll(toLoad)
+            load(); enable()
+            forEach { checkEnabled(it) }
+        }
     }
 }

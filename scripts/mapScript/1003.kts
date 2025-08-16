@@ -16,9 +16,7 @@ import mindustry.world.blocks.defense.turrets.ItemTurret
 import mindustry.world.blocks.environment.Floor
 import kotlin.time.Duration.Companion.minutes
 
-/** @author WayZer
- * 私有脚本，仅供参考 */
-name = "HEXed*海洋领域*无限火力"
+/** @author WayZer */
 
 val coreSchema: Schematic =
     Schematics.readBase64(
@@ -26,74 +24,73 @@ val coreSchema: Schematic =
     )
 
 val generator = HexedGenerator(spacing = 88, wallWidth = 5)
-mapMode = Gamemode.pvp
-mapFilters = setOf("all", "display", "pvp", "hexed")
-setMapInfo(generator.width, generator.height, tagsApply = {
-    put("name", "HEXed*[blue]海洋领域[]*[gold]无限火力")
-    put("author", "WayZer")
-    put(
-        "description", """
+registerGenerator(
+    "HEXed*[blue]海洋领域[]*[gold]无限火力", "WayZer", """
             插件控制的随机pvp图[@pvpProtect=0]
             无限火力模式
             合金炮伤害*0.25,浪涌删除塑钢子弹
-            关闭单位死亡的物品爆炸伤害""".trimIndent()
-    )
-}, rulesApply = {
-    generator.applyRules(this)
-    loadout = ItemStack.list(
-        Items.copper, 2000,
-        Items.lead, 2000,
-        Items.graphite, 300,
-        Items.silicon, 150,
-        Items.plastanium, 50
-    )
-    bannedBlocks.addAll(Blocks.blastMixer, Blocks.mendProjector, Blocks.deconstructor, Blocks.largeConstructor)
-    damageExplosions = false
+            关闭单位死亡的物品爆炸伤害""".trimIndent(),
+    mode = Gamemode.pvp,
+    filter = setOf("all", "display", "pvp", "hexed"),
+    width = generator.width, height = generator.height
+) {
+    rules.apply {
+        generator.applyRules(this)
+        loadout = ItemStack.list(
+            Items.copper, 2000,
+            Items.lead, 2000,
+            Items.graphite, 300,
+            Items.silicon, 150,
+            Items.plastanium, 50
+        )
+        bannedBlocks.addAll(Blocks.blastMixer, Blocks.mendProjector, Blocks.deconstructor, Blocks.largeConstructor)
+        damageExplosions = false
 
-    //balance
-    blockHealthMultiplier = 2f
-    blockDamageMultiplier = 1.3f
-    unitDamageMultiplier = 0.7f
-    unitBuildSpeedMultiplier = 0.8f
-    buildCostMultiplier = 2f
-    buildSpeedMultiplier = 2.5f
+        //balance
+        blockHealthMultiplier = 2f
+        blockDamageMultiplier = 1.3f
+        unitDamageMultiplier = 0.7f
+        unitBuildSpeedMultiplier = 0.8f
+        buildCostMultiplier = 2f
+        buildSpeedMultiplier = 2.5f
 
-    repeat(generator.chunkCenters.size) {
-        teams[Team.get(it + 6)].cheat = true
-    }
-})
-
-genRound += "topography" to { tiles ->
-    for (tile in tiles) {
-        tile.setFloor(Blocks.slag as Floor)
-    }
-}
-genRound += "genHex" to { tiles ->
-    with(generator) {
-        val d = (spacing - wallWidth) * 2 / Mathf.sqrt3
-        chunkCenters.forEach {
-            hexShape(it.x, it.y, d) { x, y -> tiles[x, y].setFloor(Blocks.deepwater as Floor) }
-            hexShape(it.x, it.y, d * 7 / 9) { x, y -> tiles[x, y].setFloor(Blocks.sandWater as Floor) }
-            hexShape(it.x, it.y, d * 5 / 9) { x, y -> tiles[x, y].setFloor(Blocks.sand as Floor) }
+        repeat(generator.chunkCenters.size) {
+            teams[Team.get(it + 6)].cheat = true
         }
     }
-}
-genRound += "genPath" to { tiles ->
-    with(generator) {
-        chunkCenters.forEach { chunk ->
-            chunkCenters.filter { it != chunk && it.dst(chunk) < spacing * 1.1 }.forEach {
-                lineShape(chunk, it, 5) { lx, ly ->
-                    val tile = tiles.getn(lx, ly)
-                    if (tile.floor() != Blocks.sand)
-                        tile.setFloor(Blocks.sandWater as Floor)
+    genRound("topography") { tiles ->
+        for (tile in tiles) {
+            tile.setFloor(Blocks.slag as Floor)
+        }
+    }
+    genRound("genHex") { tiles ->
+        with(generator) {
+            val d = (spacing - wallWidth) * 2 / Mathf.sqrt3
+            chunkCenters.forEach {
+                hexShape(it.x, it.y, d) { x, y -> tiles[x, y].setFloor(Blocks.deepwater as Floor) }
+                hexShape(it.x, it.y, d * 7 / 9) { x, y -> tiles[x, y].setFloor(Blocks.sandWater as Floor) }
+                hexShape(it.x, it.y, d * 5 / 9) { x, y -> tiles[x, y].setFloor(Blocks.sand as Floor) }
+            }
+        }
+    }
+    genRound("genPath") { tiles ->
+        with(generator) {
+            chunkCenters.forEach { chunk ->
+                chunkCenters.filter { it != chunk && it.dst(chunk) < spacing * 1.1 }.forEach {
+                    lineShape(chunk, it, 5) { lx, ly ->
+                        val tile = tiles.getn(lx, ly)
+                        if (tile.floor() != Blocks.sand)
+                            tile.setFloor(Blocks.sandWater as Floor)
+                    }
                 }
             }
         }
     }
+    genRound("ores", GeneratorHelper::genOres)
+    genRound("genRandomStone", GeneratorHelper::genRandomStone)
+    genRound("initHexData") { HexData.init(generator.chunkCenters, coreSchema) }
 }
-genRound += "ores" to { GeneratorHelper.genOres(it) }
-genRound += "genRandomStone" to GeneratorHelper::genRandomStone
-genRound += "initHexData" to { HexData.init(generator.chunkCenters, coreSchema) }
+
 
 val mapRule = contextScript<coreMindustry.UtilMapRule>()
 onEnable {
