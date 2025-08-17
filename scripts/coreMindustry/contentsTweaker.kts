@@ -25,14 +25,14 @@ class CTHello(val player: Player, val version: String) : Event {
     companion object : Event.Handler()
 }
 
-registerVar("scoreboard.ext.contentsVersion", "ContentsTweaker状态显示", DynamicVar {
+registerVar("scoreboard.ext.contents-0-Version", "ContentsTweaker状态显示", DynamicVar {
     if (patches == null) return@DynamicVar null
     "{cK}CT修改已加载: {cV}{count} 修改".with("count" to patchList.size)
 })
-registerVar("scoreboard.ext.contentsUninstall", "ContentsTweaker未安装警告", DynamicVar {
+registerVar("scoreboard.ext.contents-1-Advice", "ContentsTweaker未安装警告", DynamicVar {
     if (patches == null) return@DynamicVar null
     val player = VarToken("receiver").get() as? Player
-    if (player == null || player.uuid() in ctPlayers) null
+    if (player == null || player.uuid() !in ctPlayers) null
     else "{cA}(使用ContentsTweakerMOD获得最佳体验)".with()
 })
 registerVarForType<Player>().apply {
