@@ -6,14 +6,15 @@ import java.time.Duration
 name = "扩展功能: 积分榜"
 //建议只修改下面一段,其他地方代码请勿乱动
 val msg = """
-[magenta]欢迎[goldenrod]{player.name}[magenta]来到WZ服务器[red](请在语言文件中修改)
-[violet]当前地图为: [yellow][{map.id}][orange]{map.name}
-[violet]本局游戏时间: [orange]{state.gameTime 分钟}
+[sky]欢迎 {cV}{player.name} [sky]
+{cK}当前地图: {cV}[{map.id}]{map.name}
+{cK}游戏时间: {cV}{state.gameTime 分钟}
 {listPrefix scoreboard.ext|joinLines}
 {listPrefix scoreBroad.ext|joinLines}
-[violet]本局游戏时间: [orange]{state.gameTime:分钟}
-[royal]输入/broad可以开关该显示
+{cA}输入 /broad 可以开关该显示
 """.trimIndent()
+    //Color变量 cK - KEY, cV - VALUE, cA - ACTION
+    .with("cK" to "[gray]", "cV" to "[lightgray]", "cA" to "[slate]")
 
 val disabled = mutableSetOf<String>()
 

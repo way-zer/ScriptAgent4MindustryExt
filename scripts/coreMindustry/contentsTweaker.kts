@@ -4,7 +4,6 @@
 package coreMindustry
 
 import cf.wayzer.contentsTweaker.ContentsTweaker
-import cf.wayzer.placehold.DynamicVar
 import mindustry.gen.Iconc
 
 var patches: String?
@@ -27,14 +26,14 @@ class CTHello(val player: Player, val version: String) : Event {
 }
 
 registerVar("scoreboard.ext.contentsVersion", "ContentsTweaker状态显示", DynamicVar {
-    val patches = patches ?: return@DynamicVar null
+    if (patches == null) return@DynamicVar null
+    "{cK}CT修改已加载: {cV}{count} 修改".with("count" to patchList.size)
+})
+registerVar("scoreboard.ext.contentsUninstall", "ContentsTweaker未安装警告", DynamicVar {
+    if (patches == null) return@DynamicVar null
     val player = VarToken("receiver").get() as? Player
-    buildString {
-        append("[violet]特殊修改已加载: [orange]")
-        if (player == null || player.uuid() !in ctPlayers)
-            append("(使用[sky]ContentsTweaker[]MOD获得最佳体验)")
-        else append("${patches.count { it == ';' } + 1} 修改")
-    }
+    if (player == null || player.uuid() in ctPlayers) null
+    else "{cA}(使用ContentsTweakerMOD获得最佳体验)".with()
 })
 registerVarForType<Player>().apply {
     registerChild("suffix.s3-CT", "CT mod 后缀", { p -> Iconc.wrench.takeIf { p.uuid() in ctPlayers } })
@@ -49,7 +48,7 @@ fun addPatch(name: String, patch: String) {
     if (!name.startsWith("$")) {
         state.map.tags.put("CT@$name", patch)
         patchList = patchList.toMutableList().apply {
-            remove(name);add(name)//put last
+            remove(name); add(name)//put last
         }
     }
     ContentsTweaker.loadPatch(name, patch)

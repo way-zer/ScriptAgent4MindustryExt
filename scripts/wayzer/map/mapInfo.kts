@@ -1,8 +1,5 @@
 package wayzer.map
 
-import cf.wayzer.placehold.DynamicVar
-import mindustry.gen.Groups
-
 @Savable(false)
 val customModeIntroduce = mutableListOf<String>()
 customLoad(::customModeIntroduce, customModeIntroduce::addAll)
@@ -15,7 +12,8 @@ export(this::addModeIntroduce)
 listen<EventType.ResetEvent> { customModeIntroduce.clear() }
 
 registerVar("scoreboard.ext.customMode", "自定义模式Tip", DynamicVar {
-    "[violet]本地图有自定义模式,详情使用[orange]/mapInfo[]查看".takeIf { customModeIntroduce.isNotEmpty() }
+    if (customModeIntroduce.isEmpty()) return@DynamicVar null
+    "{cK}本地图有自定义模式,详情使用{cV}/mapInfo[]查看".with()
 })
 
 
