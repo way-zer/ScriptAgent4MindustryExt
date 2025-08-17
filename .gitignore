@@ -23,3 +23,4 @@ gradle-app.setting
 /libs
 /branches/
 /scripts/@*/
+/loader/mindustry/res/META-INF/kotlin/script/templates/*
