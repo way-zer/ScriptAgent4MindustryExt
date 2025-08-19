@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.logging.Level
 import kotlin.coroutines.*
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.intrinsics.intercepted
 import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
@@ -71,9 +72,21 @@ object MindustryDispatcher : CoroutineDispatcher() {
         }
     }
 
+    @Deprecated("not pass CoroutineScope", ReplaceWith("safeBlocking(block)"), DeprecationLevel.HIDDEN)
     fun <T> safeBlocking(block: suspend CoroutineScope.() -> T): T {
+        return safeBlocking {
+            coroutineScope {
+                block().also {
+                    cancelChildren(CancellationException("safeBlocking End, not use this coroutineScope"))
+                }
+            }
+        }
+    }
+
+    fun <T> safeBlocking(block: suspend () -> T): T {
         check(Thread.currentThread() == mainThread) { "safeBlocking only for mainThread" }
-        if (inBlocking) return runBlocking(Dispatchers.game, block)
+        //Should not pass CoroutineScope to this function
+        if (inBlocking) return runBlocking(Dispatchers.game) { block() }
         inBlocking = true
         return runBlocking {
             launch {
@@ -82,7 +95,7 @@ object MindustryDispatcher : CoroutineDispatcher() {
                 }
             }
             try {
-                withContext(Dispatchers.game, block)
+                withContext(Dispatchers.game) { block() }
             } finally {
                 inBlocking = false
             }
