@@ -10,6 +10,7 @@
 package mapScript
 
 import wayzer.MapManager
+import wayzer.MapRegistry
 
 val children get() = ScriptRegistry.allScripts { it != scriptInfo && it.dependsOn(scriptInfo) }
 
@@ -65,7 +66,11 @@ listen<EventType.WorldLoadEvent> {
         ScriptManager.transaction {
             addAll(toLoad)
             load(); enable()
-            forEach { checkEnabled(it) }
         }
     }
+    toLoad.forEach { checkEnabled(it) }
+}
+
+onEnable {
+    MapRegistry.register(this, ScriptMapGenerator.Provider)
 }

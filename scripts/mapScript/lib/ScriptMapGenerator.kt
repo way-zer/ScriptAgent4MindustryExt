@@ -4,6 +4,7 @@ import arc.struct.StringMap
 import cf.wayzer.scriptAgent.ScriptManager
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
+import cf.wayzer.scriptAgent.thisContextScript
 import coreLibrary.lib.VarString
 import coreMindustry.lib.MindustryDispatcher
 import mindustry.Vars
@@ -44,9 +45,9 @@ class ScriptMapGenerator(val script: Script, val width: Int, val height: Int) {
         }
         MindustryDispatcher.safeBlocking {
             ScriptManager.enableScript(script, true)
-            if (!checkEnabled(script.scriptInfo)) {
-                MapManager.loadMap()
-            }
+        }
+        if (!thisContextScript().checkEnabled(script.scriptInfo)) {
+            MapManager.loadMap()
         }
     }
 

@@ -1,5 +1,6 @@
 package mapScript.lib
 
+import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptInfo
 import coreLibrary.lib.VarString
 import coreLibrary.lib.with
@@ -18,7 +19,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /** 为onEnable中使用，确保玩家能够收到信息 */
-fun CoroutineScope.delayBroadcast(msg: VarString) = launch(Dispatchers.gamePost) {
+fun Script.delayBroadcast(msg: VarString) = launch(Dispatchers.gamePost) {
     broadcast(msg)
 }
 
@@ -47,7 +48,7 @@ fun CoroutineScope.schedule(
     }
 }
 
-fun CoroutineScope.checkEnabled(script: ScriptInfo): Boolean {
+fun Script.checkEnabled(script: ScriptInfo): Boolean {
     if (script.enabled) {
         delayBroadcast("[yellow]加载地图脚本完成: {id}".with("id" to script.id))
     } else {
