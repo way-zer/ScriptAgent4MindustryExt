@@ -73,7 +73,7 @@ object RootCommands {
             Commands.Root.onComplete(CommandContext().apply {
                 receiver = player ?: CommandContext.ConsoleReceiver
                 reply = {}
-                replyTabComplete = { result = it;CommandInfo.Return() }
+                replyTabComplete = { result = it; CommandInfo.Return() }
                 arg = args
             })
         } catch (_: CommandInfo.Return) {
@@ -92,7 +92,7 @@ object RootCommands {
             CommandContext().apply {
                 receiver = player ?: CommandContext.ConsoleReceiver
                 hasPermission = {
-                    player == null || player.admin || player.hasPermission(it)
+                    player == null || player.hasPermission(it)
                 }
                 reply = { player.sendMessage(it, MsgType.Message) }
                 this.prefix = prefix.ifEmpty { "* " }
