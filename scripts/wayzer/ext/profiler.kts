@@ -8,13 +8,14 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.time.toKotlinDuration
 
+val command by config.key("start,jfr,event=cpu,interval=500us,file=FILE", "采样器启动命令, FILE会被替换为实际文件路径")
 var running: DisposableHandle? = null
 
-fun start() {
+fun start(cmd: String) {
     val profiler = AsyncProfiler.getInstance()
     val file = Config.cacheDir.resolve("${Instant.now()}.jfr")
     val start = Instant.now()
-    profiler.execute("start,jfr,event=cpu,file=${file.absolutePath}")
+    profiler.execute(cmd.replace("FILE", file.absolutePath))
     logger.info("Profiler started, output file: ${file.absolutePath}")
     running = DisposableHandle {
         val elapsed = Duration.between(start, Instant.now()).toKotlinDuration()
@@ -31,14 +32,15 @@ onDisable {
 }
 
 command("profiler", "性能采样") {
-    permission = dotId
+    requirePermission(dotId)
+    usage = "[command]"
     body {
         running?.let {
             running = null
             it.dispose()
             return@body
         }
-        start()
+        start(arg.firstOrNull() ?: command)
     }
 }
 
