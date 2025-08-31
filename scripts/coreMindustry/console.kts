@@ -47,12 +47,13 @@ class MyPrintStream(private val block: (String) -> Unit) : PrintStream(ByteArray
 object MyCompleter : Completer {
     override fun complete(reader: LineReader, line: ParsedLine, candidates: MutableList<Candidate>) {
         val cmd = line.line().substring(0, line.cursor()).split(' ')
-        runBlocking {
-            withContext(Dispatchers.game) {
-                candidates += RootCommands.tabComplete(null, cmd).map {
-                    Candidate(it)
-                }
+        val res = runBlocking(Dispatchers.game) {
+            Commands.Root.tabComplete {
+                arg = cmd
             }
+        }
+        candidates += res.map {
+            Candidate(it)
         }
     }
 }

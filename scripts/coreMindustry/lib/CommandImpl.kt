@@ -11,7 +11,7 @@ import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.CommandContext
 import coreLibrary.lib.CommandInfo
 import coreLibrary.lib.Commands
-import coreLibrary.lib.PlaceHoldString
+import coreLibrary.lib.VarString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -67,18 +67,11 @@ object RootCommands {
         }
     }
 
-    suspend fun tabComplete(player: Player?, args: List<String>): List<String> {
-        var result: List<String> = emptyList()
-        try {
-            Commands.Root.onComplete(CommandContext().apply {
-                receiver = player ?: CommandContext.ConsoleReceiver
-                reply = {}
-                replyTabComplete = { result = it; CommandInfo.Return() }
-                arg = args
-            })
-        } catch (_: CommandInfo.Return) {
+    suspend fun tabComplete(player: Player, args: List<String>): List<String> {
+        return Commands.Root.tabComplete {
+            receiver = PlayerCommandReceiver(player)
+            arg = args
         }
-        return result
     }
 
     /**
@@ -89,11 +82,8 @@ object RootCommands {
     suspend fun handleInput(text: String, player: Player?, prefix: String = "") {
         if (text.isEmpty()) return
         withContext(Dispatchers.game) {
-            CommandContext().apply {
-                receiver = player ?: CommandContext.ConsoleReceiver
-                hasPermission = {
-                    player == null || player.hasPermission(it)
-                }
+            CommandContext.Command().apply {
+                receiver = if (player != null) PlayerCommandReceiver(player) else CommandContext.ConsoleReceiver
                 reply = { player.sendMessage(it, MsgType.Message) }
                 this.prefix = prefix.ifEmpty { "* " }
                 this.arg = text.removePrefix(prefix).split(' ')
@@ -168,6 +158,12 @@ enum class CommandType {
     fun server() = this == Server || this == Both
 }
 
+class PlayerCommandReceiver(val player: Player) : CommandContext.IReceiver {
+    override suspend fun hasPermission(node: String): Boolean {
+        return player.hasPermission(node)
+    }
+}
+
 @Deprecated("use CommandAttr")
 var CommandInfo.type: CommandType
     get() = throw NotImplementedError("use CommandAttr")
@@ -177,19 +173,19 @@ var CommandInfo.type: CommandType
     }
 
 data object ClientOnly : Commands.Hidden {
-    context(CommandContext) override suspend fun visible(): Boolean = receiver is Player
+    context(CommandContext) override suspend fun visible(): Boolean = receiver is PlayerCommandReceiver
 }
 
 data object NotForClient : Commands.Hidden {
-    context(CommandContext) override suspend fun visible(): Boolean = receiver !is Player
+    context(CommandContext) override suspend fun visible(): Boolean = receiver !is PlayerCommandReceiver
 }
 
 /**
  * null for console or other
  */
 val CommandContext.player
-    get() = receiver as? Player
+    get() = (receiver as? PlayerCommandReceiver)?.player
 
-fun CommandContext.reply(text: PlaceHoldString, type: MsgType = MsgType.Message, time: Float = 10f) {
+fun CommandContext.reply(text: VarString, type: MsgType = MsgType.Message, time: Float = 10f) {
     player?.sendMessage(text, type, time) ?: reply(text)
 }

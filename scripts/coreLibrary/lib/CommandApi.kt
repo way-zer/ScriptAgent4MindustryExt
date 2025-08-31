@@ -13,8 +13,16 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.coroutines.cancellation.CancellationException
 
-class CommandContext : DSLBuilder(), Cloneable {
-    var receiver: Any = ConsoleReceiver
+sealed class CommandContext : DSLBuilder(), Cloneable {
+    interface IReceiver {
+        suspend fun hasPermission(node: String): Boolean
+    }
+
+    object ConsoleReceiver : IReceiver {
+        override suspend fun hasPermission(node: String): Boolean = true
+    }
+
+    var receiver: IReceiver = ConsoleReceiver
 
     // Should init if not empty
     var prefix: String = ""
@@ -47,19 +55,24 @@ class CommandContext : DSLBuilder(), Cloneable {
      */
     var reply: (msg: VarString) -> Unit = {}
 
-    // Should not null if do TabComplete
+    // Should not null if doing TabComplete
+    @Deprecated("use TabComplete type", level = DeprecationLevel.ERROR)
     var replyTabComplete: ((list: List<String>) -> Nothing)? = null
 
     // Should init in RootCommand
-    var hasPermission: suspend (node: String) -> Boolean = { false }
+    @set:Deprecated("implement IReceiver.hasPermission")
+    var hasPermission: suspend (node: String) -> Boolean = { receiver.hasPermission(it) }
 
-    fun getSub(): CommandContext {
+    fun subContext(): CommandContext {
         return (clone() as CommandContext).apply {
             if (arg.isEmpty()) return@apply
             prefix += arg[0] + " "
             arg = arg.subList(1, arg.size)
         }
     }
+
+    @Deprecated("misleading name", ReplaceWith("subContext()"))
+    fun getSub(): CommandContext = subContext()
 
     //===util===
     /**Can't be call in coroutine or other context, use [reply] instead*/
@@ -69,27 +82,52 @@ class CommandContext : DSLBuilder(), Cloneable {
         CommandInfo.Return()
     }
 
+    @CommandInfo.CommandBuilder
+    fun onCompleteNoReturn(index: Int, body: () -> List<String>) {
+        if (this is TabComplete && arg.size == index + 1) {
+            result.addAll(body())
+        }
+    }
+
+    @CommandInfo.CommandBuilder
+    fun onComplete(index: Int, body: () -> List<String>) {
+        if (this is TabComplete && arg.size == index + 1) {
+            result.addAll(body())
+            CommandInfo.Return()//keep old behavior
+        }
+    }
+
     inline val context get() = this
 
-    /** receiver for reply */
-    object ConsoleReceiver {
+    class Command : CommandContext()
+    class TabComplete : CommandContext() {
+        var result = mutableListOf<String>()
     }
 }
 
 typealias CommandHandlerOld = suspend CommandContext.() -> Unit
 
 fun interface CommandHandler {
+    //Default only handle Command
+    context(CommandContext) fun canHandle() = context is CommandContext.Command
+
     context(CommandContext) suspend fun handle()
 }
 
+@Deprecated("use CommandHandler.canHandle logic")
 interface TabCompleter {
     suspend fun onComplete(context: CommandContext)
+    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+    @Deprecated("move to CommandContext", level = DeprecationLevel.HIDDEN)
     fun CommandContext.onComplete(index: Int, body: () -> List<String>) {
-        if (arg.size == index + 1)
-            replyTabComplete?.invoke(body())
+        if (this is CommandContext.TabComplete && arg.size == index + 1) {
+            result.addAll(body())
+            CommandInfo.Return()//keep old behavior
+        }
     }
 }
 
+@Suppress("DEPRECATION")
 class CommandInfo(
     val script: Script?,
     val name: String,
@@ -111,7 +149,7 @@ class CommandInfo(
 
     @Deprecated("use requirePermission(permission)")
     var permission: String = ""
-    private var onComplete: CommandHandler = CommandHandler {}
+    private var onComplete: CommandHandler? = null
     private var body: CommandHandler = CommandHandler {}
     private var frozen = false
 
@@ -124,7 +162,7 @@ class CommandInfo(
     }
 
     /**
-     * Add a attr to this command, will run before body
+     * Add an attr to this command, will run before body
      */
     @CommandBuilder
     fun attr(beforeBody: CommandHandler) {
@@ -158,12 +196,29 @@ class CommandInfo(
         freeze()
     }
 
+    context(CommandContext) override fun canHandle(): Boolean =
+        context is CommandContext.TabComplete || body.canHandle()
+
     override suspend fun onComplete(context: CommandContext) {
-        context.run { onComplete.handle() }
+        //1. explicit first
+        onComplete?.let {
+            return context.run { it.handle() }
+        }
+
+        //2. New TabComplete logic
+        with(context) {
+            if (context is CommandContext.TabComplete && body.canHandle()) {
+                return body.handle()
+            }
+        }
+
+        //3. fallback to old logic
         (body as? TabCompleter)?.onComplete(context)
     }
 
     context(CommandContext) override suspend fun handle() {
+        if (context is CommandContext.TabComplete)
+            return onComplete(context)
         try {
             attrs.forEach { it.handle() }
             body.handle()
@@ -195,6 +250,7 @@ class CommandInfo(
         return "CommandInfo(name='$name', script=$script, description=$description)"
     }
 
+    @Suppress("ObjectInheritsException")
     data object Return : CancellationException("Direct return command") {
         private fun readResolve(): Any = Return
         @CommandBuilder
@@ -207,6 +263,7 @@ class CommandInfo(
     annotation class CommandBuilder
 }
 
+@Suppress("DEPRECATION", "SUPERTYPE_IS_SUSPEND_EXTENSION_FUNCTION_TYPE")
 open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
     fun interface Hidden : CommandHandler {
         /** 当前命令是否可用, 用于[Commands.helpCommand]处理 */
@@ -228,17 +285,16 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
     open fun subCommands(): Map<String, CommandInfo> = nameMap
     fun getSub(name: String): CommandInfo? = subCommands()[name.lowercase()]
 
-    override suspend fun onComplete(context: CommandContext) {
-        context.onComplete(0) { subCommands().keys.toList() }
-        if (context.arg.size > 1)
-            getSub(context.arg.first())?.onComplete(context.getSub())
-    }
+    context(CommandContext) override fun canHandle(): Boolean = true
+    override suspend fun onComplete(context: CommandContext) = context.run { handle() }
 
     context(CommandContext) override suspend fun handle() {
+        context.onComplete(0) { subCommands().keys.toList() }
         if (arg.isEmpty()) return helpCommand.handle()
+
         val name = arg.first()
-        with(getSub()) {
-            getSub(name)?.handle()?.let { return }
+        getSub(name)?.let {
+            return subContext().run { it.handle() }
         }
         reply(
             "[red]无效指令\"{name}\",请使用 {prefix}help 查询".with("name" to name, "prefix" to prefix)
@@ -357,6 +413,15 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         override fun subCommands(): Map<String, CommandInfo> {
             val ret = super.subCommands()
             return subCommandOverwrite?.invoke(ret) ?: ret
+        }
+
+        suspend fun tabComplete(block: CommandContext.TabComplete.() -> Unit): List<String> {
+            val ctx = CommandContext.TabComplete().apply(block)
+            try {
+                ctx.run { handle() }
+            } catch (_: CommandInfo.Return) {
+            }
+            return ctx.result
         }
     }
 
