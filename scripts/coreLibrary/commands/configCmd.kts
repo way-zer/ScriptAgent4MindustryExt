@@ -6,9 +6,35 @@ val configCommands = Commands()
 command("config", "查看或修改配置".with(), commands = Commands.controlCommand) {
     usage = "[help/arg...]"
     requirePermission("scriptAgent.$name")
-    body(configCommands)
+    onComplete {
+        try {
+            configCommands.handle()
+        } catch (_: CommandInfo.Return) {
+        }
+        onCompleteArg(0) {
+            remove("<key>")
+            configCommands.getSub("get")?.handle()
+        }
+    }
+    body {
+        if (arg.firstOrNull() in ConfigBuilder.all) {
+            configCommands.getSub("<key>")?.handle()
+            return@body
+        }
+        configCommands.handle()
+    }
 }
 
+command("<key>", "快速get/set配置项".with(), commands = configCommands) {
+    usage = "[value]"
+    body {
+        when (arg.size) {
+            0 -> returnReply("[red]该命令不能直接调用".with())
+            1 -> configCommands.getSub("get")?.handle()
+            else -> configCommands.getSub("set")?.handle()
+        }
+    }
+}
 command("list", "列出所有配置项".with(), commands = configCommands) {
     usage = "[page]"
     body {
@@ -61,23 +87,23 @@ command("get", "获取配置项".with(), commands = configCommands) {
         )
     }
 }
+command("set", "设置配置项".with(), commands = configCommands) {
+    subCommand("<value>") { config ->
+        if (arg.size <= 1) returnReply("[red]请输入值".with())
+        val value = arg.subList(1, arg.size).joinToString(" ")
+        reply("[green]设置成功,当前:[yellow]{value}".with("value" to config.setString(value)))
+    }
+}
 command("reset", "恢复默认值".with(), commands = configCommands) {
     subCommand("") { config ->
         config.reset()
         reply("[green]恢复成功,当前:[yellow]{value}".with("value" to config.getString()))
     }
 }
-command("write", "设置配置项".with(), commands = configCommands) {
+command("write", "写入配置项到配置文件".with(), commands = configCommands) {
     subCommand("") { config ->
         if (config.get() != config.default)
             config.writeDefault()
         reply("[green]写入文件成功".with())
-    }
-}
-command("set", "设置配置项".with(), commands = configCommands) {
-    subCommand("<value>") { config ->
-        if (arg.size <= 1) returnReply("[red]请输入值".with())
-        val value = arg.subList(1, arg.size).joinToString(" ")
-        reply("[green]设置成功,当前:[yellow]{value}".with("value" to config.setString(value)))
     }
 }

@@ -375,7 +375,15 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
             helpOverwrite?.invoke(context, this@Commands, showAll, page)
 
             val title = if (prefix.isEmpty()) "Help" else "Help: $prefix"
-            var commands = subCommands().values.toSet().sortedBy { it.name }
+            var commands = subCommands().let { cmds ->
+                //Try to keep order if possible
+                if (cmds is LinkedHashMap) {
+                    val set = mutableSetOf<CommandInfo>()
+                    cmds.values.mapNotNull { if (set.add(it)) it else null }
+                } else {
+                    cmds.values.toSet().sortedBy { it.name }
+                }
+            }
             if (!showAll) commands = commands.filter { info ->
                 info.attrs.all { it !is Hidden || it.visible() }
             }
