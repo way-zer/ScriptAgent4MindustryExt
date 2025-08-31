@@ -83,16 +83,16 @@ sealed class CommandContext : DSLBuilder(), Cloneable {
     }
 
     @CommandInfo.CommandBuilder
-    fun onCompleteNoReturn(index: Int, body: () -> List<String>) {
+    inline fun onCompleteArg(index: Int, body: MutableList<String>.() -> Unit) {
         if (this is TabComplete && arg.size == index + 1) {
-            result.addAll(body())
+            result.body()
         }
     }
 
     @CommandInfo.CommandBuilder
     fun onComplete(index: Int, body: () -> List<String>) {
-        if (this is TabComplete && arg.size == index + 1) {
-            result.addAll(body())
+        onCompleteArg(index) {
+            addAll(body())
             CommandInfo.Return()//keep old behavior
         }
     }
@@ -119,12 +119,7 @@ interface TabCompleter {
     suspend fun onComplete(context: CommandContext)
     @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
     @Deprecated("move to CommandContext", level = DeprecationLevel.HIDDEN)
-    fun CommandContext.onComplete(index: Int, body: () -> List<String>) {
-        if (this is CommandContext.TabComplete && arg.size == index + 1) {
-            result.addAll(body())
-            CommandInfo.Return()//keep old behavior
-        }
-    }
+    fun CommandContext.onComplete(index: Int, body: () -> List<String>) = onComplete(index, body)
 }
 
 @Suppress("DEPRECATION")
