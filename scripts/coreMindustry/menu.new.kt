@@ -78,7 +78,8 @@ open class MenuV2(
             }
         }
 
-    var columnPreRow = Int.MAX_VALUE
+    @MenuBuilderDsl
+    var columnPreRow = 1
 
     protected open suspend fun build() = block()
 
@@ -96,7 +97,7 @@ open class MenuV2(
     fun newRow() {
         if (menu.isNotEmpty()) {
             if (menu.last().size == 0) return
-            while (columnPreRow != Int.MAX_VALUE && menu.last().size < columnPreRow) {
+            while (menu.last().size < columnPreRow) {
                 option("", ::refresh)
             }
         }
@@ -115,10 +116,10 @@ open class MenuV2(
     fun subMenu(title: String, chooseTimeout: Duration? = 60.seconds, builder: suspend MenuV2.() -> Unit) {
         option(title) {
             this.title = title
-            menu.clear();callback.clear()
+            menu.clear(); callback.clear()
             builder.invoke(this)
             var back = false
-            newRow();option("返回") { back = true }
+            newRow(); option("返回") { back = true }
 
             send(rebuild = false)
             if (chooseTimeout == null) await()
@@ -154,7 +155,7 @@ open class MenuV2(
 
     suspend fun send(rebuild: Boolean = true): MenuV2 {
         if (rebuild) {
-            menu.clear();callback.clear()
+            menu.clear(); callback.clear()
             build()
         }
         while (menu.isNotEmpty() && menu.last().isEmpty()) menu.removeLast()
@@ -172,7 +173,7 @@ open class MenuV2(
         try {
             (callback.getOrNull(ret) ?: onCancel).invoke()
         } catch (e: RefreshReturn) {
-            send();return await()
+            send(); return await()
         }
     }
 
@@ -187,7 +188,7 @@ open class MenuV2(
         try {
             callback()
         } catch (e: RefreshReturn) {
-            send();return awaitWithTimeout(chooseTimeout)
+            send(); return awaitWithTimeout(chooseTimeout)
         }
     }
 
@@ -217,8 +218,8 @@ inline fun <T> MenuV2.renderPaged(
         itemRender(list[i])
     }
     column(3) {
-        option("<-") { selectedPage = page - 1;refresh() }
+        option("<-") { selectedPage = page - 1; refresh() }
         option("$page/$totalPage", this::refresh)
-        option("->") { selectedPage = page + 1;refresh() }
+        option("->") { selectedPage = page + 1; refresh() }
     }
 }

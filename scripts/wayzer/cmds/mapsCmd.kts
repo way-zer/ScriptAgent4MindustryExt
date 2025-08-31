@@ -23,7 +23,6 @@ command("maps", "列出服务器地图") {
             template.with("info" to info)
         })
         MenuV2(player) {
-            columnPreRow = 1
             title = "服务器地图($filter)"
             msg = "SA4Mindustry By WayZer\n" +
                     "点击选项可发起投票换图"
