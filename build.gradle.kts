@@ -73,7 +73,7 @@ allprojects {
 
 dependencies {
     val libraryVersion = "1.11.4.1"
-    val mindustryVersion = "v2025.07.X13" //v150.1
+    val mindustryVersion = "2025.08.X16" //v151.1
     api("cf.wayzer:ScriptAgent:$libraryVersion")
     implementation("cf.wayzer:LibraryManager:1.6")
 

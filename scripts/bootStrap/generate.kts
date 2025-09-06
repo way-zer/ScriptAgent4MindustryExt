@@ -54,7 +54,7 @@ onEnable {
 suspend fun main() {
     DependencyManager {
         addRepository("https://www.jitpack.io/")
-        require(Dependency.parse("com.github.TinyLake.MindustryX:core:v2025.07.X13"))
+        require(Dependency.parse("com.github.TinyLake.MindustryX:core:v2025.08.X16"))
         loadToClassLoader(Config.mainClassloader)
     }
     ScriptManager.transaction {
