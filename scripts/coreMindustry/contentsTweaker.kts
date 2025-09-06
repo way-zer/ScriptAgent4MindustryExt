@@ -1,5 +1,5 @@
 @file:Import("https://www.jitpack.io/", mavenRepository = true)
-@file:Import("cf.wayzer:ContentsTweaker:v3.0.1", mavenDependsSingle = true)
+@file:Import("cf.wayzer:ContentsTweaker:v3.1.1", mavenDependsSingle = true)
 
 package coreMindustry
 
