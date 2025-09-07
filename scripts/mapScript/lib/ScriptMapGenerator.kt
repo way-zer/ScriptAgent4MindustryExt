@@ -96,11 +96,13 @@ fun Script.registerGenerator(
     body: ScriptMapGenerator.() -> Unit
 ) {
     val mapId = id.split('/').last().toIntOrNull() ?: error("MapScript must named as {id}.kts")
-    val info = MapInfo(ScriptMapGenerator.Provider, mapId, mode, meta = buildMap {
-        "name" to name
-        "author" to author
-        "description" to description
-    })
+    val info = MapInfo(
+        ScriptMapGenerator.Provider, mapId, mode, meta = mapOf(
+            "name" to name,
+            "author" to author,
+            "description" to description
+        )
+    )
     val generator = ScriptMapGenerator(this, width, height).apply(body)
     ScriptMapGenerator.Provider.knownMaps[mapId] = ScriptMapGenerator.Info(info, filter, generator)
     onUnload {
