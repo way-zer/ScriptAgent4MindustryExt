@@ -52,6 +52,7 @@ open class MenuV2(
     private val menu = mutableListOf<MutableList<String>>()
     private val callback = mutableListOf<suspend () -> Unit>()
     var onCancel: suspend () -> Unit = {}
+    private var closed = false
 
     @MenuBuilderDsl
     var title = ""
@@ -154,6 +155,7 @@ open class MenuV2(
     private val _menuId = Random.nextInt()
 
     suspend fun send(rebuild: Boolean = true): MenuV2 {
+        closed = false
         if (rebuild) {
             menu.clear(); callback.clear()
             build()
@@ -169,11 +171,14 @@ open class MenuV2(
     }
 
     suspend fun await() {
-        val ret = script.nextEvent<MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
-        try {
-            (callback.getOrNull(ret) ?: onCancel).invoke()
-        } catch (e: RefreshReturn) {
-            send(); return await()
+        while (true) {
+            val ret = script.nextEvent<MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
+            try {
+                (callback.getOrNull(ret) ?: onCancel).invoke()
+                if (!followup || closed) return
+            } catch (e: RefreshReturn) {
+                send()
+            }
         }
     }
 
@@ -193,6 +198,7 @@ open class MenuV2(
     }
 
     fun close() {
+        closed = true
         if (!followup) return
         Call.hideFollowUpMenu(_menuId)
     }
