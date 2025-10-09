@@ -90,7 +90,7 @@ registerGenerator(
         generator.applyRules(this)
         instantBuild = true
         infiniteResources = true
-        revealedBlocks.addAll(content.blocks().select { it.isHidden && it !is ConstructBlock })
+        revealedBlocks.addAll(content.blocks().select { !it.buildVisibility.visible() && it !is ConstructBlock })
         bannedBlocks.add(Blocks.coreZone)
         bannedBlocks.add(Blocks.spawn)
         bannedBlocks.addAll(
@@ -189,6 +189,6 @@ listen<EventType.TapEvent> { event ->
 
         player.clearUnit()
         player.team(chunk.team)
-        CoreBlock.playerSpawn(tile, player)
+        CoreBlock.playerSpawn(world.tile(chunk.center.x, chunk.center.y), player)
     }
 }
