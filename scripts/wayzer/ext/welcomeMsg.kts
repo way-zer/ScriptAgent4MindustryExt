@@ -14,11 +14,14 @@ val template by config.key(
     [green]欢迎{player.name}[green]来到本服务器[]
 """.trimIndent(), "欢迎信息模板"
 )
+val welcomeTemplate by config.key(
+    "[cyan][+] {player.name} [goldenrod]加入了服务器", "玩家加入提示消息模板，仅在customWelcome开启时生效"
+)
 
 listen<EventType.PlayerJoin> {
     it.player.sendMessage(template.with(), type)
     if (customWelcome)
-        broadcast("[cyan][+]{player.name} [goldenrod]加入了服务器".with("player" to it.player))
+        broadcast(welcomeTemplate.with("player" to it.player))
 }
 
 listen<EventType.PlayerLeave> {
