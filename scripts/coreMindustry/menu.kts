@@ -25,11 +25,11 @@ onEnable {
             msg = "点击选项将直接执行指令"
             renderPaged(commands, page) {
                 option(buildString {
-                    append("[gold]${prefix}${it.name}")
+                    append("[lightgray]${prefix}[gold]${it.name}")
                     if (it.aliases.isNotEmpty())
-                        append("[scarlet](${it.aliases.joinToString()})")
-                    appendLine(" [white]${it.usage}")
-                    append("[cyan]${it.description.toPlayer(player)}")
+                        append("[gray](${it.aliases.joinToString()})")
+                    appendLine(" [lightgray]${it.usage}")
+                    append("[sky]${it.description.toPlayer(player)}")
                     if (showAll) {
                         it.script?.let { append(" | ${it.id}") }
                         if (it.permission.isNotBlank()) append(" | ${it.permission}")

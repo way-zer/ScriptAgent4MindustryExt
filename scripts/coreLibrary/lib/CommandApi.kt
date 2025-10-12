@@ -438,7 +438,7 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
                 if (it.script != null) append(" | ${it.script.id}")
                 it.attr<Permission>().firstOrNull()?.let { append(" | ${it.permission}") }
             }
-            return "[light_yellow]{prefix}{name}[light_red]{aliases} [white]{usage}  [light_cyan]{desc}[cyan]{detail}".with(
+            return "[light_gray]{prefix}[light_yellow]{name}[gray]{aliases} [light_gray]{usage}  [light_cyan]{desc}[gray]{detail}".with(
                 "prefix" to prefix, "name" to it.name, "aliases" to alias,
                 "usage" to it.usage, "desc" to it.description, "detail" to detail
             )
