@@ -71,14 +71,19 @@ allprojects {
     }
 }
 
+dependencies.constraints {
+    val mindustryVersion = "v2025.08.X16" //v151.1
+    api("com.github.TinyLake.MindustryX:core:$mindustryVersion")
+    val bukkitVersion = "1.21.4-R0.1-SNAPSHOT"
+    api("dev.folia:folia-api:$bukkitVersion")
+}
 dependencies {
     val libraryVersion = "1.11.4.1"
-    val mindustryVersion = "v2025.08.X16" //v151.1
-    api("cf.wayzer:ScriptAgent:$libraryVersion")
+    api("cf.wayzer:ScriptAgent:${libraryVersion}")
     implementation("cf.wayzer:LibraryManager:1.6")
 
-    "mindustryCompileOnly"("com.github.TinyLake.MindustryX:core:$mindustryVersion")
-    "bukkitCompileOnly"("dev.folia:folia-api:1.21.4-R0.1-SNAPSHOT")
+    "mindustryCompileOnly"("com.github.TinyLake.MindustryX:core")
+    "bukkitCompileOnly"("dev.folia:folia-api")
 }
 
 kotlin {

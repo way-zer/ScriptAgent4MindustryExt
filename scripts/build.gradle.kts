@@ -32,10 +32,8 @@ dependencies {
     }
 
     defineModule("coreMindustry") {
-        val mindustryVersion = "v2025.08.X16" //v151.1
         dependsModule("coreLibrary")
-//    implementation("com.github.Anuken.Mindustry:core:$mindustryVersion")
-        api("com.github.TinyLake.MindustryX:core:$mindustryVersion")
+        api("com.github.TinyLake.MindustryX:core")
         //coreMindustry/console
         implementation("org.jline:jline-terminal:3.21.0")
         implementation("org.jline:jline-reader:3.21.0")
