@@ -25,7 +25,10 @@ listenTo<wayzer.map.BetterTeam.AssignTeamEvent> {
 }
 
 onEnable {
-    schedule(1.minutes) { state.rules.canGameOver = true }
+    launch(Dispatchers.game) {
+        delay(1.minutes)
+        state.rules.canGameOver = true
+    }
 }
 
 onDisable {
