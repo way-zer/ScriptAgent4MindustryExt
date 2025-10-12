@@ -72,12 +72,18 @@ command("load", "(重新)加载一个脚本或者模块".with(), commands = Comm
         runIgnoreCancel(!async) {
             ScriptManager.transaction {
                 add(script)
-                //因为其他原因本来就保持loaded
-                if (script.run { failReason == null && scriptState.loaded && !scriptState.enabled })
-                    noEnable = true
+
+                addChildren(false) { it.scriptState.enabled }
+                val oldEnabled = filter { it.enabled }
+                disable()
+
                 unload(addAllAffect = true)
                 load()
-                if (!noEnable) enable()
+
+                //recover enabled
+                clear()
+                addAll(oldEnabled)
+                enable()
             }
             script.failReason?.let {
                 reply("[red]加载失败({state}): {reason}".with("state" to script.scriptState, "reason" to it))
