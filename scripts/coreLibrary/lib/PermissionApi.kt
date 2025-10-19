@@ -174,7 +174,7 @@ interface PermissionApi {
         fun allNodes(): List<String> = buildList {
             extend.forEach { add("@$it") }
             map.forEach { (k, v) ->
-                add((if (v.value) "-$k" else k))
+                add((if (!v.value) "-$k" else k))
             }
         }
 
