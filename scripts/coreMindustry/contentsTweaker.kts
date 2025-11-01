@@ -6,6 +6,10 @@ package coreMindustry
 import arc.struct.Seq
 import arc.util.serialization.Jval
 
+registerVar("scoreboard.ext.contents-0-Version", "ContentPatcher状态显示", DynamicVar {
+    if (patches == null) return@DynamicVar null
+    "{cK}CP修改已加载: {cV}{count} 修改".with("count" to state.patcher.patches.size)
+})
 
 var patches: String?
     get() = state.map.tags.get("ContentsPatch")
