@@ -3,10 +3,8 @@
 
 package coreMindustry
 
-import arc.Events
 import arc.struct.Seq
 import arc.util.serialization.Jval
-import mindustry.game.EventType.ContentPatchLoadEvent
 
 
 var patches: String?
@@ -21,8 +19,6 @@ var patchList: List<String>
     set(v) {
         patches = v.joinToString(";")
     }
-
-val contentPatches = Seq<String>() //cp in maps may not load here
 
 @JvmName("addPatchV3")
 fun addPatch(name: String, patch: String) {
@@ -48,9 +44,7 @@ fun addPatch(name: String, patch: String) {
         }
 
     val readPatch = Jval.read(raw).toString(Jval.Jformat.plain)
-    contentPatches.add(readPatch)
-    Events.fire(ContentPatchLoadEvent(contentPatches))
-    state.patcher.apply(contentPatches)
+    state.patcher.apply(state.patcher.patches.map { it.patch }.add(readPatch))
 }
 @JvmName("addPatch")
 fun addPatchOld(name: String, patch: String): String {
@@ -59,10 +53,7 @@ fun addPatchOld(name: String, patch: String): String {
 }
 export(::addPatch)
 listen<EventType.ResetEvent> {
-    //logger.info("reset")
-    contentPatches.clear()
-    Events.fire(ContentPatchLoadEvent(contentPatches))//actually empty
-    state.patcher.apply(contentPatches)//actually empty
+    state.patcher.apply(Seq())//may load server global patches
 }
 
 listen<EventType.WorldLoadBeginEvent> {
@@ -70,12 +61,5 @@ listen<EventType.WorldLoadBeginEvent> {
         if (name.isBlank()) return@forEach
         val patch = state.map.tags.get("CT@$name") ?: return@forEach
         addPatch(name, patch)
-    }
-}
-
-listen<ContentPatchLoadEvent> {
-    //logger.info("loading patch")
-    for (patch in contentPatches) {
-        it.patches.addUnique(patch)
     }
 }
