@@ -172,28 +172,29 @@ open class MenuV2(
 
     suspend fun await() {
         while (true) {
-            val ret = script.nextEvent<MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
+            val callback = script.nextEvent<MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
+                .let { callback.getOrNull(it) } ?: onCancel
             try {
-                (callback.getOrNull(ret) ?: onCancel).invoke()
+                callback.invoke()
                 if (!followup || closed) return
             } catch (e: RefreshReturn) {
-                send()
             }
+            send()
         }
     }
 
     /** @param chooseTimeout note this is only timeout for player select, not timeout for this function (due to callback and refresh)*/
     suspend fun awaitWithTimeout(chooseTimeout: Duration = 60.seconds) {
-        val callback = withTimeoutOrNull(chooseTimeout) {
-            //原版返回值，代表选中n个选项，可能 -1 代表主动关闭
-            val ret =
+        while (true) {
+            val callback = withTimeoutOrNull(chooseTimeout) {
                 script.nextEvent<MenuChooseEvent> { it.player == player && it.menuId == _menuId }.value
-            callback.getOrNull(ret)
-        } ?: onCancel
-        try {
-            callback()
-        } catch (e: RefreshReturn) {
-            send(); return awaitWithTimeout(chooseTimeout)
+            }?.let { callback.getOrNull(it) } ?: onCancel
+            try {
+                callback.invoke()
+                if (!followup || closed) return
+            } catch (e: RefreshReturn) {
+            }
+            send()
         }
     }
 
