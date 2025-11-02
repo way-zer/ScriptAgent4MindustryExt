@@ -1,5 +1,4 @@
 @file:Import("https://www.jitpack.io/", mavenRepository = true)
-@file:Import("com.github.way-zer:ContentsTweaker:v3.1.2", mavenDependsSingle = true)
 @file:Depends("coreMindustry/menu", "调用菜单")
 
 package coreMindustry
@@ -8,29 +7,8 @@ import arc.struct.Seq
 import arc.util.serialization.Jval
 import mindustry.mod.ContentPatcher.PatchSet
 
-var patches: String?
-    get() = state.map.tags.get("ContentsPatch")
-    set(v) {
-        state.map.tags.put("ContentsPatch", v)
-        //back compatibility
-        state.rules.tags.put("ContentsPatch", v!!)
-    }
-var patchList: List<String>
-    get() = patches?.split(";").orEmpty()
-    set(v) {
-        patches = v.joinToString(";")
-    }
-
 @JvmName("addPatchV3")
-fun addPatch(name: String, patch: String) {
-    //logger.info("Adding patch $name")
-    if (!name.startsWith("$")) {
-        state.map.tags.put("CT@$name", patch)
-        patchList = patchList.toMutableList().apply {
-            remove(name); add(name)//put last
-        }
-    }
-
+fun addPatch(name: String, patch: String = "PatchFromContentsTweaker") {
     val raw = patch
         .replace("+=", "+")
         .replace("#", "arg")
@@ -44,7 +22,8 @@ fun addPatch(name: String, patch: String) {
             ":\"${m.groupValues[1]}\""
         }
 
-    val readPatch = Jval.read(raw).toString(Jval.Jformat.plain)
+    val readPatch = Jval.read(raw).apply { asObject(); put("name", Jval.valueOf(name)) }.toString(Jval.Jformat.plain)
+    logger.info(readPatch)
     state.patcher.apply(state.patcher.patches.map { it.patch }.add(readPatch))
 }
 @JvmName("addPatch")
