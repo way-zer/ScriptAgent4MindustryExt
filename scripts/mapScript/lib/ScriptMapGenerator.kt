@@ -1,6 +1,9 @@
 package mapScript.lib
 
+import arc.Events
+import arc.struct.Seq
 import arc.struct.StringMap
+import arc.util.Log
 import cf.wayzer.scriptAgent.ScriptManager
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
@@ -8,6 +11,7 @@ import cf.wayzer.scriptAgent.thisContextScript
 import coreLibrary.lib.VarString
 import coreMindustry.lib.MindustryDispatcher
 import mindustry.Vars
+import mindustry.game.EventType
 import mindustry.game.Gamemode
 import mindustry.game.Rules
 import mindustry.io.JsonIO
@@ -33,6 +37,17 @@ class ScriptMapGenerator(val script: Script, val width: Int, val height: Int) {
 
     fun load() {
         try {
+            //Load patches, MDT don't do this with loadGenerator
+            val patches = Seq<String>()
+            Events.fire(EventType.ContentPatchLoadEvent(patches))
+            if (!patches.isEmpty) {
+                try {
+                    Vars.state.patcher.apply(patches)
+                } catch (e: Throwable) {
+                    Log.err("Failed to apply patches: $patches", e)
+                }
+            }
+
             Vars.world.loadGenerator(width, height) { tiles ->
                 genRounds.forEach { (name, round) ->
                     val time = measureTimeMillis { round.invoke(tiles) }
