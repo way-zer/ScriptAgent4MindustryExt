@@ -119,7 +119,8 @@ listen<EventType.GameOverEvent> { event ->
         MapManager.loadMap(map)
     }
 }
-listen<WorldLoadBeginEvent>(insert = true) {
+//ContentPatchLoad is the first event when loading map or save
+listen<EventType.ContentPatchLoadEvent>(insert = true) {
     MapManager.tmpVarSet?.invoke()
     MapManager.tmpVarSet = null
 }

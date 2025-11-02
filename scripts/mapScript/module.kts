@@ -50,9 +50,8 @@ listen<EventType.ResetEvent> {
     }
 }
 
-listen<EventType.WorldLoadEvent> {
-    //load scripts
-    val toLoad = buildList {
+fun getToLoadMapScripts(): List<ScriptInfo> {
+    return buildList {
         ScriptManager.getScriptNullable("mapScript/${MapManager.current.id}")?.id?.let { add(it) }
         state.rules.tags.get("@mapScript")?.let { add("mapScript/${it.toIntOrNull() ?: MapManager.current.id}") }
         addAll(TagSupport.findTags(state.rules).values)
@@ -61,6 +60,18 @@ listen<EventType.WorldLoadEvent> {
             delayBroadcast("[red]该服务器不存在对应地图脚本，请联系管理员: {id}".with("id" to scriptId))
         }
     }
+}
+
+listen<EventType.ContentPatchLoadEvent> {
+    val patches = getToLoadMapScripts().flatMap { it.inst?.mapPatches.orEmpty() }
+    if (patches.isEmpty()) return@listen
+    logger.info("Patches loaded: ${patches.size}")
+    it.patches.addAll(patches)
+}
+
+listen<EventType.WorldLoadEvent> {
+    //load scripts
+    val toLoad = getToLoadMapScripts()
     if (toLoad.isEmpty()) return@listen
     MindustryDispatcher.safeBlocking {
         ScriptManager.transaction {

@@ -35,6 +35,11 @@ command("board", "开关积分板显示") {
 registerVar("scoreboard.ext.null", "空占位", null)
 registerVar("scoreBroad.ext.null", "空占位(兼容旧插件)", null)
 
+registerVar("scoreboard.ext.patches-count", "Patcher状态显示", DynamicVar {
+    if (state.patcher.patches.isEmpty) return@DynamicVar null
+    "{cK}属性修改已加载: {cV}{count}".with("count" to state.patcher.patches.size)
+})
+
 onEnable {
     loop(Dispatchers.game) {
         delay(Duration.ofSeconds(2).toMillis())
