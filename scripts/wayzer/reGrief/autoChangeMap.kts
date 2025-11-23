@@ -21,6 +21,7 @@ onEnable {
             broadcast("[red]无人游玩，5秒后自动换图".with())
             delay(5.seconds)
             MapManager.loadMap()
+            newMap = true
         }
     }
 }
