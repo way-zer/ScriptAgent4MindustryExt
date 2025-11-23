@@ -37,8 +37,6 @@ dependencies {
         //coreMindustry/console
         implementation("org.jline:jline-terminal:3.21.0")
         implementation("org.jline:jline-reader:3.21.0")
-        //coreMindustry/contentsTweaker
-        api("com.github.way-zer:ContentsTweaker:v3.1.2")
     }
     defineModule("scratch") {
         dependsModule("coreLibrary")
