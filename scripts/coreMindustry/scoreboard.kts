@@ -4,7 +4,7 @@ import arc.util.Align
 import java.time.Duration
 
 val defaultTemplate = """
-[sky]欢迎 {cV}{player.name} [sky]
+{magic}[sky]欢迎 {cV}{player.name} [sky]
 {cK}当前地图: {cV}[{map.id}]{map.name}
 {cK}游戏时间: {cV}{state.gameTime 分钟}
 {listPrefix scoreboard.ext|joinLines}
@@ -14,10 +14,15 @@ val defaultTemplate = """
 
 val template by config.key(
     defaultTemplate, "积分榜模板",
-    "其中{cK}{cV}{cA}为颜色变量，{listPrefix xx}行供其他插件动态扩展"
+    "其中{cK}{cV}{cA}为颜色变量，{listPrefix xx}行供其他插件动态扩展。",
+    "开头{magic}会被替换特殊颜色，供MDTX客户端识别",
 )
 //Color变量 cK - KEY, cV - VALUE, cA - ACTION
-val msg get() = template.with("cK" to "[gray]", "cV" to "[lightgray]", "cA" to "[slate]")
+val msg
+    get() = template.with(
+        "magic" to "[#FEBBEF][]",//供MDTX识别
+        "cK" to "[gray]", "cV" to "[lightgray]", "cA" to "[slate]",
+    )
 
 val disabled = mutableSetOf<String>()
 
