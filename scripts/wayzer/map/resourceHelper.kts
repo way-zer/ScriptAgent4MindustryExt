@@ -19,8 +19,6 @@ import java.net.URLEncoder
 import java.time.Duration
 import java.util.logging.Level
 
-name = "资源站配套脚本"
-
 val webRoot by config.key("https://api.mindustry.top", "Mindustry资源站Api")
 
 fun parseJson(json: String): JsonValue {
@@ -58,6 +56,8 @@ MapRegistry.register(this, object : MapProvider() {
         .expireAfterWrite(Duration.ofHours(1))
         .build<String, List<MapInfo>>()!!
 
+    override fun toString(): String = "ResourceSite"
+
     override suspend fun searchMaps(search: String?): Collection<MapInfo> {
         val provider = this
         val mappedSearch = when (search) {
@@ -90,7 +90,7 @@ MapRegistry.register(this, object : MapProvider() {
         }
     }
 
-    override suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)?): MapInfo? {
+    override suspend fun findById(id: Int, reply: ((VarString) -> Unit)?): MapInfo? {
         if (id !in 10000..99999) return null
         try {
             val info = httpGet("$webRoot/maps/$id.json")
