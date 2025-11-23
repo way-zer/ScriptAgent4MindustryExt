@@ -5,13 +5,13 @@ package coreMindustry.lib
 import arc.Core
 import arc.struct.Seq
 import arc.util.CommandHandler
+import cf.wayzer.placehold.VarString
 import cf.wayzer.scriptAgent.Config
 import cf.wayzer.scriptAgent.thisContextScript
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.CommandContext
 import coreLibrary.lib.CommandInfo
 import coreLibrary.lib.Commands
-import coreLibrary.lib.VarString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

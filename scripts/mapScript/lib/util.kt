@@ -1,8 +1,8 @@
 package mapScript.lib
 
+import cf.wayzer.placehold.VarString
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptInfo
-import coreLibrary.lib.VarString
 import coreLibrary.lib.with
 import coreMindustry.lib.broadcast
 import coreMindustry.lib.game

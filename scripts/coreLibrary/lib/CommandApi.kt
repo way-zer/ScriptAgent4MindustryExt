@@ -2,6 +2,7 @@
 
 package coreLibrary.lib
 
+import cf.wayzer.placehold.VarString
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.events.ScriptDisableEvent

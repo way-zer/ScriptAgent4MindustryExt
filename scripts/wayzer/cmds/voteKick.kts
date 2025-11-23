@@ -5,7 +5,6 @@
 
 package wayzer.cmds
 
-import coreLibrary.lib.VarString
 import coreMindustry.PagedMenuBuilder
 import wayzer.VoteEvent
 

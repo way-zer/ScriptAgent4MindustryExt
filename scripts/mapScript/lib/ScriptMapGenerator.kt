@@ -4,11 +4,11 @@ import arc.Events
 import arc.struct.Seq
 import arc.struct.StringMap
 import arc.util.Log
+import cf.wayzer.placehold.VarString
 import cf.wayzer.scriptAgent.ScriptManager
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.thisContextScript
-import coreLibrary.lib.VarString
 import coreMindustry.lib.MindustryDispatcher
 import mindustry.Vars
 import mindustry.game.EventType
