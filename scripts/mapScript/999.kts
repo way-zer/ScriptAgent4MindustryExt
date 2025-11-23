@@ -1,5 +1,3 @@
-@file:Depends("coreMindustry/utilMapRule", "参数平衡")
-
 package mapScript
 
 import arc.math.Mathf

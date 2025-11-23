@@ -1,11 +1,10 @@
-@file:Depends("coreMindustry/utilMapRule", "修改核心容量")
-
 package mapScript.tags
 
 import mindustry.game.EventType.Trigger
 import mindustry.game.Team
 import mindustry.type.Item
 import mindustry.world.blocks.storage.CoreBlock
+import org.intellij.lang.annotations.Language
 
 registerMapTag("@autoExchange")
 modeIntroduce(
@@ -23,13 +22,22 @@ modeIntroduce(
 """.trimIndent()
 )
 
+val cores = content?.run {
+    blocks().filterIsInstance<CoreBlock>().map {
+        """block.${it.name}.itemCapacity: ${it.itemCapacity * 10},"""
+    }
+}.orEmpty()
+@Language("JSON5")
+val patch = """
+{
+    "name": "CoreWar",
+    ${cores.joinToString("\n")}
+}
+""".trimIndent()
+mapPatches = listOf(patch)
+
 val score = IntArray(Team.all.size)
 onEnableForGame {
-    contextScript<coreMindustry.UtilMapRule>().apply {
-        content.blocks().filterIsInstance<CoreBlock>().forEach { core ->
-            registerMapRule(core::itemCapacity) { it * 10 }
-        }
-    }
     score.fill(0)
     state.teams.getActive().forEach {
         score[it.team.id] = it.team.items().get(Items.copper)

@@ -1,5 +1,4 @@
 @file:Depends("mapScript/shared/hexed")
-@file:Depends("coreMindustry/utilMapRule", "参数平衡")
 
 package mapScript
 

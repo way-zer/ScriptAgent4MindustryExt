@@ -1,5 +1,4 @@
 @file:Depends("mapScript/shared/hexed")
-@file:Depends("coreMindustry/utilMapRule", "参数平衡")
 
 package mapScript
 
@@ -14,6 +13,7 @@ import mindustry.game.Team
 import mindustry.type.ItemStack
 import mindustry.world.blocks.defense.turrets.ItemTurret
 import mindustry.world.blocks.environment.Floor
+import org.intellij.lang.annotations.Language
 import kotlin.time.Duration.Companion.minutes
 
 /** @author WayZer */
@@ -91,15 +91,18 @@ registerGenerator(
     genRound("initHexData") { HexData.init(generator.chunkCenters, coreSchema) }
 }
 
+@Language("JSON5")
+val patch = """
+{
+  "name": "Hexed-1001-Balance",
+  "block.core-nucleus.unitType": "emanate",
+  "block.foreshadow.ammoTypes.surge-alloy.damage": 350, // origin 1350
+  "block.ripple.ammoTypes.plastanium": "-",
+}
+""".trimIndent()
+mapPatches = listOf(patch)
 
-val mapRule = contextScript<coreMindustry.UtilMapRule>()
 onEnable {
-    mapRule.registerMapRule(UnitTypes.gamma::health) { 2000f }
-    mapRule.registerMapRule(UnitTypes.gamma::armor) { 500f }
-    mapRule.registerMapRule((Blocks.foreshadow as ItemTurret).ammoTypes[Items.surgeAlloy]::damage) { it / 4 }
-    mapRule.registerMapRule((Blocks.ripple as ItemTurret)::ammoTypes) {
-        it.copy().apply { remove(Items.plastanium) }
-    }
     HexData.extraLoadout.add {
         val tileSize = tilesize.toFloat()
         repeat(6) {

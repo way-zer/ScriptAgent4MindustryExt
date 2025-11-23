@@ -1,5 +1,4 @@
 @file:Depends("coreMindustry/menu", "调用菜单")
-@file:Depends("coreMindustry/utilMapRule", "修改核心单位")
 @file:Depends("coreMindustry/util/spawnAround")
 
 /**@author WayZer*/
@@ -12,8 +11,8 @@ import mindustry.game.Team
 import mindustry.gen.Iconc
 import mindustry.net.Administration
 import mindustry.world.blocks.storage.CoreBlock
+import org.intellij.lang.annotations.Language
 
-name = "CoreWar"
 modeIntroduce(
     "招兵买马 CoreWar", """
     点击核心可以打开菜单
@@ -23,6 +22,17 @@ modeIntroduce(
     Tip2: 单位会随机刷在核心附近(5格左右)，周围没水船会白给
 """.trimIndent()
 )
+
+@Language("JSON5")
+val patch = """
+{
+    "name": "CoreWar",
+    "block.core-foundation.unitType": "alpha",
+    "block.core-nucleus.unitType": "alpha",
+    "block.core-nucleus.itemCapacity": 1000000,
+}
+""".trimIndent()
+mapPatches = listOf(patch)
 
 data class TeamData(val team: Team) {
     var blockDamageMultiplier by team.rules()::blockDamageMultiplier
@@ -54,14 +64,6 @@ listen<EventType.TapEvent> {
 }
 
 onEnable {
-    if ((Blocks.coreNucleus as CoreBlock).unitType != UnitTypes.alpha) {
-        contextScript<coreMindustry.UtilMapRule>().apply {
-            registerMapRule((Blocks.coreFoundation as CoreBlock)::unitType) { UnitTypes.alpha }
-            registerMapRule((Blocks.coreNucleus as CoreBlock)::unitType) { UnitTypes.alpha }
-            registerMapRule(Blocks.coreNucleus::itemCapacity) { 1000_000 }
-        }
-        state.teams.getActive().forEach { it.core()?.storageCapacity = 1000_000 }
-    }
     state.rules.bannedBlocks.add(Blocks.deconstructor)
     Call.setRules(state.rules)
     loop(Dispatchers.game) {
