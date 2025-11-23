@@ -11,13 +11,15 @@ package coreLibrary.lib
 import cf.wayzer.placehold.DynamicVar
 import cf.wayzer.placehold.PlaceHoldApi
 import cf.wayzer.placehold.TypeBinder
+import cf.wayzer.placehold.VarString
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.PlaceHold.Updatable
 import kotlin.reflect.KProperty
 
-typealias VarString = cf.wayzer.placehold.VarString
+@Deprecated("use VarString instead", ReplaceWith("cf.wayzer.placehold.VarString"), level = DeprecationLevel.HIDDEN)
+typealias VarString = VarString
 @Deprecated("use VarString instead", ReplaceWith("VarString"))
 typealias PlaceHoldContext = VarString
 @Deprecated("use VarString instead", ReplaceWith("VarString"))
