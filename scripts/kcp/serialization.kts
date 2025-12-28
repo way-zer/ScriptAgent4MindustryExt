@@ -1,4 +1,4 @@
-package coreLibrary.kcp
+package kcp
 
 import cf.wayzer.scriptAgent.define.annotations.ImportData
 import cf.wayzer.scriptAgent.events.ScriptCompileEvent
