@@ -21,7 +21,7 @@ class PlayerData(val name: String, val uuid: String, val ids: Set<String> = muta
     val shortId: String get() = IGetUidByShortId.getOrNull()?.getShortId(this) ?: id
 
     override fun toString(): String {
-        return "PlayerData(id='$id', name='$name', authed=$authed)"
+        return "PlayerData(id='$id', name='$name', authed=$authed, \nids=$ids)"
     }
 
 
@@ -45,8 +45,10 @@ class PlayerData(val name: String, val uuid: String, val ids: Set<String> = muta
 
         operator fun get(player: Player): PlayerData = online.getOrPut(player) {
             if (player.con == null) error("player is not online")
-            (preOnline.remove(player.usid()) ?: PlayerData(player.plainName(), player.uuid()))
-                .also { it.player = player }
+            (preOnline.remove(player.usid()) ?: PlayerData(player.plainName(), player.uuid())).also {
+                it.addId("ip:${player.con.address}", asPrimary = false)
+                it.player = player
+            }
         }
 
         fun onLeave(player: Player) {

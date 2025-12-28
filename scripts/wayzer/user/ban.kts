@@ -52,10 +52,17 @@ fun Player.kick(ban: PlayerBan) {
 
 listen<EventType.PlayerConnect> {
     launch(Dispatchers.IO) {
-        val ban = store.findNotEnd(PlayerData[it.player].id) ?: return@launch
+        val ban = findBan(PlayerData[it.player]) ?: return@launch
         withContext(Dispatchers.game) {
             it.player.kick(ban)
         }
+    }
+}
+
+suspend fun findBan(player: PlayerData): PlayerBan? = withContext(Dispatchers.IO) {
+    player.ids.firstNotNullOfOrNull { id ->
+        if (id == player.uuid && player.authed) return@firstNotNullOfOrNull null //skip uuid if authed
+        store.findNotEnd(id)
     }
 }
 
@@ -67,7 +74,13 @@ suspend fun ban(player: PlayerData, time: Int, reason: String, operate: Player?)
             operate?.let { PlayerData[it].id }
         )
     }
-    Groups.player.filter { PlayerData[it].id in player.ids }.forEach {
+    Groups.player.filter {
+        val info = PlayerData[it]
+        info.ids.any { id ->
+            if (id == info.uuid && info.authed) return@any false //skip uuid if authed
+            id in player.ids
+        }
+    }.forEach {
         it.kick(ban)
         broadcast("[red] 管理员禁封了{target.name},原因: [yellow]{reason}".with("target" to it, "reason" to reason))
     }
