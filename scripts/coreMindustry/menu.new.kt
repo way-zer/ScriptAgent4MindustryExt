@@ -176,10 +176,10 @@ open class MenuV2(
                 .let { callback.getOrNull(it) } ?: onCancel
             try {
                 callback.invoke()
-                if (!followup || closed) return
+                if (closed || !followup) break
             } catch (e: RefreshReturn) {
+                send()
             }
-            send()
         }
     }
 
@@ -191,10 +191,10 @@ open class MenuV2(
             }?.let { callback.getOrNull(it) } ?: onCancel
             try {
                 callback.invoke()
-                if (!followup || closed) return
+                if (closed || !followup) break
             } catch (e: RefreshReturn) {
+                send()
             }
-            send()
         }
     }
 
