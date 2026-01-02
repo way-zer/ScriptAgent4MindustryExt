@@ -143,15 +143,20 @@ fun openMenu(player: Player) {
 }
 
 enum class Mode {
-    Silent, Menu, Force
+    Silent, Menu, Force, Auto
 }
 
 val mode by config.key(Mode.Silent, "统一登录模式")
+val forceWhenPlayers by config.key(8, "人多时自动启动白名单，需要mode=Auto时生效")
 val teams = contextScript<BetterTeam>()
+
+val forceAuth
+    get() = mode == Mode.Force ||
+            (mode == Mode.Auto && Groups.player.size() >= forceWhenPlayers)
 listenTo<BetterTeam.AssignTeamEvent>(Event.Priority.Intercept) {
     if (PlayerData[player].authed) return@listenTo
     if (mode == Mode.Silent) return@listenTo
-    if (mode == Mode.Force)
+    if (forceAuth)
         team = teams.spectateTeam
     openMenu(player)
 }
@@ -161,7 +166,7 @@ listenTo<RequestPermissionEvent> {
     if (PlayerData[player].authed) {
         group += "@authed"
     } else {
-        if (mode == Mode.Force) directReturn(PermissionApi.Result.Reject)
+        if (forceAuth) directReturn(PermissionApi.Result.Reject)
     }
 }
 
