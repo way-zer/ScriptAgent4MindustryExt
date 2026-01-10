@@ -92,6 +92,12 @@ object HexData {
                     ?.takeIf { it.active() && players.none { pp -> pp.team() == it } }
                     ?.let { return it }
 
+                if (Vars.state.teams.active.any { it.team.hexData.hexes.size >= 4 }) {
+                    broadcast("[red][HEX PVP][yellow]巨头出现，进入第二阶段".with())
+                    stage = 2
+                    return assignTeam(p, players)
+                }
+
                 val hex = hexes.filter { it.available() }
                     .randomOrNull() ?: let {
                     broadcast("[red][HEX PVP][yellow]所有区块分配完毕, 进入第二阶段".with())
@@ -112,8 +118,7 @@ object HexData {
                     ?.let { return it }
                 val team = Vars.state.teams.active.select { it.hasCore() }.map { it.team }
                     .minByOrNull {
-                        players.count { pp -> pp.team() == it } +
-                                it.hexData.hexes.size.coerceAtMost(8)
+                        players.count { pp -> pp.team() == it } * 3 + it.hexData.hexes.size
                     }
                     ?: Team.get(255)
                 teams[p.uuid()] = team

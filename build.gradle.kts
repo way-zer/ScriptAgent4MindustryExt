@@ -26,13 +26,13 @@ sourceSets {
     main {
         java.srcDir("loader/common")
     }
-    create("mindustry") {
+    create("mindustry").apply {
         compileClasspath += main.get().output
         configurations[compileOnlyConfigurationName].extendsFrom(configurations["runtimeClasspath"])
         java.srcDir("loader/mindustry/src")
         resources.srcDir("loader/mindustry/res")
     }
-    create("bukkit") {
+    create("bukkit").apply {
         compileClasspath += main.get().output
         configurations[compileOnlyConfigurationName].extendsFrom(configurations["runtimeClasspath"])
         java.srcDir("loader/bukkit/src")
