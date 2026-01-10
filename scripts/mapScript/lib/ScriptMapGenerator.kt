@@ -58,6 +58,7 @@ class ScriptMapGenerator(val script: Script, val width: Int, val height: Int) {
             script.logger.log(Level.SEVERE, "loadGenerator出错", e)
             MapManager.loadMap()
         }
+        if (script.enabled) return// Already enabled inside WorldLoadEvent
         MindustryDispatcher.safeBlocking {
             ScriptManager.enableScript(script, true)
         }
@@ -91,6 +92,8 @@ class ScriptMapGenerator(val script: Script, val width: Int, val height: Int) {
                 }, true
             )
         }
+
+        override fun toString(): String = "ScriptGeneratorMap"
 
         override suspend fun loadMap(info: MapInfo) {
             val generator = knownMaps[info.id]?.generator ?: return MapManager.loadMap()

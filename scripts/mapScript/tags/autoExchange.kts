@@ -30,7 +30,7 @@ val cores = content?.run {
 @Language("JSON5")
 val patch = """
 {
-    "name": "CoreWar",
+    "name": "AutoExchange",
     ${cores.joinToString("\n")}
 }
 """.trimIndent()

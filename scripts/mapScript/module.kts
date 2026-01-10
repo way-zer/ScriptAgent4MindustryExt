@@ -59,14 +59,18 @@ fun getToLoadMapScripts(): List<ScriptInfo> {
         ScriptRegistry.getScriptInfo(scriptId) ?: null.also {
             delayBroadcast("[red]该服务器不存在对应地图脚本，请联系管理员: {id}".with("id" to scriptId))
         }
-    }
+    }.flatMap {
+        listOf(it) + ScriptRegistry.allScripts { dep ->
+            !dep.enabled && it.dependsOn(dep, includeSoft = true)
+        }
+    }.toSet().toList()
 }
 
-listen<EventType.ContentPatchLoadEvent> {
+listen<EventType.ContentPatchLoadEvent> { e ->
     val patches = getToLoadMapScripts().flatMap { it.inst?.mapPatches.orEmpty() }
     if (patches.isEmpty()) return@listen
     logger.info("Patches loaded: ${patches.size}")
-    it.patches.addAll(patches)
+    e.patches.addAll(patches)
 }
 
 listen<EventType.WorldLoadEvent> {
