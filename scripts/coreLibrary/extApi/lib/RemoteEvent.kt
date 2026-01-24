@@ -1,9 +1,10 @@
-package coreLibrary.extApi
+package coreLib.extApi
 
 import cf.wayzer.scriptAgent.Event
-import cf.wayzer.scriptAgent.contextScript
+import cf.wayzer.scriptAgent.define.SAExperimentalApi
+import cf.wayzer.scriptAgent.util.Services
+import coreLibrary.lib.all
 import java.io.Serializable
-import java.lang.ref.WeakReference
 
 @Suppress("unused")//Api
 abstract class RemoteEvent : Event, Serializable {
@@ -11,7 +12,9 @@ abstract class RemoteEvent : Event, Serializable {
     final override val handler: Event.Handler get() = error("You should use RemoteEvent.emit()")
 
     fun launchEmit() {
-        Impl.script.remoteEmit(this)
+        service.forEach {
+            it.remoteEmit(this)
+        }
     }
 
     internal suspend fun onReceive() {
@@ -21,12 +24,18 @@ abstract class RemoteEvent : Event, Serializable {
     abstract class Handler : Event.Handler() {
         init {
             val eventCls = javaClass.enclosingClass
-            Impl.classMap[eventCls.name] = WeakReference(eventCls)
+            service.forEach {
+                it.registerType(eventCls)
+            }
         }
     }
 
-    internal object Impl {
-        val script = contextScript<RemoteEventApi>()
-        val classMap = mutableMapOf<String, WeakReference<Class<*>>>()
+    interface Impl {
+        fun remoteEmit(event: RemoteEvent)
+        fun registerType(cls: Class<*>)
+    }
+    @OptIn(SAExperimentalApi::class)
+    companion object {
+        val service: List<Impl> by Services.get<Impl>().all
     }
 }

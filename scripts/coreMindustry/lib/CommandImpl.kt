@@ -12,6 +12,7 @@ import cf.wayzer.scriptAgent.util.DSLBuilder
 import coreLibrary.lib.CommandContext
 import coreLibrary.lib.CommandInfo
 import coreLibrary.lib.Commands
+import coreLibrary.lib.handle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -119,7 +120,7 @@ object RootCommands {
 }
 
 class MyCommandHandler(prefix: String, val origin: CommandHandler) : CommandHandler(prefix) {
-    override fun <T : Any?> register(
+    override fun <T> register(
         text: String,
         params: String,
         description: String,
@@ -128,7 +129,7 @@ class MyCommandHandler(prefix: String, val origin: CommandHandler) : CommandHand
         return origin.register(text, params, description, runner)
     }
 
-    override fun <T : Any?> register(text: String, description: String, runner: CommandRunner<T>): Command =
+    override fun <T> register(text: String, description: String, runner: CommandRunner<T>): Command =
         register(text, "", description, runner)
 
     override fun removeCommand(text: String) {
@@ -173,11 +174,11 @@ var CommandInfo.type: CommandType
     }
 
 data object ClientOnly : Commands.Hidden {
-    context(CommandContext) override suspend fun visible(): Boolean = receiver is PlayerCommandReceiver
+    override suspend fun CommandContext.visible(): Boolean = receiver is PlayerCommandReceiver
 }
 
 data object NotForClient : Commands.Hidden {
-    context(CommandContext) override suspend fun visible(): Boolean = receiver !is PlayerCommandReceiver
+    override suspend fun CommandContext.visible(): Boolean = receiver !is PlayerCommandReceiver
 }
 
 /**

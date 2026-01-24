@@ -1,6 +1,6 @@
 ID coreLibrary
 FQ_NAME coreLibrary.Module
-+IMPORT CompileArg -Xcontext-receivers
++IMPORT CompileArg -Xcontext-parameters
 +IMPORT DefaultImport cf.wayzer.placehold.*
 +IMPORT DefaultImport coreLibrary.lib.*
 +IMPORT DefaultImport coreLibrary.lib.event.*

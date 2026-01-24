@@ -1,7 +1,8 @@
+import org.apache.tools.ant.filters.ReplaceTokens
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.1.10"
+    kotlin("jvm") version "2.3.0"
     id("me.qoomon.git-versioning") version "6.4.4"
     id("com.gradleup.shadow") version "8.3.6"
 }
@@ -78,7 +79,7 @@ dependencies.constraints {
     api("dev.folia:folia-api:$bukkitVersion")
 }
 dependencies {
-    val libraryVersion = "1.11.4.1"
+    val libraryVersion = "2.0.0"
     api("cf.wayzer:ScriptAgent:${libraryVersion}")
     implementation("cf.wayzer:LibraryManager:1.6")
 

@@ -8,7 +8,7 @@ fun addModeIntroduce(mode: String, introduce: String) {
     if (customModeIntroduce.any { it.contains("===[gold]$mode[]===") }) return
     customModeIntroduce += "[magenta]===[gold]$mode[]===[white]\n$introduce"
 }
-export(this::addModeIntroduce)
+export(::addModeIntroduce)
 listen<EventType.ResetEvent> { customModeIntroduce.clear() }
 
 registerVar("scoreboard.ext.customMode", "自定义模式Tip", DynamicVar {

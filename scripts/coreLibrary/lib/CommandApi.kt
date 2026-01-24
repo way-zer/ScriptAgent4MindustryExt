@@ -110,9 +110,9 @@ typealias CommandHandlerOld = suspend CommandContext.() -> Unit
 
 fun interface CommandHandler {
     //Default only handle Command
-    context(CommandContext) fun canHandle() = context is CommandContext.Command
+    fun CommandContext.canHandle() = context is CommandContext.Command
 
-    context(CommandContext) suspend fun handle()
+    suspend fun CommandContext.handle()
 }
 
 @Deprecated("use CommandHandler.canHandle logic")
@@ -192,7 +192,7 @@ class CommandInfo(
         freeze()
     }
 
-    context(CommandContext) override fun canHandle(): Boolean =
+    override fun CommandContext.canHandle(): Boolean =
         context is CommandContext.TabComplete || body.canHandle()
 
     override suspend fun onComplete(context: CommandContext) {
@@ -212,7 +212,7 @@ class CommandInfo(
         (body as? TabCompleter)?.onComplete(context)
     }
 
-    context(CommandContext) override suspend fun handle() {
+    override suspend fun CommandContext.handle() {
         if (context is CommandContext.TabComplete)
             return onComplete(context)
         try {
@@ -220,11 +220,11 @@ class CommandInfo(
             body.handle()
         } catch (e: CancellationException) {
             if (e !is Return)
-                thisContextScript().logger.log(
+                this.thisContextScript().logger.log(
                     Level.WARNING, "You should not cancel command. If you need exit, using CommandInfo.Return()", e
                 )
         } catch (e: Exception) {
-            reply("[red]执行命令出现异常: {msg}".with("msg" to (e.message ?: "")))
+            context.reply("[red]执行命令出现异常: {msg}".with("msg" to (e.message ?: "")))
             e.printStackTrace()
         }
     }
@@ -259,19 +259,19 @@ class CommandInfo(
     annotation class CommandBuilder
 }
 
-@Suppress("DEPRECATION", "SUPERTYPE_IS_SUSPEND_EXTENSION_FUNCTION_TYPE")
-open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
+@Suppress("DEPRECATION")
+open class Commands : CommandHandler, TabCompleter {
     fun interface Hidden : CommandHandler {
-        /** 当前命令是否可用, 用于[Commands.helpCommand]处理 */
-        context(CommandContext) suspend fun visible(): Boolean
-        context(CommandContext) override suspend fun handle() {
+        /** 当前命令是否可用, 用于[Commands]处理 */
+        suspend fun CommandContext.visible(): Boolean
+        override suspend fun CommandContext.handle() {
             if (!visible()) returnReply("[red]该命令当前不可用".with())
         }
     }
 
     data class Permission(val permission: String) : Hidden {
-        context(CommandContext) override suspend fun visible(): Boolean = hasPermission(permission)
-        context(CommandContext) override suspend fun handle() {
+        override suspend fun CommandContext.visible(): Boolean = hasPermission(permission)
+        override suspend fun CommandContext.handle() {
             if (!visible()) returnReply("[red]你没有执行该命令的权限".with())
         }
     }
@@ -281,11 +281,11 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
     open fun subCommands(): Map<String, CommandInfo> = nameMap
     fun getSub(name: String): CommandInfo? = subCommands()[name.lowercase()]
 
-    context(CommandContext) override fun canHandle(): Boolean = true
+    override fun CommandContext.canHandle(): Boolean = true
     override suspend fun onComplete(context: CommandContext) = context.run { handle() }
 
-    context(CommandContext) override suspend fun handle() {
-        context.onComplete(0) { subCommands().keys.toList() }
+    override suspend fun CommandContext.handle() {
+        onComplete(0) { subCommands().keys.toList() }
         if (arg.isEmpty()) return helpCommand.handle()
 
         val name = arg.first()
@@ -395,13 +395,6 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         addSub(this)
     }
 
-    //compatibility for [CommandInfo.body]
-    @Deprecated(
-        "use CommandHandler instead", level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("this.handle()")
-    )
-    override suspend fun invoke(p1: CommandContext) = error("use CommandHandler")
-
     object Root : Commands() {
         init {
             this += CommandInfo(thisContextScript(), "ScriptAgent", "ScriptAgent 控制指令".with(), listOf("sa")).apply {
@@ -448,6 +441,13 @@ open class Commands : CommandHandler, TabCompleter, CommandHandlerOld {
         var helpOverwrite: (suspend CommandContext.(cmds: Commands, showAll: Boolean, page: Int) -> Unit)? = null
     }
 }
+
+context(context: CommandContext)
+fun CommandHandler.canHandle() = context.canHandle()
+context(context: CommandContext)
+suspend inline fun CommandHandler.handle() = context.handle()
+context(context: CommandContext)
+suspend inline fun Commands.Hidden.visible() = context.visible()
 
 @ScriptDsl
 inline fun Script.command(

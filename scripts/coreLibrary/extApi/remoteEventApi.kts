@@ -1,4 +1,5 @@
-@file:Depends("coreLibrary/extApi/redisApi", "基于redis")
+@file:Depends("coreLib/extApi/redisApi", "基于redis")
+@file:Import("./lib/RemoteEvent.kt")
 
 package coreLibrary.extApi
 
@@ -7,6 +8,7 @@ import java.io.*
 import java.util.logging.Level
 
 val group by config.key("_SA_RemoteEvent")
+val classMap = mutableMapOf<String, WeakReference<Class<*>>>()
 
 fun remoteEmit(event: RemoteEvent) = launch(Dispatchers.IO) {
     RedisApi.Redis.use {
@@ -15,6 +17,10 @@ fun remoteEmit(event: RemoteEvent) = launch(Dispatchers.IO) {
             it.toByteArray()
         })
     }
+}
+
+fun registerType(cls: Class<*>) {
+    classMap[eventCls.name] = WeakReference(eventCls)
 }
 
 fun handleReceive(msg: ByteArray) {

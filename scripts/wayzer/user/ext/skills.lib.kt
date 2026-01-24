@@ -2,10 +2,7 @@ package wayzer.user.ext
 
 import arc.util.io.Writes
 import cf.wayzer.placehold.PlaceHoldApi.with
-import coreLibrary.lib.CommandContext
-import coreLibrary.lib.CommandHandler
-import coreLibrary.lib.CommandInfo
-import coreLibrary.lib.Commands
+import coreLibrary.lib.*
 import coreMindustry.lib.ClientOnly
 import coreMindustry.lib.broadcast
 import coreMindustry.lib.player
@@ -21,7 +18,7 @@ import java.time.Duration
 object SkillPrecheck : CommandHandler {
     private val mapDisabled get() = Vars.state.rules.tags.getBool("@noSkills")
 
-    context(CommandContext) override suspend fun handle() {
+    override suspend fun CommandContext.handle() {
         ClientOnly.handle()
         if (mapDisabled) returnReply("[red]当前地图禁用技能".with())
         if (player!!.dead()) returnReply("[red]死亡状态无法使用技能".with())
@@ -29,7 +26,7 @@ object SkillPrecheck : CommandHandler {
 }
 
 object SkillNoPvp : CommandHandler {
-    context(CommandContext) override suspend fun handle() {
+    override suspend fun CommandContext.handle() {
         if (Vars.state.rules.pvp) returnReply("[red]当前技能PVP模式禁用".with())
     }
 }
@@ -44,18 +41,19 @@ class SkillCooldown(val coolDown: Int = -1) : CommandHandler {
         SkillCommands.allCooldown.add(this)
     }
 
-    context(CommandContext) override suspend fun handle() {
+    override suspend fun CommandContext.handle() {
         if (!checkCoolDown()) CommandInfo.Return()
     }
 
-    context(CommandContext) fun checkCoolDown(): Boolean {
-        val key = player!!.uuid()
+    context(context: CommandContext)
+    fun checkCoolDown(): Boolean {
+        val key = context.player!!.uuid()
         if (key in lastUsed) {
             if (coolDown < 0) {
-                reply("[red]该技能每局限用一次".with())
+                context.reply("[red]该技能每局限用一次".with())
                 return false
             } else if (lastUsed[key]!! + coolDown >= System.currentTimeMillis()) {
-                reply(
+                context.reply(
                     "[red]技能冷却，还剩{time 秒}".with(
                         "time" to Duration.ofMillis(lastUsed[key]!! + coolDown - System.currentTimeMillis())
                     )
@@ -66,8 +64,9 @@ class SkillCooldown(val coolDown: Int = -1) : CommandHandler {
         return true
     }
 
-    context(CommandContext) fun setCoolDown() {
-        val key = player!!.uuid()
+    context(context: CommandContext)
+    fun setCoolDown() {
+        val key = context.player!!.uuid()
         lastUsed[key] = System.currentTimeMillis()
     }
 
