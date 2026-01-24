@@ -1,10 +1,11 @@
-@file:Import("org.jetbrains.exposed:exposed-core:0.59.0", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-dao:0.59.0", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-java-time:0.59.0", mavenDepends = true)
-@file:Import("org.jetbrains.exposed:exposed-jdbc:0.59.0", mavenDepends = true)
+package coreLib.db
 
-package coreLibrary
-
+import cf.wayzer.scriptAgent.ScriptRegistry
+import cf.wayzer.scriptAgent.define.SAExperimentalApi
+import cf.wayzer.scriptAgent.define.Script
+import cf.wayzer.scriptAgent.util.DSLBuilder
+import cf.wayzer.scriptAgent.util.Services
+import coreLibrary.lib.getOrNull
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
@@ -13,14 +14,17 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
-import java.util.logging.Level
 import kotlin.system.measureTimeMillis
 
+@OptIn(SAExperimentalApi::class)
+object DBApi {
+    val db = Services.get<Database>()
 
-@Suppress("unused", "MemberVisibilityCanBePrivate")
-object DB : ServiceRegistry<Database>() {
+    private var Script.registeredTable: List<Table>? by DSLBuilder.dataKey()
+
     object TableVersion : IdTable<String>("TableVersion") {
         // can't use `text` as h2db don't support for primaryKey
+
         override val id: Column<EntityID<String>> = varchar("table", 64).entityId()
         override val primaryKey: PrimaryKey = PrimaryKey(id) // h2database#2191
 
@@ -65,9 +69,6 @@ object DB : ServiceRegistry<Database>() {
         }
     }
 
-    private val key = DataKeyWithDefault("DB_registeredTable") { mutableSetOf<Table>() }
-    private val Script.registeredTable by key
-
     interface WithUpgrade {
         val version: Int
 
@@ -80,24 +81,24 @@ object DB : ServiceRegistry<Database>() {
     /**
      * 为模块注册表格
      * 注册时不一定立刻运行
-     * 会等[DB]初始化后统一注册
+     * 会等[db]初始化后统一注册
      * 如果DB有版本变化,请实现[WithUpgrade]，未实现默认版本号1
      */
-    @Synchronized
-    @ScriptDsl
-    fun Script.registerTable(vararg t: Table) {
-        registeredTable.addAll(t)
-        if (provided)
-            transaction {
+    context(script: Script)
+    fun registerTable(vararg t: Table) {
+        script.registeredTable = script.registeredTable.orEmpty() + t
+        db.getOrNull()?.let {
+            transaction(it) {
                 withDataBaseLock { initTable(t.asIterable()) }
             }
+        }
     }
 
     @Synchronized
-    internal fun initDB(db: Database) {
+    fun initDB(db: Database) {
         TransactionManager.defaultDatabase = db
-        val allTable = ScriptRegistry.allScripts { it.inst?.dslExists(key) == true }
-            .flatMapTo(mutableSetOf()) { it.inst!!.registeredTable }
+        val allTable = ScriptRegistry.allScripts { it.inst != null }
+            .flatMapTo(mutableSetOf()) { it.inst?.registeredTable.orEmpty() }
 
         transaction {
             withDataBaseLock {
@@ -113,13 +114,5 @@ object DB : ServiceRegistry<Database>() {
             tables.forEach { TableVersion.check(it) }
         }
         exposedLogger.info("Finish check upgrade for ${tables.size} tables, costs $time ms")
-    }
-}
-
-DB.subscribe(this) {
-    try {
-        DB.initDB(it)
-    } catch (e: Exception) {
-        logger.log(Level.SEVERE, "Error when initDB", e)
     }
 }
