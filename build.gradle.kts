@@ -117,7 +117,11 @@ tasks {
     }
     withType<ProcessResources>().configureEach {
         exclude("META-INF")
-        expand("version" to loaderVersion)
+        filter<ReplaceTokens>(
+            "tokens" to mapOf(
+                "version" to loaderVersion
+            )
+        )
     }
     val buildPlugin by registering(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
         group = "plugin"
