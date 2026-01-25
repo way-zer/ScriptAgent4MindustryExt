@@ -1,6 +1,5 @@
 package coreLibrary.commands
 
-import cf.wayzer.placehold.PlaceHoldApi.with
 import cf.wayzer.scriptAgent.impl.ScriptCache
 import cf.wayzer.scriptAgent.util.CASScriptPacker
 import cf.wayzer.scriptAgent.util.MetadataFile
@@ -32,7 +31,6 @@ command("packModule", "打包模块".with(), commands = Commands.controlCommand)
         val module = arg.getOrNull(0) ?: replyUsage()
         val scripts = ScriptRegistry.allScripts { it.id.startsWith("$module/") }
             .mapNotNull { it.compiledScript }
-        @OptIn(SAExperimentalApi::class)
         CASScriptPacker(Config.cacheDir.resolve("$module.packed.zip").outputStream())
             .use { scripts.forEach(it::add) }
     }

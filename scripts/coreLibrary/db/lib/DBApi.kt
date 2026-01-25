@@ -16,7 +16,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import kotlin.system.measureTimeMillis
 
-@OptIn(SAExperimentalApi::class)
 object DBApi {
     val db = Services.get<Database>()
 

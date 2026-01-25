@@ -34,10 +34,16 @@ private fun mapIdToSourceSetName(id: String) = id.replace('/', '.')
 @ModuleBuilderMarker
 fun Project.defineModule(
     name: String,
+    onlyLibrary: Boolean = false,
     body: ModuleScope.() -> Unit,
 ) {
     val sourceSet = sourceSets.create(mapIdToSourceSetName(name)) {
-        java.srcDir(name)
+        if(!onlyLibrary){
+            java.srcDir(name)
+            java.exclude("lib/**")
+        }
+        //独立设置成srcDir，这样可以自定义package，不需要包含lib前缀。
+        java.srcDir("$name/lib")
     }
     ModuleScope(name, project, sourceSet).apply {
         configurations.create(exposedConfigurationName) {
@@ -55,14 +61,18 @@ fun Project.defineModule(
 }
 
 @ModuleBuilderMarker
-fun ModuleScope.subModule(name: String, body: ModuleScope.() -> Unit) {
+fun ModuleScope.subModule(
+    name: String,
+    onlyLibrary: Boolean = false,
+    body: ModuleScope.() -> Unit,
+) {
     val parent = this@subModule
     val project = parent.project
 
     val id = "${parent.moduleId}/$name"
     parent.sourceSet.java.exclude("$name/**")
     project.dependencies {
-        project.defineModule(id) {
+        project.defineModule(id, onlyLibrary = onlyLibrary) {
             dependsOn(parent)
             body()
         }

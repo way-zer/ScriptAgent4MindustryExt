@@ -20,18 +20,12 @@ FQ_NAME coreMindustry.Console
 +IMPORT MavenDependsSingle org.jline:jline-terminal-jansi:3.21.0
 +IMPORT MavenDependsSingle org.jline:jline-terminal:3.21.0
 
-ID coreMindustry/contentsTweaker
-FQ_NAME coreMindustry.ContentsTweaker
-+DEPENDS coreMindustry module
-+IMPORT MavenDependsSingle cf.wayzer:ContentsTweaker:v3.0.1
-+IMPORT MavenRepository https://www.jitpack.io/
-
 ID coreMindustry/menu
 FQ_NAME coreMindustry.Menu
 +DEPENDS coreMindustry module
 
-ID coreMindustry/scorebroad
-FQ_NAME coreMindustry.Scorebroad
+ID coreMindustry/scoreboard
+FQ_NAME coreMindustry.Scoreboard
 +DEPENDS coreMindustry module
 
 ID coreMindustry/util/packetHelper

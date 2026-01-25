@@ -9,19 +9,20 @@ dependencies {
         api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     }
     defineModule("bootStrap") {}
-    defineModule("coreLibrary") {
+    //不能设置为onlyLibrary，因为有子模块，IDEA会无法正确关联脚本所在模块。
+    defineModule("coreLibrary"/*, onlyLibrary = true*/) {
         api("com.github.way-zer:PlaceHoldLib:v7.3")
         api("io.github.config4k:config4k:0.7.0")
         api("org.slf4j:slf4j-api:2.0.16")
 
-        subModule("db"){
+        subModule("db", onlyLibrary = true) {
             val exposedVersion = "0.59.0"
             api("org.jetbrains.exposed:exposed-core:$exposedVersion")
             api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
             api("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
         }
 
-        subModule("extApi"){
+        subModule("extApi", onlyLibrary = true) {
             //coreLib/extApi/redisApi
             api("redis.clients:jedis:4.3.1")
             //coreLib/extApi/mongoApi
@@ -50,10 +51,12 @@ dependencies {
 
     defineModule("wayzer") {
         dependsOnModule("coreMindustry")
-        dependsOnModule("coreLibrary/db")
         api("com.google.guava:guava:30.1-jre")
         //wayzer/ext/profiler
         implementation("tools.profiler:async-profiler:4.1")
+        subModule("store") {
+            dependsOnModule("coreLibrary/db")
+        }
     }
     defineModule("mapScript") {
         dependsOnModule("wayzer")

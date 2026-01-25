@@ -9,7 +9,6 @@ import java.util.logging.Level
 
 onEnable {
     launch {
-        @OptIn(SAExperimentalApi::class)
         DBApi.db.observe().collect {
             if (it.size > 1) {
                 logger.warning("More than one database registered: $it")

@@ -24,6 +24,5 @@ onEnable {
         @OptIn(ExperimentalKeywordApi::class)
         preserveKeywordCasing = preserveKeywordCasing0
     })
-    @OptIn(SAExperimentalApi::class)
     Services.provide(db)
 }

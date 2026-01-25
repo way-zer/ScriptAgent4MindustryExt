@@ -75,31 +75,6 @@ sealed class CommandContext : DSLBuilder(), Cloneable {
     @Deprecated("misleading name", ReplaceWith("subContext()"))
     fun getSub(): CommandContext = subContext()
 
-    //===util===
-    /**Can't be call in coroutine or other context, use [reply] instead*/
-    @CommandInfo.CommandBuilder
-    fun returnReply(msg: VarString): Nothing {
-        reply(msg)
-        CommandInfo.Return()
-    }
-
-    @CommandInfo.CommandBuilder
-    inline fun onCompleteArg(index: Int, body: MutableList<String>.() -> Unit) {
-        if (this is TabComplete && arg.size == index + 1) {
-            result.body()
-        }
-    }
-
-    @CommandInfo.CommandBuilder
-    fun onComplete(index: Int, body: () -> List<String>) {
-        onCompleteArg(index) {
-            addAll(body())
-            CommandInfo.Return()//keep old behavior
-        }
-    }
-
-    inline val context get() = this
-
     class Command : CommandContext()
     class TabComplete : CommandContext() {
         var result = mutableListOf<String>()
@@ -441,13 +416,6 @@ open class Commands : CommandHandler, TabCompleter {
         var helpOverwrite: (suspend CommandContext.(cmds: Commands, showAll: Boolean, page: Int) -> Unit)? = null
     }
 }
-
-context(context: CommandContext)
-fun CommandHandler.canHandle() = context.canHandle()
-context(context: CommandContext)
-suspend inline fun CommandHandler.handle() = context.handle()
-context(context: CommandContext)
-suspend inline fun Commands.Hidden.visible() = context.visible()
 
 @ScriptDsl
 inline fun Script.command(

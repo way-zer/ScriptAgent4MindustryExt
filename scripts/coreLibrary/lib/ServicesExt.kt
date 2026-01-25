@@ -1,5 +1,3 @@
-@file:OptIn(SAExperimentalApi::class)
-
 package coreLibrary.lib
 
 import cf.wayzer.scriptAgent.define.SAExperimentalApi
