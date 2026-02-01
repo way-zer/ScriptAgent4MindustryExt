@@ -3,8 +3,9 @@
 package wayzer.pvp
 
 import mindustry.game.Team
+import wayzer.map.TeamService
 
-val teams = contextScript<wayzer.map.BetterTeam>()
+val teams by Services.get<TeamService>().notNull
 
 val score = IntArray(Team.all.size)
 fun doCheck() {

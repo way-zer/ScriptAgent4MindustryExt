@@ -53,6 +53,17 @@ FQ_NAME Postgres
 +DEPENDS coreLibrary/db module
 +IMPORT MavenDepends org.postgresql:postgresql:42.7.5
 
+ID coreLibrary/extApi/KVStore
+FQ_NAME KVStore
++DEPENDS coreLibrary module
++IMPORT MavenDependsSingle com.h2database:h2-mvstore:2.3.232
++IMPORT SourceFile ./lib/KVStore.kt
+
+ID coreLibrary/extApi/rpcService
+FQ_NAME RpcService
++DEPENDS coreLibrary module
++IMPORT SourceFile ./lib/RpcService.kt
+
 ID coreLibrary/lang
 FQ_NAME coreLibrary.Lang
 +DEPENDS coreLibrary module

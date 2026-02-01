@@ -6,14 +6,14 @@ import mindustry.game.Team
 import mindustry.net.Packets
 import kotlin.system.exitProcess
 
-var msg: String? = null
+var lastMsg: String? = null
 var doRestart: () -> Unit = {}
 listen<EventType.GameOverEvent> {
-    val msg = msg ?: return@listen
+    val msg = lastMsg ?: return@listen
     broadcast("[yellow]服务器即将重启: {msg}".with("msg" to msg), quite = true)
 }
 listen<EventType.PlayerJoin> {
-    val msg = msg ?: return@listen
+    val msg = lastMsg ?: return@listen
     launch(Dispatchers.gamePost) {
         it.player.sendMessage("[yellow]服务器将在本局游戏后自动重启: {msg}".with("msg" to msg))
     }
@@ -25,8 +25,8 @@ listen<EventType.StateChangeEvent> {
         doRestart()
 }
 
-fun scheduleRestart(msg: String, beforeExit: () -> Unit = {}) {
-    this.msg = msg
+fun scheduleRestart(msg: String, beforeExit: Runnable = {}) {
+    lastMsg = msg
     broadcast("[yellow]服务器将在本局游戏后自动重启: {msg}".with("msg" to msg))
     doRestart = {
         broadcast("[yellow]服务器重启:\n{msg}".with("msg" to msg), MsgType.InfoMessage)
@@ -35,12 +35,13 @@ fun scheduleRestart(msg: String, beforeExit: () -> Unit = {}) {
             it.kick(Packets.KickReason.serverRestarting)
         }
         Thread.sleep(100L)
-        beforeExit()
+        beforeExit.run()
         exitProcess(2)
     }
     if (state.isMenu)
         Core.app.post(doRestart)
 }
+export(::scheduleRestart)
 
 command("restart", "计划重启") {
     usage = "[--now] <msg>"

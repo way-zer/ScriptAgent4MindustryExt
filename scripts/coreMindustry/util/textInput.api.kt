@@ -1,16 +1,19 @@
-package coreMindustry
+package coreMindustry.util
 
-import mindustry.game.EventType.TextInputEvent
+import cf.wayzer.scriptAgent.Event
+import cf.wayzer.scriptAgent.define.Script
+import coreLibrary.lib.util.nextEvent
+import kotlinx.coroutines.withTimeoutOrNull
+import mindustry.gen.Call
+import mindustry.gen.Player
 import kotlin.random.Random
 
 data class OnTextInputResult(val player: Player, val id: Int, val text: String?) : Event {
     companion object : Event.Handler()
 }
 
-listen<TextInputEvent> {
-    OnTextInputResult(it.player, it.textInputId, it.text).launchEmit(coroutineContext + Dispatchers.game)
-}
-
+@Suppress("unused")
+context(script: Script)
 suspend fun textInput(
     player: Player,
     title: String,
@@ -22,6 +25,5 @@ suspend fun textInput(
 ): String? = withTimeoutOrNull(timeoutMillis.toLong()) {
     val id = Random.nextInt(Int.MIN_VALUE, 0)
     Call.textInput(player.con, id, title, message, lengthLimit, default, isNumeric)
-    nextEvent<OnTextInputResult> { it.player == player && it.id == id }.text
+    script.nextEvent<OnTextInputResult> { it.player == player && it.id == id }.text
 }
-export(::textInput)

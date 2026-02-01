@@ -1,19 +1,13 @@
 package wayzer.user.ext
 
-import arc.util.io.Writes
 import cf.wayzer.placehold.PlaceHoldApi.with
 import coreLibrary.lib.*
 import coreMindustry.lib.ClientOnly
 import coreMindustry.lib.broadcast
 import coreMindustry.lib.player
 import mindustry.Vars
-import mindustry.gen.Building
-import mindustry.gen.Call
 import mindustry.gen.Player
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
 import java.time.Duration
-
 
 object SkillPrecheck : CommandHandler {
     private val mapDisabled get() = Vars.state.rules.tags.getBool("@noSkills")
@@ -76,32 +70,25 @@ class SkillCooldown(val coolDown: Int = -1) : CommandHandler {
 @Suppress("unused")
 object SkillCommands : Commands() {
     val allCooldown = mutableListOf<SkillCooldown>()
-    @Suppress("MemberVisibilityCanBePrivate")
-    class SkillScope(val player: Player) {
-        fun broadcastSkill(skill: String) = broadcast(
-            "[yellow][技能][green]{player.name}[white]使用了[green]{skill}[white]技能."
-                .with("player" to player, "skill" to skill), quite = true
-        )
-
-        //util
-
-        fun syncTile(vararg builds: Building) {
-            val outStream = ByteArrayOutputStream()
-            val write = DataOutputStream(outStream)
-            builds.forEach {
-                write.writeInt(it.pos())
-                write.writeShort(it.block.id.toInt())
-                it.writeAll(Writes.get(write))
-            }
-            Call.blockSnapshot(builds.size.toShort(), outStream.toByteArray())
-        }
-    }
 }
 
+//没有数据字段，暂时设为object
+data object SkillCommandScope
+
+context(_: SkillCommandScope)
+val CommandContext.player: Player get() = player!!
+
+@Suppress("unused")
+context(_: SkillCommandScope)
+fun CommandContext.broadcastSkill(skill: String) = broadcast(
+    "[yellow][技能][green]{player.name}[white]使用了[green]{skill}[white]技能."
+        .with("player" to player, "skill" to skill), quite = true
+)
+
 @CommandInfo.CommandBuilder
-fun CommandInfo.skillBody(body: suspend context(CommandContext) SkillCommands.SkillScope.() -> Unit) {
+fun CommandInfo.skillBody(body: suspend context(SkillCommandScope) CommandContext.() -> Unit) {
     body {
-        body.invoke(context, SkillCommands.SkillScope(player!!))
+        body.invoke(SkillCommandScope, context)
         attrs.filterIsInstance<SkillCooldown>().singleOrNull()?.setCoolDown()
     }
 }

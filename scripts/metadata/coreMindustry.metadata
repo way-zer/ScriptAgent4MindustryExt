@@ -36,6 +36,10 @@ ID coreMindustry/util/spawnAround
 FQ_NAME coreMindustry.util.SpawnAround
 +DEPENDS coreMindustry module
 
+ID coreMindustry/util/textInput
+FQ_NAME coreMindustry.util.TextInput
++DEPENDS coreMindustry module
+
 ID coreMindustry/util/trackBuilding
 FQ_NAME coreMindustry.util.TrackBuilding
 +DEPENDS coreMindustry module
@@ -46,10 +50,6 @@ FQ_NAME coreMindustry.UtilMapRule
 
 ID coreMindustry/utilNextChat
 FQ_NAME coreMindustry.UtilNextChat
-+DEPENDS coreMindustry module
-
-ID coreMindustry/utilTextInput
-FQ_NAME coreMindustry.UtilTextInput
 +DEPENDS coreMindustry module
 
 ID coreMindustry/variables

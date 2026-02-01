@@ -2,6 +2,7 @@
 
 package wayzer.reGrief
 
+import mindustry.world.blocks.logic.LogicBlock
 import wayzer.MapManager
 import kotlin.time.Duration.Companion.seconds
 
@@ -33,4 +34,11 @@ listen<EventType.ResetEvent> {
 listen<EventType.ConnectPacketEvent> {
     //Someone request connect, maybe want to play
     newMap = false
+}
+
+listen<EventType.PlayEvent> {
+    if (content.blocks().filterIsInstance<LogicBlock>().any { it.maxInstructionsPerTick > 1000 }) {
+        broadcast("[yellow]检查到地图含恶意修改，自动换图".with())
+        MapManager.loadMap()
+    }
 }

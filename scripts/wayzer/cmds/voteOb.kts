@@ -1,75 +1,73 @@
 @file:Depends("wayzer/cmds/voteKick", "功能控制，使用util，覆盖votekick")
 @file:Depends("wayzer/map/betterTeam", "强制观察者")
+@file:Depends("wayzer/cmds/share")
 
 package wayzer.cmds
 
 import wayzer.VoteEvent
-import wayzer.map.BetterTeam
+import wayzer.map.AssignTeamEvent
+import wayzer.map.TeamService
 import java.time.Duration
 import java.time.Instant
 
-val teams = contextScript<BetterTeam>()
-val voteKick = contextScript<VoteKick>()
+val teams by Services.get<TeamService>().notNull
 
 @Savable(false)
 val limitPlayers = mutableMapOf<String, Pair<String, Instant>>()//profile -> reason,time
-customLoad(this::limitPlayers) { limitPlayers.putAll(it) }
+customLoad(::limitPlayers) { limitPlayers.putAll(it) }
 
-onEnable {
-    val script = this
-    VoteEvent.VoteCommands += CommandInfo(script, "ob", "强制观战") {
-        aliases = listOf("观战")
-        usage = "<玩家名/id> <理由>"
-        permission = "wayzer.vote.ob"
-        body {
-            val target = with(voteKick) { getTarget() }
-            val reason = with(voteKick) { getInput("限制观战理由", "[red]投票限制他人需要理由".with()) }
-            val player = player!!
-            val event = VoteEvent(
-                script, player,
-                voteDesc = "强制观战(目标[red]{target.name}[yellow])".with("target" to target),
-                extDesc = "[red]理由: [yellow]${reason}"
-            )
-            val ids = PlayerData[target].ids
-            if (event.awaitResult()) {
-                if (target.hasPermission("wayzer.admin.skipKick"))
-                    return@body broadcast(
-                        "[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target)
-                    )
-                ids.forEach {
-                    limitPlayers[it] = reason to Instant.now()
-                }
-                teams.changeTeam(target, teams.spectateTeam)
-                broadcast(
-                    "[yellow][提示][green]如目标用户继续捣乱，可以使用[gold]/vote kick {player.shortID}[]投票踢出".with(
-                        "player" to target
-                    )
+command("ob", "强制观战".with(), commands = VoteEvent.VoteCommands) {
+    aliases = listOf("观战")
+    usage = "<玩家名/id> <理由>"
+    permission = "wayzer.vote.ob"
+    body {
+        val target = getTarget()
+        val reason = getInput("限制观战理由", "[red]投票限制他人需要理由".with())
+        val player = player!!
+        val event = VoteEvent(
+            thisScript, player,
+            voteDesc = "强制观战(目标[red]{target.name}[yellow])".with("target" to target),
+            extDesc = "[red]理由: [yellow]${reason}"
+        )
+        val ids = PlayerData[target].ids
+        if (event.awaitResult()) {
+            if (target.hasPermission("wayzer.admin.skipKick"))
+                return@body broadcast(
+                    "[red]错误: {target.name}[red]为管理员, 如有问题请与服主联系".with("target" to target)
                 )
+            ids.forEach {
+                limitPlayers[it] = reason to Instant.now()
             }
+            teams.changeTeam(target, AssignTeamEvent.spectateTeam)
+            broadcast(
+                "[yellow][提示][green]如目标用户继续捣乱，可以使用[gold]/vote kick {player.shortID}[]投票踢出".with(
+                    "player" to target
+                )
+            )
         }
     }
-    VoteEvent.VoteCommands += CommandInfo(script, "quitOb", "解除强行观战限制(限本人)") {
-        aliases = listOf("解除观战")
-        body {
-            val player = player!!
-            val id = PlayerData[player].id
-            val (reason, time) = limitPlayers[id]
-                ?: returnReply("[yellow]你未被限制游戏，无需解除".with())
-            val delta = Duration.between(time, Instant.now())
-            val event = VoteEvent(
-                script, player,
-                voteDesc = "解除强制(已持续{delta 分钟})".with("delta" to delta),
-                extDesc = "[yellow]被限制时的理由: $reason"
-            )
-            if (event.awaitResult()) {
-                limitPlayers.remove(id)
-                teams.changeTeam(player)
-            }
+}
+command("quitOb", "解除强行观战限制(限本人)".with(), commands = VoteEvent.VoteCommands) {
+    aliases = listOf("解除观战")
+    body {
+        val player = player!!
+        val id = PlayerData[player].id
+        val (reason, time) = limitPlayers[id]
+            ?: returnReply("[yellow]你未被限制游戏，无需解除".with())
+        val delta = Duration.between(time, Instant.now())
+        val event = VoteEvent(
+            thisScript, player,
+            voteDesc = "解除强制(已持续{delta 分钟})".with("delta" to delta),
+            extDesc = "[yellow]被限制时的理由: $reason"
+        )
+        if (event.awaitResult()) {
+            limitPlayers.remove(id)
+            teams.changeTeam(player)
         }
     }
 }
 
-listenTo<BetterTeam.AssignTeamEvent>(Event.Priority.Intercept) {
+listenTo<AssignTeamEvent>(Event.Priority.Intercept) {
     limitPlayers[PlayerData[player].id]?.let { (reason, time) ->
         val delta = Duration.between(time, Instant.now())
         player.sendMessage(
@@ -81,14 +79,14 @@ listenTo<BetterTeam.AssignTeamEvent>(Event.Priority.Intercept) {
             """.trimIndent().with("reason" to reason, "delta" to delta),
             MsgType.InfoMessage
         )
-        team = teams.spectateTeam
+        team = AssignTeamEvent.spectateTeam
     }
 }
 command("votekick", "(弃用)投票踢人") {
     this.usage = "<player...>"
     attr(ClientOnly)
     body {
-        //Redirect
+//Redirect
         arg = listOf("ob", *arg.toTypedArray())
         VoteEvent.VoteCommands.handle()
     }
@@ -97,16 +95,16 @@ command("forceOB", "管理指令：使某人强制观战") {
     usage = "<玩家名/id>"
     permission = "wayzer.admin.forceOb"
     body {
-        val target = with(voteKick) { getTarget() }
+        val target = getTarget()
         val id = PlayerData[target].id
         if (id in limitPlayers) {
             limitPlayers.remove(id)
             teams.changeTeam(target)
             returnReply("[green]已解除目标限制".with())
         }
-        val reason = with(voteKick) { getInput("限制观战理由", "[red]投票限制他人需要理由".with()) }
+        val reason = getInput("限制观战理由", "[red]投票限制他人需要理由".with())
         limitPlayers[id] = reason to Instant.now()
-        teams.changeTeam(target, teams.spectateTeam)
+        teams.changeTeam(target, AssignTeamEvent.spectateTeam)
         broadcast(
             "[red] 管理员强制{target.name}[red]成为观察者,原因: [yellow]{reason}"
                 .with("target" to target, "reason" to reason)

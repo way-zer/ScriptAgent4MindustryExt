@@ -1,15 +1,15 @@
 @file:Depends("wayzer/maps")
 @file:Depends("coreMindustry/menu", "maps菜单")
-@file:Depends("wayzer/cmds/voteMap", "发起投票换图")
+@file:Depends("wayzer/cmds/voteMap", "发起投票换图", soft = true)
 
 package wayzer.cmds
 
 import coreMindustry.MenuV2
 import coreMindustry.renderPaged
+import wayzer.MapInfo
 import wayzer.MapRegistry
 
 val mapsPrePage by config.key(9, "/maps每页显示数")
-val voteMap = contextScript<VoteMap>()
 
 command("maps", "列出服务器地图") {
     usage = "[page/filter] [page]"
@@ -36,7 +36,9 @@ command("maps", "列出服务器地图") {
                         player.sendMessage("[red]你没有投票换图的权限".with())
                         return@option
                     }
-                    voteMap.voteMap(player, it)
+                    depends("wayzer/cmds/voteMap")?.import<(Player, MapInfo) -> Unit>("voteMap")
+                        ?.invoke(player, it)
+                        ?: returnReply("调用失败，请手动换图: /vote map {info.id}".with("info" to it))
                 }
             }
         }.send().awaitWithTimeout()

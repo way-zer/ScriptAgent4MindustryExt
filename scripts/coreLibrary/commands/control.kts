@@ -18,6 +18,29 @@ command("scan", "重新扫描脚本".with(), commands = Commands.controlCommand)
         reply("[green]扫描完成,新发现{count}脚本".with("count" to (now - old)))
     }
 }
+command("listFailed", "列出所有故障脚本".with(), commands = Commands.controlCommand) {
+    usage = "[prefix]"
+    requirePermission("scriptAgent.control.list")
+    aliases = listOf("fail", "failed")
+    body {
+        val prefix = arg.firstOrNull().orEmpty()
+        val scripts = ScriptRegistry.allScripts {
+            it.id.startsWith(prefix) && !it.transaction.ready()
+        }
+        for (info in scripts) {
+            reply(buildString {
+                appendLine("[${info.scriptState}] ${info.id}")
+                info.conditions.filter { it.status != ConditionState.Status.Success }.forEach { c ->
+                    c.display().forEach {
+                        append("  ")
+                        appendLine(it)
+                    }
+                }
+                deleteAt(length - 1)
+            }.asPlaceHoldString())
+        }
+    }
+}
 command("list", "列出所有模块或模块内所有脚本".with(), commands = Commands.controlCommand) {
     usage = "[module/fail]"
     requirePermission("scriptAgent.control.list")

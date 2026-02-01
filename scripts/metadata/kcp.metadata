@@ -1,3 +1,4 @@
 ID kcp/serialization
-FQ_NAME coreLibrary.kcp.Serialization
+FQ_NAME kcp.Serialization
++IMPORT MavenDepends org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0
 

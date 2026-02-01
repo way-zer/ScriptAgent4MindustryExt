@@ -1,4 +1,4 @@
-@file:Depends("wayzer/cmds/restart", "计划重启")
+@file:Depends("wayzer/cmds/restart", "计划重启", soft = true)
 
 package wayzer.ext
 
@@ -91,16 +91,17 @@ suspend fun update(version: String, url: String) {
         throw e
     }
     Log.info("新版本 $version 下载完成: ${size / 1024}KB")
-    contextScript<wayzer.cmds.Restart>().scheduleRestart("新版本更新 $version") {
-        dest.outputStream().use { output ->
-            tmp.inputStream().use { it.copyTo(output) }
-            output.flush()
+    depends("wayzer/cmds/restart")?.import<(String, Runnable) -> Unit>("scheduleRestart")
+        ?.invoke("新版本更新 $version") {
+            dest.outputStream().use { output ->
+                tmp.inputStream().use { it.copyTo(output) }
+                output.flush()
+            }
+            tmp.delete()
+            Log.info(
+                "&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically."
+            )
         }
-        tmp.delete()
-        Log.info(
-            "&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically."
-        )
-    }
 }
 
 command("forceUpdate", "强制更新服务器版本") {
