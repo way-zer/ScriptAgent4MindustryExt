@@ -1,4 +1,5 @@
-package coreLibrary.extApi
+@file:Implement(coreLib.extApi.RpcService::class)
+@file:Import("./lib/RpcService.kt", sourceFile = true)
 
 import java.rmi.Remote
 import java.rmi.registry.LocateRegistry
@@ -25,8 +26,6 @@ onEnable {
     }
 }
 
-inline fun <reified T : Remote> get(): T = get(T::class.java) as T
-inline fun <reified T : Remote> register(noinline factory: () -> T) = register(T::class.java, factory)
 
 fun <T : Remote> get(inf: Class<T>): Remote {
     if (isMaster) return registry.lookup(inf.name)
@@ -53,6 +52,6 @@ fun <T : Remote> register(inf: Class<T>, factory: () -> T) {
     logger.info("RPC service registered: $name")
     service.thisContextScript().onDisable {
         registry.unbind(name)
-        UnicastRemoteObject.unexportObject(service, true);
+        UnicastRemoteObject.unexportObject(service, true)
     }
 }

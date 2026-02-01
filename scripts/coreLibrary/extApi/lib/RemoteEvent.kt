@@ -1,20 +1,18 @@
 package coreLib.extApi
 
 import cf.wayzer.scriptAgent.Event
-import cf.wayzer.scriptAgent.define.SAExperimentalApi
 import cf.wayzer.scriptAgent.util.Services
-import coreLibrary.lib.all
+import coreLibrary.lib.nullable
 import java.io.Serializable
 
+//@file:Depends("coreLibrary/extApi/remoteEventApi")
 @Suppress("unused")//Api
 abstract class RemoteEvent : Event, Serializable {
     private val handler0 get() = super.handler
     final override val handler: Event.Handler get() = error("You should use RemoteEvent.emit()")
 
     fun launchEmit() {
-        service.forEach {
-            it.remoteEmit(this)
-        }
+        service?.remoteEmit(this)
     }
 
     internal suspend fun onReceive() {
@@ -24,9 +22,7 @@ abstract class RemoteEvent : Event, Serializable {
     abstract class Handler : Event.Handler() {
         init {
             val eventCls = javaClass.enclosingClass
-            service.forEach {
-                it.registerType(eventCls)
-            }
+            service?.registerType(eventCls)
         }
     }
 
@@ -34,8 +30,7 @@ abstract class RemoteEvent : Event, Serializable {
         fun remoteEmit(event: RemoteEvent)
         fun registerType(cls: Class<*>)
     }
-    @OptIn(SAExperimentalApi::class)
     companion object {
-        val service: List<Impl> by Services.get<Impl>().all
+        val service: Impl? by Services.get<Impl>().nullable
     }
 }

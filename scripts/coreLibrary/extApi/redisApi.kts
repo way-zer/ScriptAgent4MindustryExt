@@ -1,32 +1,25 @@
 @file:Import("redis.clients:jedis:4.4.3", mavenDepends = true)
+@file:Import("./lib/RedisApi.kt", sourceFile = true)
 
-package coreLibrary.extApi
-
-import redis.clients.jedis.Jedis
+import cf.wayzer.scriptAgent.util.Services
 import redis.clients.jedis.JedisPool
 import java.util.logging.Level
 
-@Suppress("unused")//Api
-object Redis : ServiceRegistry<JedisPool>() {
-    inline fun <T> use(body: Jedis.() -> T): T {
-        return get().resource.use(body)
-    }
-}
-
-val addr by config.key("redis://redis:6379", "redis地址", "重载生效")
+val addr by config.key("", "redis地址", "格式：\"redis://redis:6379\"，重载生效")
 onEnable {
+    if (addr.isEmpty()) {
+        ScriptManager.disableScript(this, "未配置Redis服务器")
+        return@onEnable
+    }
     try {
-        Redis.provide(this, JedisPool(addr).apply {
+        Services.provide(JedisPool(addr).apply {
             testOnCreate = true
             testOnBorrow = true
             resource.use { it.ping() }
+            onDisable { close() }
         })
     } catch (e: Throwable) {
         logger.log(Level.WARNING, "连接Redis服务器失败: $addr", e)
         return@onEnable ScriptManager.disableScript(this, "连接Redis服务器失败: $e")
     }
-}
-
-onDisable {
-    Redis.getOrNull()?.close()
 }
