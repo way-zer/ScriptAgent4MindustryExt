@@ -28,6 +28,14 @@ ID coreMindustry/scoreboard
 FQ_NAME coreMindustry.Scoreboard
 +DEPENDS coreMindustry module
 
+ID coreMindustry/util/newContent
+FQ_NAME coreMindustry.util.NewContent
++DEPENDS coreMindustry module
+
+ID coreMindustry/util/nextChat
+FQ_NAME coreMindustry.util.NextChat
++DEPENDS coreMindustry module
+
 ID coreMindustry/util/packetHelper
 FQ_NAME coreMindustry.util.PacketHelper
 +DEPENDS coreMindustry module
@@ -42,10 +50,6 @@ FQ_NAME coreMindustry.util.TextInput
 
 ID coreMindustry/util/trackBuilding
 FQ_NAME coreMindustry.util.TrackBuilding
-+DEPENDS coreMindustry module
-
-ID coreMindustry/utilMapRule
-FQ_NAME coreMindustry.UtilMapRule
 +DEPENDS coreMindustry module
 
 ID coreMindustry/utilNextChat
