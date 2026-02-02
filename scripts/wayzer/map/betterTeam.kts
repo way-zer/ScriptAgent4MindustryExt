@@ -21,11 +21,23 @@ val allTeam: Set<Team>
     }
 
 var bannedTeam = emptySet<Team>()
+val connectingPlayers = mutableListOf<Player>()
+fun getConnectingPlayers(): List<Player> {
+    connectingPlayers.removeAll { it.con == null || it.con.isConnected || it.con.hasConnected }
+    return connectingPlayers
+}
 
 onEnable {
     val backup = netServer.assigner
     netServer.assigner = NetServer.TeamAssigner { p, g ->
-        randomTeam(p, g)
+        //特殊处理 connectingPlayers，避免一群人连入时分配不均
+        val g2 = if (g == Groups.player) {
+            if (!p.con.isConnected) {
+                connectingPlayers.add(p)
+            }
+            getConnectingPlayers() + g
+        } else g
+        randomTeam(p, g2)
     }
     onDisable { netServer.assigner = backup }
     updateBannedTeam(true)
@@ -36,6 +48,7 @@ val savedTeams = mutableMapOf<String, Team>()
 listen<EventType.ResetEvent> {
     bannedTeam = emptySet()
     savedTeams.clear()
+    connectingPlayers.clear()
 }
 listen<EventType.PlayerLeave> { savedTeams[it.player.uuid()] = it.player.team() }
 
