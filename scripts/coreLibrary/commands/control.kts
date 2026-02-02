@@ -22,6 +22,12 @@ command("listFailed", "列出所有故障脚本".with(), commands = Commands.con
     usage = "[prefix]"
     requirePermission("scriptAgent.control.list")
     aliases = listOf("fail", "failed")
+    onComplete {
+        onComplete(0) {
+            ScriptRegistry.allScripts().map { it.id.substringBefore(Config.idSeparator) }
+                .toSet().sortedBy { it }
+        }
+    }
     body {
         val prefix = arg.firstOrNull().orEmpty()
         val scripts = ScriptRegistry.allScripts {
@@ -42,7 +48,7 @@ command("listFailed", "列出所有故障脚本".with(), commands = Commands.con
     }
 }
 command("list", "列出所有模块或模块内所有脚本".with(), commands = Commands.controlCommand) {
-    usage = "[module/fail]"
+    usage = "[module]"
     requirePermission("scriptAgent.control.list")
     aliases = listOf("ls", "列出")
     onComplete {
@@ -59,12 +65,14 @@ command("list", "列出所有模块或模块内所有脚本".with(), commands = 
                 .map { "[purple]${it.key.padEnd(20)} [blue]${it.value}" }
             returnReply("[yellow]==== [light_yellow]已加载模块[yellow] ====\n{list|joinLines}".with("list" to list))
         }
+        if (module.equals("fail", true)) returnReply("[red]请使用新指令/sa fail [prefix]".with())
         val list = ScriptRegistry.allScripts {
-            if (module.equals("fail", true)) it.conditions.any { c -> c.status != ConditionState.Status.Success }
-            else it.id.startsWith(module + Config.idSeparator)
-        }.map {
-            if (it.enabled) "[purple][${it.scriptState}] ${it.id}"
-            else "[reset][${it.scriptState}] ${it.id.padEnd(30)} ${it.conditions}"
+            it.id.startsWith(module + Config.idSeparator)
+        }.map { script ->
+            val color = if (script.transaction.ready()) "green" else "red"
+            val conditions = script.conditions.filter { it.status != ConditionState.Status.Success }
+                .joinToString("") { "${it.type}${it.status}" }
+            "[$color]${script.id.padEnd(30)}[reset] [${script.scriptState}] $conditions"
         }
         reply(
             "[yellow]==== [light_yellow]{module}脚本[yellow] ====\n{list|joinLines}".with(
