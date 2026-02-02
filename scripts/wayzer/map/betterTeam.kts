@@ -8,8 +8,6 @@ import mindustry.game.Team
 import mindustry.world.blocks.storage.CoreBlock
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild
 
-name = "更好的队伍"
-
 val allTeam: Set<Team>
     get() {
         if (!state.rules.pvp) return setOf(state.rules.defaultTeam)
@@ -22,7 +20,7 @@ val allTeam: Set<Team>
 
 var bannedTeam = emptySet<Team>()
 val connectingPlayers = mutableListOf<Player>()
-fun getConnectingPlayers(): List<Player> {
+fun checkConnectingPlayers(): List<Player> {
     connectingPlayers.removeAll { it.con == null || it.con.isConnected || it.con.hasConnected }
     return connectingPlayers
 }
@@ -35,7 +33,7 @@ onEnable {
             if (!p.con.isConnected) {
                 connectingPlayers.add(p)
             }
-            getConnectingPlayers() + g
+            checkConnectingPlayers() + g
         } else g
         randomTeam(p, g2)
     }
