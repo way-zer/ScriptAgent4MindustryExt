@@ -1,7 +1,6 @@
 package mapScript
 
 import arc.math.Mathf
-import cf.wayzer.scriptAgent.contextScript
 import coreLibrary.lib.with
 import coreMindustry.MenuBuilder
 import coreMindustry.lib.MsgType
@@ -24,13 +23,24 @@ import kotlin.reflect.KMutableProperty0
 
 private val confirmed = mutableSetOf<String>()
 
+data class CoreWarTeamData(val team: Team) {
+    var blockDamageMultiplier by team.rules()::blockDamageMultiplier
+    var blockHealthMultiplier by team.rules()::blockHealthMultiplier
+    var unitDamageMultiplier by team.rules()::unitDamageMultiplier
+    var unitHealthMultiplier by team.rules()::unitHealthMultiplier
+
+    companion object {
+        val map = mutableMapOf<Team, CoreWarTeamData>()
+        fun get(team: Team) = map.getOrPut(team) { CoreWarTeamData(team) }
+    }
+}
+
 class CoreWarMenu(val player: Player, val build: Building) : MenuBuilder<Unit>(followup = true) {
-    private val script = contextScript<_13545>()
     private val isErekir = build.block in arrayOf(Blocks.coreAcropolis, Blocks.coreBastion, Blocks.coreCitadel)
     private val item = if (isErekir) Items.beryllium else Items.copper
     private fun Building.getResource() = items.get(item)
     private fun Building.removeResource(v: Int) = items.remove(item, v)
-    private val Team.myData get() = with(script) { myData }
+    private val Team.myData: CoreWarTeamData get() = CoreWarTeamData.get(this)
 
     @MenuBuilderDsl
     suspend fun costOption(title: String, cost: () -> Int, body: () -> Boolean) = lazyOption {

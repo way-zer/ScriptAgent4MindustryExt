@@ -37,7 +37,7 @@ suspend fun main() {
         else
             Config.args.forEach { compileOnly(it) }
     }.run {
-        val fail = conditions.values.filter { it.status == ConditionState.Status.Success }
+        val fail = conditions.values.filter { it.status != ConditionState.Status.Success }
         println("共加载${conditions.size}个脚本，失败${fail.size}个")
         printResult()
         if (System.getProperty("ScriptAgent.PreparePack") != null) {

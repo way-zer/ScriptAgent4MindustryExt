@@ -14,39 +14,13 @@ import wayzer.MapRegistry
 
 val children get() = ScriptRegistry.allScripts { it != scriptInfo && it.dependsOn(scriptInfo) }
 
-onEnable {
-    //Disable all non-controller scripts
-    children.forEach {
-        if (it.scriptState == ScriptState.ToEnable && it.inst?.mapScriptController != true) {
-            it.stateUpdateForce(ScriptState.Loaded)
-        }
-    }
-}
-
-listen<EventType.ResetEvent> {
+listen<EventType.ResetEvent> { _ ->
     MindustryDispatcher.safeBlocking {
-        ScriptManager.transaction {
-            addAll(children)
-            disable()
-            getForState(ScriptState.ToEnable).forEach {
-                it.stateUpdateForce(ScriptState.Loaded)
-            }
-        }
-    }
-}
-
-listen<EventType.ResetEvent> {
-    //try update child scripts
-    ScriptRegistry.scanRoot()
-    MindustryDispatcher.safeBlocking {
-        ScriptManager.transaction {
-            addAll(children)
-            removeIf { it.compiledScript?.source.run { this == null || this == it.source } }
-            if (isEmpty()) return@transaction
-
-            logger.info("Unload outdated script: ${toList()}")
-            unload()//unload all updatable
-        }
+        ScriptManager.transactionV2 {
+            disable(children.filter { it.enabled })
+            execute().printResult()
+            load(keys.toList())
+        }.printResult()
     }
 }
 
@@ -78,9 +52,8 @@ listen<EventType.WorldLoadEvent> {
     val toLoad = getToLoadMapScripts()
     if (toLoad.isEmpty()) return@listen
     MindustryDispatcher.safeBlocking {
-        ScriptManager.transaction {
-            addAll(toLoad)
-            load(); enable()
+        ScriptManager.transactionV2 {
+            enable(toLoad)
         }
     }
     toLoad.forEach { checkEnabled(it) }

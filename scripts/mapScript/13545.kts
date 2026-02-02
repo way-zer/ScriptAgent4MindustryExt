@@ -6,7 +6,6 @@
 package mapScript
 
 import arc.util.Align
-import coreLibrary.lib.util.loop
 import mindustry.game.Team
 import mindustry.gen.Iconc
 import mindustry.net.Administration
@@ -34,20 +33,12 @@ val patch = """
 """.trimIndent()
 mapPatches = listOf(patch)
 
-data class TeamData(val team: Team) {
-    var blockDamageMultiplier by team.rules()::blockDamageMultiplier
-    var blockHealthMultiplier by team.rules()::blockHealthMultiplier
-    var unitDamageMultiplier by team.rules()::unitDamageMultiplier
-    var unitHealthMultiplier by team.rules()::unitHealthMultiplier
-}
-
-val teamData = mutableMapOf<Team, TeamData>()
-val Team.myData get() = teamData.getOrPut(this) { TeamData(this) }
-onDisable { teamData.clear() }
+val Team.myData get() = CoreWarTeamData.get(this)
+onDisable { CoreWarTeamData.map.clear() }
 
 registerActionFilter {
-    if(it.type == Administration.ActionType.control || it.type==Administration.ActionType.command){
-        if(it.unit.type == UnitTypes.mono)
+    if (it.type == Administration.ActionType.control || it.type == Administration.ActionType.command) {
+        if (it.unit.type == UnitTypes.mono)
             return@registerActionFilter false
     }
     true

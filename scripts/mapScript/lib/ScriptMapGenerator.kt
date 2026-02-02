@@ -60,7 +60,7 @@ class ScriptMapGenerator(val script: Script, val width: Int, val height: Int) {
         }
         if (script.enabled) return// Already enabled inside WorldLoadEvent
         MindustryDispatcher.safeBlocking {
-            ScriptManager.enableScript(script, true)
+            ScriptManager.enableScript(script)
         }
         if (!thisContextScript().checkEnabled(script.scriptInfo)) {
             MapManager.loadMap()

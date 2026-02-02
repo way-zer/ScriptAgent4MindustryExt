@@ -15,7 +15,4 @@ fun Script.modeIntroduce(mode: String, introduce: String) {
 }
 
 @ScriptDsl
-var Script.mapScriptController by DSLBuilder.dataKey<Boolean>()
-
-@ScriptDsl
 var Script.mapPatches by DSLBuilder.dataKey<List<String>>()

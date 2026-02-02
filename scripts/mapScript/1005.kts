@@ -21,11 +21,11 @@ registerGenerator(
     "HEXed*[yellow]沙滩海战", "WayZer", """
         你落到了一个满是水的星球，
         不过我们有传统异能-[sky]填海造陆[]
-        
+
         另外我们有先进的技术，能够从空气中获取能量-[sky]无限火力[]
         并且只需要一点点引子就能量转换为物质-[sky](几乎)免费建筑[]
         但是纯能量速度毕竟有点慢
-        
+
         [@pvpProtect=0]
         平衡调整：削弱t4海辅治疗能力, 大治疗治疗量等于小治疗(范围更大)
         中泵30玻璃10合金，大泵30氧化物
@@ -73,8 +73,6 @@ registerGenerator(
     genRound("initHexData") { HexData.init(generator.chunkCenters, coreSchema) }
 }
 
-val base = contextScript<_14562>()
-
 @Language("JSON5")
 val patch = """{
     "name": "1005",
@@ -100,7 +98,7 @@ onEnable {
     //            """block.${it.name}.consumers:{clearItems:1,clearLiquids:1},"""
     //        }}
     HexData.extraLoadout.add {
-        coreTile.getLinkedTiles { base.myTiles[it.array()].discover() }
+        coreTile.getLinkedTiles { IslandTile.tiles[it.array()].discover() }
     }
     loop(Dispatchers.game) {
         delay(1000)
