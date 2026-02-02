@@ -57,9 +57,8 @@ FQ_NAME wayzer.cmds.Vote
 
 ID wayzer/cmds/voteKick
 FQ_NAME wayzer.cmds.VoteKick
-+DEPENDS coreMindustry/menu 菜单选人
-+DEPENDS coreMindustry/util/textInput 输入理由
 +DEPENDS wayzer module
++DEPENDS wayzer/cmds/share 
 +DEPENDS wayzer/user/ban 禁封实现
 +DEPENDS wayzer/vote 投票实现
 

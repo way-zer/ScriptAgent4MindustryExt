@@ -44,6 +44,13 @@ FQ_NAME mapScript._13545
 +DEPENDS coreMindustry/util/spawnAround
 +DEPENDS mapScript module
 
+ID mapScript/14562
+FQ_NAME mapScript._14562
++DEPENDS mapScript module
+ID mapScript/999
+FQ_NAME mapScript._999
++DEPENDS mapScript module
+
 ID mapScript/shared/hexed
 FQ_NAME mapScript.shared.Hexed
 +DEPENDS mapScript module
@@ -56,7 +63,6 @@ FQ_NAME mapScript.shared.PosMark
 ID mapScript/tags/TDDrop
 FQ_NAME mapScript.tags.TDDrop
 +DEPENDS mapScript module
-
 
 ID mapScript/tags/autoExchange
 FQ_NAME mapScript.tags.AutoExchange
