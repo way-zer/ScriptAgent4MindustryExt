@@ -6,47 +6,60 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: write  # 需要写权限来创建 release
+
 jobs:
-  Release:
+  release:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: oven-sh/setup-bun@v2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - name: Generate Changelog
+
+      - name: Generate changelog
         id: changelog
         run: bun run .github/actions/changelog.ts
         env:
           INPUT_TOKEN: ${{ github.token }}
 
-      - uses: actions/cache@v4
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: deps-${{ hashFiles('build.gradle.kts', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            deps-
-      - uses: actions/cache@v4
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # 保留自定义的 libs 缓存
+      - name: Cache libs directory
+        uses: actions/cache@v4
         with:
           path: libs
           key: sa-deps-${{ hashFiles('scripts/build.gradle.kts') }}
           restore-keys: |
             sa-deps-
 
-      - name: Run unit tests and build JAR
+      - name: Build release artifacts
         run: ./gradlew buildPlugin precompileZip allInOneJar
 
-      - name: upload artifacts
-        uses: softprops/action-gh-release@v1
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
           prerelease: true
-          name: "${{github.ref_name}}"
-          body: ${{steps.changelog.outputs.releaseBody}}
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.releaseBody }}
           files: |
             build/distributions/*
             build/libs/*
