@@ -1,12 +1,12 @@
-package coreMindustry
+package coreMindustry.util
 
+import coreMindustry.lib.game
+import kotlinx.coroutines.Dispatchers
+import mindustry.Vars.content
 import mindustry.core.ContentLoader
 import mindustry.ctype.Content
 import mindustry.ctype.MappableContent
 import java.lang.reflect.Modifier
-import kotlin.reflect.KMutableProperty0
-
-val bakMap = mutableMapOf<KMutableProperty0<*>, Any?>()
 
 /**Should invoke in [Dispatchers.game] */
 fun <T : Content, R : T> newContent(origin: T, block: (origin: T) -> R): R {
@@ -27,27 +27,5 @@ fun <T : Content, R : T> newContent(origin: T, block: (origin: T) -> R): R {
         }
     } finally {
         content = bak
-    }
-}
-
-fun <T> registerMapRule(field: KMutableProperty0<T>, checkRef: Boolean = true, valueFactory: (T) -> T) {
-    synchronized(bakMap) {
-        @Suppress("UNCHECKED_CAST")
-        val old = (bakMap[field] as T?) ?: field.get()
-        val new = valueFactory(old)
-        if (field !in bakMap && checkRef && new is Any && new === old)
-            error("valueFactory can't return the same instance for $field")
-        field.set(new)
-        bakMap[field] = old
-    }
-}
-
-listen<EventType.ResetEvent> {
-    synchronized(bakMap) {
-        bakMap.forEach { (field, bakValue) ->
-            @Suppress("UNCHECKED_CAST")
-            (field as KMutableProperty0<Any?>).set(bakValue)
-        }
-        bakMap.clear()
     }
 }
