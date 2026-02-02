@@ -25,14 +25,19 @@ listen<EventType.ResetEvent> { _ ->
 }
 
 fun getToLoadMapScripts(): List<ScriptInfo> {
-    return buildList {
-        ScriptManager.getScriptNullable("mapScript/${MapManager.current.id}")?.id?.let { add(it) }
-        state.rules.tags.get("@mapScript")?.let { add("mapScript/${it.toIntOrNull() ?: MapManager.current.id}") }
-        addAll(TagSupport.findTags(state.rules).values)
-    }.mapNotNull { scriptId ->
-        ScriptRegistry.getScriptInfo(scriptId) ?: null.also {
-            delayBroadcast("[red]该服务器不存在对应地图脚本，请联系管理员: {id}".with("id" to scriptId))
+    //匹配所有mapScript子脚本，且名字与id匹配的
+    val children = children
+    val byId = children.find { it.id.endsWith("/${MapManager.current.id}") }
+    val byTag = state.rules.tags.get("@mapScript")?.let { tag ->
+        val tagId = tag.toIntOrNull() ?: MapManager.current.id
+        children.find { it.id.endsWith("/$tagId") } ?: null.also {
+            delayBroadcast("[red]该服务器不存在对应地图脚本，请联系管理员: {id}".with("id" to tagId))
         }
+    }
+    return buildList {
+        if (byId != null) add(byId)
+        if (byTag != null && byTag != byId) add(byTag)
+        addAll(TagSupport.findTags(state.rules).values)
     }.flatMap {
         listOf(it) + ScriptRegistry.allScripts { dep ->
             !dep.enabled && it.dependsOn(dep, includeSoft = true)
