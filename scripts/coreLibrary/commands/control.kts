@@ -12,10 +12,15 @@ command("scan", "重新扫描脚本".with(), commands = Commands.controlCommand)
     requirePermission("scriptAgent.control.scan")
     aliases = listOf("扫描")
     body {
-        val old = ScriptRegistry.allScripts { true }.size
+        val old = ScriptRegistry.allScripts { true }.toSet()
         ScriptRegistry.scanRoot()
-        val now = ScriptRegistry.allScripts { true }.size
-        reply("[green]扫描完成,新发现{count}脚本".with("count" to (now - old)))
+        val now = ScriptRegistry.allScripts { true }.toSet()
+        reply(
+            "[green]扫描完成,新增{added}脚本, 删除{removed}脚本".with(
+                "added" to (now - old).size,
+                "removed" to (old - now).size,
+            )
+        )
     }
 }
 command("listFailed", "列出所有故障脚本".with(), commands = Commands.controlCommand) {
@@ -106,6 +111,51 @@ command("load", "(重新)加载一个脚本或者模块".with(), commands = Comm
                 unload(script)
                 execute()
                 (if (noEnable) load else enable)(script)
+            }.printResult()
+        }
+    }
+}
+command("compile", "(实验性)编译单个脚本(不影响运行中实例)".with(), commands = Commands.controlCommand) {
+    usage = "<module[/script]> [--async]"
+    requirePermission("scriptAgent.control.compile")
+    aliases = listOf("编译")
+    onComplete {
+        onComplete(0) { ScriptRegistry.allScripts { true }.map { it.id } }
+    }
+    body {
+        val async = checkArg("--async")
+
+        if (arg.isEmpty()) replyUsage()
+        val script = ScriptRegistry.getScriptInfo(arg[0])
+            ?: returnReply("[red]找不到模块或者脚本".with())
+        runIgnoreCancel(!async) {
+            ConditionState("Compile", script.id).apply {
+                run {
+                    script.transaction.compileScript()
+                }
+                reply(display().joinToString("\n").asPlaceHoldString())
+            }
+        }
+    }
+}
+command("retry", "(实验性)重试事务".with(), commands = Commands.controlCommand) {
+    usage = "[--async]"
+    requirePermission("scriptAgent.control.retry")
+    aliases = listOf("重试")
+    body {
+        val async = checkArg("--async")
+        runIgnoreCancel(!async) {
+            ScriptManager.transactionV2 {
+                ScriptRegistry.allScripts { !it.transaction.ready() }.forEach {
+                    put(it, it.userDemand)
+                }
+                //Clear conditions, and retry
+                onEach {
+                    it.key.transaction.queueRun {
+                        setUserDemand(UserDemandState.CompileOnly);
+                        setUserDemand(it.value)
+                    }
+                }
             }.printResult()
         }
     }
