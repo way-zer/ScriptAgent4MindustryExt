@@ -79,7 +79,7 @@ dependencies.constraints {
     api("dev.folia:folia-api:$bukkitVersion")
 }
 dependencies {
-    val libraryVersion = "2.1.8.4"
+    val libraryVersion = "2.1.8.5"
     api("cf.wayzer:ScriptAgent:${libraryVersion}")
     implementation("cf.wayzer:LibraryManager:1.6")
 
