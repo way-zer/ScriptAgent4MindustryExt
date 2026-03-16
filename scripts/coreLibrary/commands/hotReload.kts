@@ -30,10 +30,7 @@ fun enableWatch() {
                         logger.info("脚本文件更新: ${event.kind().name()} ${script.id}")
                         delay(1000)
                         ScriptManager.transactionV2 {
-                            val old = script.userDemand
-                            unload(script)
-                            execute()
-                            old(script)
+                            reload(script)
                         }.printResult()
                     }
 

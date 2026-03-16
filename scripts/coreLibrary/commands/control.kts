@@ -4,6 +4,8 @@ import cf.wayzer.placehold.PlaceHoldApi.with
 import cf.wayzer.scriptAgent.state.ConditionState
 
 suspend inline fun runIgnoreCancel(sync: Boolean, crossinline body: suspend () -> Unit) {
+    //Need new Job, as it may restart this script.
+    @Suppress("CoroutineContextWithJob")
     val job = launch(Job()) { body() }
     if (sync) job.join()
 }
@@ -36,12 +38,12 @@ command("listFailed", "列出所有故障脚本".with(), commands = Commands.con
     body {
         val prefix = arg.firstOrNull().orEmpty()
         val scripts = ScriptRegistry.allScripts {
-            it.id.startsWith(prefix) && !it.transaction.ready()
+            it.id.startsWith(prefix) && !it.ready()
         }
         for (info in scripts) {
             reply(buildString {
                 appendLine("[${info.scriptState}] ${info.id}")
-                info.conditions.filter { it.status != ConditionState.Status.Success }.forEach { c ->
+                info.lastConditions.filter { it.status != ConditionState.Status.Success }.forEach { c ->
                     c.display().forEach {
                         append("  ")
                         appendLine(it)
@@ -74,8 +76,8 @@ command("list", "列出所有模块或模块内所有脚本".with(), commands = 
         val list = ScriptRegistry.allScripts {
             it.id.startsWith(module + Config.idSeparator)
         }.map { script ->
-            val color = if (script.transaction.ready()) "green" else "red"
-            val conditions = script.conditions.filter { it.status != ConditionState.Status.Success }
+            val color = if (script.ready()) "green" else "red"
+            val conditions = script.lastConditions.filter { it.status != ConditionState.Status.Success }
                 .joinToString("") { "${it.type}${it.status}" }
             "[$color]${script.id.padEnd(30)}[reset] [${script.scriptState}] $conditions"
         }
@@ -94,23 +96,21 @@ command("load", "(重新)加载一个脚本或者模块".with(), commands = Comm
         onComplete(0) { ScriptRegistry.allScripts { true }.map { it.id } }
     }
     body {
-        val noCache = checkArg("--noCache")
         var noEnable = checkArg("--noEnable")
         val async = checkArg("--async")
 
         if (arg.isEmpty()) replyUsage()
         val script = ScriptRegistry.getScriptInfo(arg[0])
             ?: returnReply("[red]找不到模块或者脚本".with())
-        if (noCache) {
-            val file = Config.cacheFile(script.id)
-            reply("[yellow]清理cache文件{name}".with("name" to file.name))
-            file.delete()
-        }
         runIgnoreCancel(!async) {
             ScriptManager.transactionV2 {
-                unload(script)
-                execute()
-                (if (noEnable) load else enable)(script)
+                if (script.scriptState.loaded) {
+                    reload(script)
+                } else if (!noEnable) {
+                    enable(script)
+                } else {
+                    load(script)
+                }
             }.printResult()
         }
     }
@@ -129,12 +129,9 @@ command("compile", "(实验性)编译单个脚本(不影响运行中实例)".wit
         val script = ScriptRegistry.getScriptInfo(arg[0])
             ?: returnReply("[red]找不到模块或者脚本".with())
         runIgnoreCancel(!async) {
-            ConditionState("Compile", script.id).apply {
-                run {
-                    script.transaction.compileScript()
-                }
-                reply(display().joinToString("\n").asPlaceHoldString())
-            }
+            ScriptManager.transactionV2 {
+                compile(script)
+            }.printResult()
         }
     }
 }
@@ -146,15 +143,8 @@ command("retry", "(实验性)重试事务".with(), commands = Commands.controlCo
         val async = checkArg("--async")
         runIgnoreCancel(!async) {
             ScriptManager.transactionV2 {
-                ScriptRegistry.allScripts { !it.transaction.ready() }.forEach {
-                    put(it, it.userDemand)
-                }
-                //Clear conditions, and retry
-                onEach {
-                    it.key.transaction.queueRun {
-                        setUserDemand(UserDemandState.CompileOnly);
-                        setUserDemand(it.value)
-                    }
+                ScriptRegistry.allScripts { !it.ready() }.forEach {
+                    compile(it)
                 }
             }.printResult()
         }

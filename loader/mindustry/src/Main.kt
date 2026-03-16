@@ -59,7 +59,7 @@ class Main(private val loader: Plugin) : Plugin(), CommonMain {
         Log.info("&bQQ交流群: 1033116078")
         val all = ScriptRegistry.allScripts { true }
         Log.info(
-            "&b共找到${all.size}脚本,加载成功${all.count { it.scriptState.loaded }},启用成功${all.count { it.scriptState.enabled }},出错${all.count { !it.transaction.ready() }}"
+            "&b共找到${all.size}脚本,加载成功${all.count { it.scriptState.loaded }},启用成功${all.count { it.scriptState.enabled }},出错${all.count { !it.ready() }}"
         )
         if (!foundMain)
             Log.warn("&c未找到启动脚本(${Config.mainScript}),请下载安装脚本包,以发挥本插件功能")

@@ -61,6 +61,7 @@ fun RepositoryHandler.saRepository() {
 
 allprojects {
     repositories {
+        mavenLocal()
         mavenCentral()
         saRepository()
         maven(url = "https://www.jitpack.io") {
@@ -79,7 +80,7 @@ dependencies.constraints {
     api("dev.folia:folia-api:$bukkitVersion")
 }
 dependencies {
-    val libraryVersion = "2.1.8.5"
+    val libraryVersion = "2.2.0.4"
     api("cf.wayzer:ScriptAgent:${libraryVersion}")
     implementation("cf.wayzer:LibraryManager:1.6")
 
