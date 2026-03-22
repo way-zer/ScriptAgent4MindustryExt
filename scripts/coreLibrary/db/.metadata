@@ -1,0 +1,18 @@
+ID coreLibrary/db
+FQ_NAME Module
++DEPENDS coreLibrary 
++IMPORT MavenDepends org.jetbrains.exposed:exposed-core:0.59.0
++IMPORT MavenDepends org.jetbrains.exposed:exposed-dao:0.59.0
++IMPORT MavenDepends org.jetbrains.exposed:exposed-java-time:0.59.0
++IMPORT MavenDepends org.jetbrains.exposed:exposed-jdbc:0.59.0
+
+ID coreLibrary/db/h2db
+FQ_NAME H2db
++DEPENDS coreLibrary/db module
++IMPORT MavenDepends com.h2database:h2:2.0.206
+
+ID coreLibrary/db/postgres
+FQ_NAME Postgres
++DEPENDS coreLibrary/db module
++IMPORT MavenDepends org.postgresql:postgresql:42.7.5
+

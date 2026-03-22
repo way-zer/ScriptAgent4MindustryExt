@@ -8,7 +8,7 @@ FQ_NAME coreLibrary.Module
 +IMPORT MavenDepends io.github.config4k:config4k:0.7.0
 +IMPORT MavenDependsSingle com.github.way-zer:PlaceHoldLib:v7.3
 +IMPORT MavenDependsSingle org.slf4j:slf4j-api:2.0.16
-+IMPORT MavenDependsSingle org.slf4j:slf4j-simple:2.0.16
++IMPORT MavenDependsSingle org.slf4j:slf4j-jdk14:2.0.16
 +IMPORT MavenRepository https://www.jitpack.io/
 
 ID coreLibrary/commands/configCmd
@@ -34,35 +34,6 @@ FQ_NAME coreLibrary.commands.PermissionCmd
 ID coreLibrary/commands/varsCmd
 FQ_NAME coreLibrary.commands.VarsCmd
 +DEPENDS coreLibrary module
-
-ID coreLibrary/db
-FQ_NAME Module
-+DEPENDS coreLibrary 
-+IMPORT MavenDepends org.jetbrains.exposed:exposed-core:0.59.0
-+IMPORT MavenDepends org.jetbrains.exposed:exposed-dao:0.59.0
-+IMPORT MavenDepends org.jetbrains.exposed:exposed-java-time:0.59.0
-+IMPORT MavenDepends org.jetbrains.exposed:exposed-jdbc:0.59.0
-
-ID coreLibrary/db/h2db
-FQ_NAME H2db
-+DEPENDS coreLibrary/db module
-+IMPORT MavenDepends com.h2database:h2:2.0.206
-
-ID coreLibrary/db/postgres
-FQ_NAME Postgres
-+DEPENDS coreLibrary/db module
-+IMPORT MavenDepends org.postgresql:postgresql:42.7.5
-
-ID coreLibrary/extApi/KVStore
-FQ_NAME KVStore
-+DEPENDS coreLibrary module
-+IMPORT MavenDependsSingle com.h2database:h2-mvstore:2.3.232
-+IMPORT SourceFile ./lib/KVStore.kt
-
-ID coreLibrary/extApi/rpcService
-FQ_NAME RpcService
-+DEPENDS coreLibrary module
-+IMPORT SourceFile ./lib/RpcService.kt
 
 ID coreLibrary/lang
 FQ_NAME coreLibrary.Lang

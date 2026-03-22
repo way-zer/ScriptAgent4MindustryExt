@@ -1,0 +1,11 @@
+ID coreLibrary/extApi/KVStore
+FQ_NAME KVStore
++DEPENDS coreLibrary module
++IMPORT MavenDependsSingle com.h2database:h2-mvstore:2.3.232
++IMPORT SourceFile ./lib/KVStore.kt
+
+ID coreLibrary/extApi/rpcService
+FQ_NAME RpcService
++DEPENDS coreLibrary module
++IMPORT SourceFile ./lib/RpcService.kt
+

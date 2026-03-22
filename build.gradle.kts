@@ -74,15 +74,14 @@ allprojects {
 }
 
 dependencies.constraints {
-    val mindustryVersion = "v2025.10.X21" //v153
+    val mindustryVersion = "3e787fe01c" //v155.4
     api("com.github.TinyLake.MindustryX:core:$mindustryVersion")
     val bukkitVersion = "1.21.4-R0.1-SNAPSHOT"
     api("dev.folia:folia-api:$bukkitVersion")
 }
 dependencies {
-    val libraryVersion = "2.2.0.4"
+    val libraryVersion = "2.3.2.4"
     api("cf.wayzer:ScriptAgent:${libraryVersion}")
-    implementation("cf.wayzer:LibraryManager:1.6")
 
     "mindustryCompileOnly"("com.github.TinyLake.MindustryX:core")
     "bukkitCompileOnly"("dev.folia:folia-api")
@@ -139,7 +138,7 @@ tasks {
         )
         dependencies {
             include(dependency("cf.wayzer:ScriptAgent"))
-            include(dependency("cf.wayzer:LibraryManager"))
+            include(dependency("com.github.way-zer:LibraryManager"))
         }
         doLast {
             println(archiveFile.get())

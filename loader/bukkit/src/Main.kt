@@ -26,7 +26,7 @@ class Main : JavaPlugin(), CommonMain {
         Config.pluginMain = this
         Config.delayEnable = mutableListOf()
 
-        DependencyManager {
+        DependencyManager.blocking {
             require(Dependency.parse("org.jetbrains.kotlin:kotlin-stdlib:${Config.kotlinVersion}"))
             require(Dependency.parse("org.jetbrains.kotlin:kotlin-reflect:${Config.kotlinVersion}"))
             require(Dependency.parse("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Config.kotlinCoroutineVersion}"))
