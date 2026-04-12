@@ -7,6 +7,11 @@ plugins {
 
 defineMetadataModules()
 
+dependencies {
+    "coreMindustryApi"("com.github.TinyLake.MindustryX:core")
+    configurations.findByName("coreBukkitApi")?.invoke("dev.folia:folia-api")
+}
+
 // 全局编译器配置
 allprojects {
     tasks.withType<KotlinCompile>().configureEach {
