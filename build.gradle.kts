@@ -80,7 +80,7 @@ dependencies.constraints {
     api("dev.folia:folia-api:$bukkitVersion")
 }
 dependencies {
-    val libraryVersion = "2.3.2.4"
+    val libraryVersion = "2.3.2.5"
     api("cf.wayzer:ScriptAgent:${libraryVersion}")
 
     "mindustryCompileOnly"("com.github.TinyLake.MindustryX:core")
