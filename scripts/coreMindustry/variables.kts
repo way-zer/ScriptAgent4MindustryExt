@@ -96,7 +96,6 @@ registerVarForType<Unit>().apply {
     registerChild("health", "当前血量") { it.health }
     registerChild("maxHealth", "最大血量") { it.maxHealth }
     registerChild("shield", "护盾值") { it.shield }
-    registerChild("maxAmmo", "弹药容量") { it.type.ammoCapacity }
 }
 
 var startTime = Instant.now()!!
