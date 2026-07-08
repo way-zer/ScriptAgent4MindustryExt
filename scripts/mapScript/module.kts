@@ -45,7 +45,7 @@ fun getToLoadMapScripts(): List<ScriptInfo> {
     }.toSet().toList()
 }
 
-listen<EventType.ContentPatchLoadEvent> { e ->
+listen<EventType.DataPatchLoadEvent> { e ->
     val patches = getToLoadMapScripts().flatMap { it.inst?.mapPatches.orEmpty() }
     if (patches.isEmpty()) return@listen
     logger.info("Patches loaded: ${patches.size}")

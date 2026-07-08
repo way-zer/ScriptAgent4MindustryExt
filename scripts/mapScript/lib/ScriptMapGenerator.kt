@@ -16,6 +16,7 @@ import mindustry.game.Gamemode
 import mindustry.game.Rules
 import mindustry.io.JsonIO
 import mindustry.maps.Map
+import mindustry.mod.data.DataAsset
 import mindustry.world.Tiles
 import wayzer.MapInfo
 import wayzer.MapManager
@@ -38,11 +39,11 @@ class ScriptMapGenerator(val script: Script, val width: Int, val height: Int) {
     fun load() {
         try {
             //Load patches, MDT don't do this with loadGenerator
-            val patches = Seq<String>()
-            Events.fire(EventType.ContentPatchLoadEvent(patches))
+            val patches = Seq<DataAsset>()
+            Events.fire(EventType.DataPatchLoadEvent(patches))
             if (!patches.isEmpty) {
                 try {
-                    Vars.state.patcher.apply(patches)
+                    Vars.state.data.load(patches)
                 } catch (e: Throwable) {
                     Log.err("Failed to apply patches: $patches", e)
                 }
