@@ -15,11 +15,11 @@ if (projectDir.resolve(".git").isDirectory)
     gitVersioning.apply {
         refs {
             tag("v(?<version>[0-9].*)") {
-                version = "\${ref.version}"
+                version = $$"${ref.version}"
             }
         }
         rev {
-            version = "\${commit.short}"
+            version = $$"${commit.short}"
         }
     }
 
