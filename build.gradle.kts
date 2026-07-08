@@ -1,7 +1,8 @@
+import org.apache.tools.ant.filters.ReplaceTokens
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.1.10"
+    kotlin("jvm") version "2.3.0"
     id("me.qoomon.git-versioning") version "6.4.4"
     id("com.gradleup.shadow") version "8.3.6"
 }
@@ -14,11 +15,11 @@ if (projectDir.resolve(".git").isDirectory)
     gitVersioning.apply {
         refs {
             tag("v(?<version>[0-9].*)") {
-                version = "\${ref.version}"
+                version = $$"${ref.version}"
             }
         }
         rev {
-            version = "\${commit.short}"
+            version = $$"${commit.short}"
         }
     }
 
@@ -60,6 +61,7 @@ fun RepositoryHandler.saRepository() {
 
 allprojects {
     repositories {
+        mavenLocal()
         mavenCentral()
         saRepository()
         maven(url = "https://www.jitpack.io") {
@@ -72,15 +74,14 @@ allprojects {
 }
 
 dependencies.constraints {
-    val mindustryVersion = "v2025.10.X21" //v153
+    val mindustryVersion = "3e787fe01c" //v155.4
     api("com.github.TinyLake.MindustryX:core:$mindustryVersion")
     val bukkitVersion = "1.21.4-R0.1-SNAPSHOT"
     api("dev.folia:folia-api:$bukkitVersion")
 }
 dependencies {
-    val libraryVersion = "1.11.4.1"
+    val libraryVersion = "2.3.2.5"
     api("cf.wayzer:ScriptAgent:${libraryVersion}")
-    implementation("cf.wayzer:LibraryManager:1.6")
 
     "mindustryCompileOnly"("com.github.TinyLake.MindustryX:core")
     "bukkitCompileOnly"("dev.folia:folia-api")
@@ -117,7 +118,11 @@ tasks {
     }
     withType<ProcessResources>().configureEach {
         exclude("META-INF")
-        expand("version" to loaderVersion)
+        filter<ReplaceTokens>(
+            "tokens" to mapOf(
+                "version" to loaderVersion
+            )
+        )
     }
     val buildPlugin by registering(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
         group = "plugin"
@@ -133,7 +138,7 @@ tasks {
         )
         dependencies {
             include(dependency("cf.wayzer:ScriptAgent"))
-            include(dependency("cf.wayzer:LibraryManager"))
+            include(dependency("com.github.way-zer:LibraryManager"))
         }
         doLast {
             println(archiveFile.get())

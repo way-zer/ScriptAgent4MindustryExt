@@ -1,3 +1,5 @@
+@file:Implement(TeamService::class)
+
 package wayzer.map
 
 import arc.Events
@@ -6,22 +8,6 @@ import mindustry.game.Team
 import mindustry.world.blocks.storage.CoreBlock
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild
 
-name = "更好的队伍"
-
-data class AssignTeamEvent(val player: Player, val group: Iterable<Player>, val oldTeam: Team?) : Event,
-    Event.Cancellable {
-    var team: Team? = oldTeam
-        set(value) {
-            field = value
-            cancelled = true
-        }
-    override var cancelled: Boolean = false
-    override val handler: Event.Handler get() = Companion
-
-    companion object : Event.Handler()
-}
-
-val spectateTeam = Team.all[255]!!
 val allTeam: Set<Team>
     get() {
         if (!state.rules.pvp) return setOf(state.rules.defaultTeam)
@@ -33,11 +19,23 @@ val allTeam: Set<Team>
     }
 
 var bannedTeam = emptySet<Team>()
+val connectingPlayers = mutableListOf<Player>()
+fun checkConnectingPlayers(): List<Player> {
+    connectingPlayers.removeAll { it.con == null || it.con.isConnected || it.con.hasConnected }
+    return connectingPlayers
+}
 
 onEnable {
     val backup = netServer.assigner
     netServer.assigner = NetServer.TeamAssigner { p, g ->
-        randomTeam(p, g)
+        //特殊处理 connectingPlayers，避免一群人连入时分配不均
+        val g2 = if (g == Groups.player) {
+            if (!p.con.isConnected) {
+                connectingPlayers.add(p)
+            }
+            checkConnectingPlayers() + g
+        } else g
+        randomTeam(p, g2)
     }
     onDisable { netServer.assigner = backup }
     updateBannedTeam(true)
@@ -48,6 +46,7 @@ val savedTeams = mutableMapOf<String, Team>()
 listen<EventType.ResetEvent> {
     bannedTeam = emptySet()
     savedTeams.clear()
+    connectingPlayers.clear()
 }
 listen<EventType.PlayerLeave> { savedTeams[it.player.uuid()] = it.player.team() }
 

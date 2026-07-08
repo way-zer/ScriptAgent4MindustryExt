@@ -1,7 +1,5 @@
 @file:Depends("wayzer/map/betterTeam", "强制观察者")
 @file:Depends("coreMindustry/menu", "菜单")
-@file:Depends("coreLibrary/extApi/KVStore", "储存记录")
-@file:Depends("coreLibrary/extApi/rpcService", "RPC通讯实现Cache持久化和ip快速登录")
 
 package wayzer.user.ext
 
@@ -9,69 +7,21 @@ import arc.util.Strings
 import arc.util.serialization.Jval
 import coreMindustry.MenuV2
 import mindustry.net.Packets
-import org.h2.mvstore.type.StringDataType
-import wayzer.map.BetterTeam
+import wayzer.map.AssignTeamEvent
 import java.net.URL
 import java.net.URLEncoder
-import java.rmi.Remote
-import java.rmi.RemoteException
-import java.rmi.server.UnicastRemoteObject
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
-interface AuthCache : Remote {
-    @Throws(RemoteException::class)
-    fun get(uid: String, usid: String, ip: String): String?
-    @Throws(RemoteException::class)
-    fun put(uid: String, usid: String, ip: String, gid: String)
-}
-
-class CacheImpl(private val map: MutableMap<String, String>) : UnicastRemoteObject(), AuthCache {
-    override fun get(uid: String, usid: String, ip: String): String? {
-        val gid = map["$uid/$usid"] ?: map["IP/$uid/$ip"]
-        if (gid != null) put(uid, usid, ip, gid)
-        return gid
-    }
-
-    override fun put(uid: String, usid: String, ip: String, gid: String) {
-        map["$uid/$usid"] = gid
-        map["IP/$uid/$ip"] = gid
-    }
-}
-
-class WithCache(private val cache: AuthCache, private val fallback: AuthCache) : AuthCache {
-    override fun get(uid: String, usid: String, ip: String): String? {
-        cache.get(uid, usid, ip)?.let { return it }
-        return fallback.get(uid, usid, ip)?.also { cache.put(uid, usid, ip, it) }
-    }
-
-    override fun put(uid: String, usid: String, ip: String, gid: String) {
-        cache.put(uid, usid, ip, gid)
-        fallback.put(uid, usid, ip, gid)
-    }
-}
 
 @Savable(false)
 var serverId = UUID.randomUUID().toString()
-val rpcService = contextScript<coreLibrary.extApi.RpcService>()
-val localCache = CacheImpl(
-    contextScript<coreLibrary.extApi.KVStore>().open("authCache", StringDataType.INSTANCE)
-)
-val store: AuthCache
-    get() {
-        var store = rpcService.get<AuthCache>()
-        if (!rpcService.isMaster) store = WithCache(localCache, store)
-        return store
-    }
-onEnable {
-    rpcService.register<AuthCache> { localCache }
-}
-
+val store: AuthCache? by Services.get<AuthCache>().nullable
 
 data class AuthRes(val gid: String?, val authUrl: String)
 
 suspend fun auth(uid: String, usid: String, ip: String, name: String): AuthRes = withContext(Dispatchers.IO) {
-    store.get(uid, usid, ip)?.let { return@withContext AuthRes(it, "") }
+    store?.get(uid, usid, ip)?.let { return@withContext AuthRes(it, "") }
 
     val nameE = URLEncoder.encode(Strings.stripColors(name), Charsets.UTF_8)
     val url = "https://api.mindustry.top/servers/auth/check" +
@@ -83,7 +33,7 @@ suspend fun auth(uid: String, usid: String, ip: String, name: String): AuthRes =
             getString("authUrl")
         ).also {
             if (it.gid != null) {
-                store.put(uid, usid, ip, it.gid)
+                store?.put(uid, usid, ip, it.gid)
             }
         }
     }
@@ -107,7 +57,7 @@ fun openMenu(player: Player) {
         msg = """
         欢迎来到[gold]微泽[]服务器
         使用[pink]统一登录[]才进行游戏
-        
+
         请点击下方登录按钮，在浏览器完成登录，返回后再次点击即可完成登录。
         如有问题，可添加QQ群[acid]1044335057[]
         """.trimIndent().with().toPlayer(player)
@@ -148,16 +98,15 @@ enum class Mode {
 
 val mode by config.key(Mode.Silent, "统一登录模式")
 val forceWhenPlayers by config.key(8, "人多时自动启动白名单，需要mode=Auto时生效")
-val teams = contextScript<BetterTeam>()
 
 val forceAuth
     get() = mode == Mode.Force ||
             (mode == Mode.Auto && Groups.player.size() >= forceWhenPlayers)
-listenTo<BetterTeam.AssignTeamEvent>(Event.Priority.Intercept) {
+listenTo<AssignTeamEvent>(Event.Priority.Intercept) {
     if (PlayerData[player].authed) return@listenTo
     if (mode == Mode.Silent) return@listenTo
     if (forceAuth)
-        team = teams.spectateTeam
+        team = AssignTeamEvent.spectateTeam
     openMenu(player)
 }
 

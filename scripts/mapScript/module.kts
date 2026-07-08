@@ -14,51 +14,30 @@ import wayzer.MapRegistry
 
 val children get() = ScriptRegistry.allScripts { it != scriptInfo && it.dependsOn(scriptInfo) }
 
-onEnable {
-    //Disable all non-controller scripts
-    children.forEach {
-        if (it.scriptState == ScriptState.ToEnable && it.inst?.mapScriptController != true) {
-            it.stateUpdateForce(ScriptState.Loaded)
-        }
-    }
-}
-
-listen<EventType.ResetEvent> {
+listen<EventType.ResetEvent> { _ ->
     MindustryDispatcher.safeBlocking {
-        ScriptManager.transaction {
-            addAll(children)
-            disable()
-            getForState(ScriptState.ToEnable).forEach {
-                it.stateUpdateForce(ScriptState.Loaded)
-            }
-        }
-    }
-}
-
-listen<EventType.ResetEvent> {
-    //try update child scripts
-    ScriptRegistry.scanRoot()
-    MindustryDispatcher.safeBlocking {
-        ScriptManager.transaction {
-            addAll(children)
-            removeIf { it.compiledScript?.source.run { this == null || this == it.source } }
-            if (isEmpty()) return@transaction
-
-            logger.info("Unload outdated script: ${toList()}")
-            unload()//unload all updatable
-        }
+        ScriptManager.transactionV2 {
+            disable(children.filter { it.enabled })
+            execute().printResult()
+            load(keys.toList())
+        }.printResult()
     }
 }
 
 fun getToLoadMapScripts(): List<ScriptInfo> {
-    return buildList {
-        ScriptManager.getScriptNullable("mapScript/${MapManager.current.id}")?.id?.let { add(it) }
-        state.rules.tags.get("@mapScript")?.let { add("mapScript/${it.toIntOrNull() ?: MapManager.current.id}") }
-        addAll(TagSupport.findTags(state.rules).values)
-    }.mapNotNull { scriptId ->
-        ScriptRegistry.getScriptInfo(scriptId) ?: null.also {
-            delayBroadcast("[red]该服务器不存在对应地图脚本，请联系管理员: {id}".with("id" to scriptId))
+    //匹配所有mapScript子脚本，且名字与id匹配的
+    val children = children
+    val byId = children.find { it.id.endsWith("/${MapManager.current.id}") }
+    val byTag = state.rules.tags.get("@mapScript")?.let { tag ->
+        val tagId = tag.toIntOrNull() ?: MapManager.current.id
+        children.find { it.id.endsWith("/$tagId") } ?: null.also {
+            delayBroadcast("[red]该服务器不存在对应地图脚本，请联系管理员: {id}".with("id" to tagId))
         }
+    }
+    return buildList {
+        if (byId != null) add(byId)
+        if (byTag != null && byTag != byId) add(byTag)
+        addAll(TagSupport.findTags(state.rules).values)
     }.flatMap {
         listOf(it) + ScriptRegistry.allScripts { dep ->
             !dep.enabled && it.dependsOn(dep, includeSoft = true)
@@ -78,9 +57,8 @@ listen<EventType.WorldLoadEvent> {
     val toLoad = getToLoadMapScripts()
     if (toLoad.isEmpty()) return@listen
     MindustryDispatcher.safeBlocking {
-        ScriptManager.transaction {
-            addAll(toLoad)
-            load(); enable()
+        ScriptManager.transactionV2 {
+            enable(toLoad)
         }
     }
     toLoad.forEach { checkEnabled(it) }

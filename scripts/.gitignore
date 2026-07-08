@@ -1,0 +1,13 @@
+/*/
+
+#核心库
+!/coreLibrary/
+!/kcp/
+!/bootStrap/
+
+#MDT标准模块
+!/coreMindustry/
+!/wayzer/
+!/mapScript/
+
+#其他模块请从Registry仓库克隆，如果想维护submodules请自行修改

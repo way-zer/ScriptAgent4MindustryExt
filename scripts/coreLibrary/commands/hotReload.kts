@@ -17,7 +17,7 @@ fun enableWatch() {
         while (true) {
             val key = try {
                 watcher?.take() ?: return@launch
-            } catch (e: ClosedWatchServiceException) {
+            } catch (_: ClosedWatchServiceException) {
                 return@launch
             }
             key.pollEvents().forEach { event ->
@@ -29,22 +29,9 @@ fun enableWatch() {
                         val script = ScriptRegistry.getScriptInfo(id) ?: return@forEach
                         logger.info("脚本文件更新: ${event.kind().name()} ${script.id}")
                         delay(1000)
-                        val state = script.scriptState
-                        when {
-                            state == ScriptState.Found -> logger.info("  新脚本: 请使用sa load加载")
-                            else -> {
-                                val oldEnable = state == ScriptState.ToEnable || state.enabled
-                                ScriptManager.transaction {
-                                    add(script)
-                                    unload(addAllAffect = true)
-                                    load()
-                                    if (oldEnable) enable()
-                                }
-                                logger.info(
-                                    if (oldEnable) "  新脚本启用成功" else "  新脚本加载成功: 请使用sa enable启用"
-                                )
-                            }
-                        }
+                        ScriptManager.transactionV2 {
+                            reload(script)
+                        }.printResult()
                     }
 
                     file.toFile().isDirectory -> {//添加子目录到Watch
@@ -62,7 +49,7 @@ fun enableWatch() {
 }
 
 command("hotReload", "开关脚本自动热重载".with(), commands = Commands.controlCommand) {
-    permission = "scriptAgent.control.hotReload"
+    requirePermission("scriptAgent.control.hotReload")
     body {
         if (watcher == null) {
             enableWatch()

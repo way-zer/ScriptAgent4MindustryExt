@@ -1,0 +1,84 @@
+ID mapScript
+FQ_NAME mapScript.Module
++DEPENDS coreMindustry 
++DEPENDS wayzer/maps 获取地图信息
++IMPORT DefaultImport mapScript.lib.*
++SOFT_DEPENDS wayzer/map/mapInfo 显示地图信息
+
+ID mapScript/1001
+FQ_NAME mapScript._1001
++DEPENDS mapScript module
++DEPENDS mapScript/shared/hexed 
+
+ID mapScript/1002
+FQ_NAME mapScript._1002
++DEPENDS mapScript module
++DEPENDS mapScript/shared/hexed 
++SOFT_DEPENDS mapScript/tags/autoExchange 等价交换
+
+ID mapScript/1003
+FQ_NAME mapScript._1003
++DEPENDS mapScript module
++DEPENDS mapScript/shared/hexed 
+
+ID mapScript/1004
+FQ_NAME mapScript._1004
++DEPENDS mapScript module
++DEPENDS mapScript/shared/hexed 
++SOFT_DEPENDS mapScript/13545 CoreWar
+
+ID mapScript/1005
+FQ_NAME mapScript._1005
++DEPENDS mapScript module
++DEPENDS mapScript/14562 填海造陆
++DEPENDS mapScript/shared/hexed 
+
+ID mapScript/1009
+FQ_NAME mapScript._1009
++DEPENDS mapScript module
++DEPENDS mapScript/shared/hexed 
+
+ID mapScript/13545
+FQ_NAME mapScript._13545
++DEPENDS coreMindustry/menu 调用菜单
++DEPENDS coreMindustry/util/spawnAround 
++DEPENDS mapScript module
+
+ID mapScript/14562
+FQ_NAME mapScript._14562
++DEPENDS mapScript module
+
+ID mapScript/999
+FQ_NAME mapScript._999
++DEPENDS mapScript module
+
+ID mapScript/shared/hexed
+FQ_NAME mapScript.shared.Hexed
++DEPENDS mapScript module
++DEPENDS wayzer/map/betterTeam 队伍分配
+
+ID mapScript/shared/posMark
+FQ_NAME mapScript.shared.PosMark
++DEPENDS mapScript module
+
+ID mapScript/tags/TDDrop
+FQ_NAME mapScript.tags.TDDrop
++DEPENDS mapScript module
+
+ID mapScript/tags/autoExchange
+FQ_NAME mapScript.tags.AutoExchange
++DEPENDS mapScript module
+
+ID mapScript/tags/limitAir
+FQ_NAME mapScript.tags.LimitAir
++DEPENDS mapScript module
+
+ID mapScript/tags/mapRule
+FQ_NAME mapScript.tags.MapRule
++DEPENDS mapScript module
+
+ID mapScript/tags/towerDefend
+FQ_NAME mapScript.tags.TowerDefend
++DEPENDS mapScript module
++SOFT_DEPENDS mapScript/tags/TDDrop 掉落
+

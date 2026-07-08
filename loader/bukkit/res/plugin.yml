@@ -1,6 +1,6 @@
 name: ScriptAgent
 main: cf.wayzer.scriptAgent.bukkit.Main
-version: "${version}"
+version: "@version@"
 author: Way__Zer
 api-version: 1.21
 folia-supported: true

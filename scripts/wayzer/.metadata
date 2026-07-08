@@ -1,0 +1,247 @@
+ID wayzer
+FQ_NAME wayzer.Module
++DEPENDS coreMindustry 
++IMPORT DefaultImport wayzer.lib.*
++IMPORT MavenDepends com.google.guava:guava:30.1-jre
+
+ID wayzer/cmds/clearUnit
+FQ_NAME wayzer.cmds.ClearUnit
++DEPENDS wayzer module
+
+ID wayzer/cmds/gatherTp
+FQ_NAME wayzer.cmds.GatherTp
++DEPENDS wayzer module
++DEPENDS wayzer/user/ext/skills Gather也算技能
+
+ID wayzer/cmds/helpfulCmd
+FQ_NAME wayzer.cmds.HelpfulCmd
++DEPENDS wayzer module
+
+ID wayzer/cmds/jsCmd
+FQ_NAME wayzer.cmds.JsCmd
++DEPENDS wayzer module
+
+ID wayzer/cmds/mapsCmd
+FQ_NAME wayzer.cmds.MapsCmd
++DEPENDS coreMindustry/menu maps菜单
++DEPENDS wayzer module
++DEPENDS wayzer/maps 
++SOFT_DEPENDS wayzer/cmds/voteMap 发起投票换图
+
+ID wayzer/cmds/pixelPicture
+FQ_NAME wayzer.cmds.PixelPicture
++DEPENDS wayzer module
+
+ID wayzer/cmds/restart
+FQ_NAME wayzer.cmds.Restart
++DEPENDS wayzer module
+
+ID wayzer/cmds/serverStatus
+FQ_NAME wayzer.cmds.ServerStatus
++DEPENDS wayzer module
+
+ID wayzer/cmds/share
+FQ_NAME wayzer.cmds.Share
++DEPENDS coreMindustry/menu 菜单选人
++DEPENDS coreMindustry/util/textInput 输入理由
++DEPENDS wayzer module
+
+ID wayzer/cmds/spawnMob
+FQ_NAME wayzer.cmds.SpawnMob
++DEPENDS wayzer module
+
+ID wayzer/cmds/vote
+FQ_NAME wayzer.cmds.Vote
++DEPENDS wayzer module
++DEPENDS wayzer/vote 投票实现
+
+ID wayzer/cmds/voteKick
+FQ_NAME wayzer.cmds.VoteKick
++DEPENDS wayzer module
++DEPENDS wayzer/cmds/share 
++DEPENDS wayzer/user/ban 禁封实现
++DEPENDS wayzer/vote 投票实现
+
+ID wayzer/cmds/voteMap
+FQ_NAME wayzer.cmds.VoteMap
++DEPENDS wayzer module
++DEPENDS wayzer/maps 地图管理
++DEPENDS wayzer/vote 投票实现
+
+ID wayzer/cmds/voteOb
+FQ_NAME wayzer.cmds.VoteOb
++DEPENDS wayzer module
++DEPENDS wayzer/cmds/share 
++DEPENDS wayzer/cmds/voteKick 功能控制，使用util，覆盖votekick
++DEPENDS wayzer/map/betterTeam 强制观察者
+
+ID wayzer/ext/alert
+FQ_NAME wayzer.ext.Alert
++DEPENDS wayzer module
+
+ID wayzer/ext/autoUpdate
+FQ_NAME wayzer.ext.AutoUpdate
++DEPENDS wayzer module
++SOFT_DEPENDS wayzer/cmds/restart 计划重启
+
+ID wayzer/ext/goServer
+FQ_NAME wayzer.ext.GoServer
++DEPENDS wayzer module
+
+ID wayzer/ext/observer
+FQ_NAME wayzer.ext.Observer
++DEPENDS coreMindustry/menu 
++DEPENDS wayzer module
++DEPENDS wayzer/map/betterTeam 
+
+ID wayzer/ext/profiler
+FQ_NAME wayzer.ext.Profiler
++DEPENDS wayzer module
++IMPORT MavenDepends tools.profiler:async-profiler:4.1
++IMPORT MavenRepository https://repo1.maven.org/maven2/
+
+ID wayzer/ext/welcomeMsg
+FQ_NAME wayzer.ext.WelcomeMsg
++DEPENDS wayzer module
+
+ID wayzer/map/autoHost
+FQ_NAME wayzer.map.AutoHost
++DEPENDS wayzer module
++DEPENDS wayzer/maps 地图管理
+
+ID wayzer/map/autoSave
+FQ_NAME wayzer.map.AutoSave
++DEPENDS wayzer module
+
+ID wayzer/map/backCompatibility
+FQ_NAME wayzer.map.BackCompatibility
++DEPENDS wayzer module
++DEPENDS wayzer/maps 
+
+ID wayzer/map/betterTeam
+FQ_NAME wayzer.map.BetterTeam
++DEPENDS wayzer module
+
+ID wayzer/map/mapInfo
+FQ_NAME wayzer.map.MapInfo
++DEPENDS wayzer module
+
+ID wayzer/map/mapSnap
+FQ_NAME wayzer.map.MapSnap
++DEPENDS wayzer module
+
+ID wayzer/map/pvpProtect
+FQ_NAME wayzer.map.PvpProtect
++DEPENDS wayzer module
+
+ID wayzer/map/resourceHelper
+FQ_NAME wayzer.map.ResourceHelper
++DEPENDS wayzer module
++DEPENDS wayzer/maps 
+
+ID wayzer/maps
+FQ_NAME wayzer.Maps
++DEPENDS wayzer module
+
+ID wayzer/pvp/autoGameover
+FQ_NAME wayzer.pvp.AutoGameover
++DEPENDS wayzer module
++DEPENDS wayzer/map/betterTeam 获取可用队伍
+
+ID wayzer/pvp/pvpAlert
+FQ_NAME wayzer.pvp.PvpAlert
++DEPENDS wayzer module
+
+ID wayzer/pvp/pvpChat
+FQ_NAME wayzer.pvp.PvpChat
++DEPENDS wayzer module
+
+ID wayzer/reGrief/autoChangeMap
+FQ_NAME wayzer.reGrief.AutoChangeMap
++DEPENDS wayzer module
++DEPENDS wayzer/maps 换图
+
+ID wayzer/reGrief/bugFixer
+FQ_NAME wayzer.reGrief.BugFixer
++DEPENDS wayzer module
+
+ID wayzer/reGrief/history
+FQ_NAME wayzer.reGrief.History
++DEPENDS wayzer module
+
+ID wayzer/reGrief/limitFire
+FQ_NAME wayzer.reGrief.LimitFire
++DEPENDS wayzer module
+
+ID wayzer/reGrief/limitLogicPacket
+FQ_NAME wayzer.reGrief.LimitLogicPacket
++DEPENDS wayzer module
+
+ID wayzer/reGrief/unitLimit
+FQ_NAME wayzer.reGrief.UnitLimit
++DEPENDS wayzer module
+
+ID wayzer/reGrief/warnNewPlayer
+FQ_NAME wayzer.reGrief.WarnNewPlayer
++DEPENDS wayzer module
+
+ID wayzer/store
+FQ_NAME Module
++DEPENDS coreLibrary/db 数据库存储
++DEPENDS wayzer module
+
+ID wayzer/store/banStore
+FQ_NAME BanStore
++DEPENDS wayzer/store module
++DEPENDS wayzer/user/ban 
+
+ID wayzer/store/whileListCache
+FQ_NAME WhileListCache
++DEPENDS coreLibrary/extApi/KVStore 储存记录
++DEPENDS coreLibrary/extApi/rpcService RPC通讯实现Cache持久化和ip快速登录
++DEPENDS wayzer/store module
++DEPENDS wayzer/user/ext/whiteList 
+
+ID wayzer/user/ban
+FQ_NAME wayzer.user.Ban
++DEPENDS wayzer module
+
+ID wayzer/user/ext/chatPing
+FQ_NAME wayzer.user.ext.ChatPing
++DEPENDS wayzer module
++DEPENDS wayzer/user/shortID 
+
+ID wayzer/user/ext/skills
+FQ_NAME wayzer.user.ext.Skills
++DEPENDS wayzer module
++IMPORT DefaultImport wayzer.user.ext.*
+
+ID wayzer/user/ext/whiteList
+FQ_NAME wayzer.user.ext.WhiteList
++DEPENDS coreMindustry/menu 菜单
++DEPENDS wayzer module
++DEPENDS wayzer/map/betterTeam 强制观察者
+
+ID wayzer/user/lang
+FQ_NAME wayzer.user.Lang
++DEPENDS coreLibrary/extApi/KVStore 储存语言设置
++DEPENDS coreLibrary/lang 多语言支持-核心
++DEPENDS wayzer module
+
+ID wayzer/user/nameExt
+FQ_NAME wayzer.user.NameExt
++DEPENDS wayzer module
+
+ID wayzer/user/shortID
+FQ_NAME wayzer.user.ShortID
++DEPENDS wayzer module
+
+ID wayzer/user/suffix
+FQ_NAME wayzer.user.Suffix
++DEPENDS wayzer module
+
+ID wayzer/vote
+FQ_NAME wayzer.Vote
++DEPENDS coreMindustry/menu 
++DEPENDS wayzer module
+

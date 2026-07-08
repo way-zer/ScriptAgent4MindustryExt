@@ -58,7 +58,7 @@ command("reload", "重载配置文件".with(), commands = configCommands) {
 @CommandInfo.CommandBuilder
 inline fun CommandInfo.subCommand(
     usage: String,
-    crossinline block: suspend context(CommandContext) (ConfigBuilder.ConfigKey<*>) -> Unit
+    crossinline block: suspend CommandContext.(ConfigBuilder.ConfigKey<*>) -> Unit
 ) {
     this.usage = "<key> $usage"
     onComplete {

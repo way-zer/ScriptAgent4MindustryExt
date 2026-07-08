@@ -1,0 +1,45 @@
+ID coreLibrary
+FQ_NAME coreLibrary.Module
++IMPORT CompileArg -Xcontext-parameters
++IMPORT DefaultImport cf.wayzer.placehold.*
++IMPORT DefaultImport coreLibrary.lib.*
++IMPORT DefaultImport coreLibrary.lib.event.*
++IMPORT DefaultImport coreLibrary.lib.util.*
++IMPORT MavenDepends io.github.config4k:config4k:0.7.0
++IMPORT MavenDependsSingle com.github.way-zer:PlaceHoldLib:v7.3
++IMPORT MavenDependsSingle org.slf4j:slf4j-api:2.0.16
++IMPORT MavenDependsSingle org.slf4j:slf4j-jdk14:2.0.16
++IMPORT MavenRepository https://www.jitpack.io/
+
+ID coreLibrary/commands/configCmd
+FQ_NAME coreLibrary.commands.ConfigCmd
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/control
+FQ_NAME coreLibrary.commands.Control
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/helpful
+FQ_NAME coreLibrary.commands.Helpful
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/hotReload
+FQ_NAME coreLibrary.commands.HotReload
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/permissionCmd
+FQ_NAME coreLibrary.commands.PermissionCmd
++DEPENDS coreLibrary module
+
+ID coreLibrary/commands/varsCmd
+FQ_NAME coreLibrary.commands.VarsCmd
++DEPENDS coreLibrary module
+
+ID coreLibrary/lang
+FQ_NAME coreLibrary.Lang
++DEPENDS coreLibrary module
+
+ID coreLibrary/variables
+FQ_NAME coreLibrary.Variables
++DEPENDS coreLibrary module
+

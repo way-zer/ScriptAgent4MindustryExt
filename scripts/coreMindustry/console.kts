@@ -6,6 +6,7 @@
 package coreMindustry
 
 import org.jline.reader.*
+import org.jline.terminal.Terminal
 import org.jline.utils.AttributedString
 import java.io.ByteArrayOutputStream
 import java.io.InterruptedIOException
@@ -60,15 +61,24 @@ object MyCompleter : Completer {
 
 @OptIn(LoaderApi::class)
 suspend fun handleInput(reader: LineReader) {
+    // 命令执行过程可以通过ctrl-c取消
+    // 使用SupervisorJob切断和脚本的连接，因为脚本可能通过命令重载自己
+    val commandScope = CoroutineScope(coroutineContext + SupervisorJob() + CoroutineName("command-scope"))
+    reader.terminal.handle(Terminal.Signal.INT) {
+        if (commandScope.coroutineContext.job.children.none()) return@handle
+        reader.printAbove("Cancel current job...")
+        commandScope.coroutineContext.cancelChildren(CancellationException("User Interrupted"))
+    }
+
     var last = 0
     while (isActive) {
         val line = try {
             runInterruptible {
                 reader.readLine("> ").let(RootCommands::trimInput)
             }
-        } catch (e: InterruptedIOException) {
+        } catch (_: InterruptedIOException) {
             return
-        } catch (e: UserInterruptException) {
+        } catch (_: UserInterruptException) {
             if (!enabled) break//script disable
             if (last != 1) {
                 reader.printAbove("Interrupt again to force exit application")
@@ -77,7 +87,7 @@ suspend fun handleInput(reader: LineReader) {
             }
             reader.printAbove("force exit")
             exitProcess(255)
-        } catch (e: EndOfFileException) {
+        } catch (_: EndOfFileException) {
             if (last != 2) {
                 reader.printAbove("Catch EndOfFile, again to exit application")
                 last = 2
@@ -89,7 +99,7 @@ suspend fun handleInput(reader: LineReader) {
         }
         last = 0
         if (line.isEmpty()) continue
-        launch(Job()) {//ignore cancel
+        commandScope.launch {
             try {
                 RootCommands.handleInput(line, null)
             } catch (e: Throwable) {

@@ -1,40 +1,15 @@
-@file:Depends("coreLibrary/extApi/rpcService", "远程调用")
+@file:Implement(BanService::class)
 
 package wayzer.user
 
-import java.io.Serializable
-import java.rmi.Remote
-import java.rmi.RemoteException
+import cf.wayzer.scriptAgent.util.Services
 import java.text.DateFormat
 import java.time.Duration
 import java.time.Instant
 import java.util.*
 
-data class PlayerBan(
-    val recordId: Int,
-    val ids: Set<String>,
-    val reason: String,
-    val operator: String?,
-    val createTime: Instant,
-    val endTime: Instant
-) : Serializable
-
-interface PlayerBanStore : Remote {
-    @Throws(RemoteException::class)
-    fun findNotEnd(id: String): PlayerBan?
-    @Throws(RemoteException::class)
-    fun create(
-        ids: Set<String>,
-        duration: Duration,
-        reason: String,
-        operator: String?
-    ): PlayerBan
-    @Throws(RemoteException::class)
-    fun delete(record: Int): PlayerBan?
-}
-
-val rpcService = contextScript<coreLibrary.extApi.RpcService>()
-val store get() = rpcService.get<PlayerBanStore>()
+@OptIn(SAExperimentalApi::class)
+val store: PlayerBanStore by Services.get<PlayerBanStore>().notNull
 
 fun Player.kick(ban: PlayerBan) {
     fun format(instant: Instant) = DateFormat.getDateTimeInstance().format(Date.from(instant))
@@ -59,14 +34,14 @@ listen<EventType.PlayerConnect> {
     }
 }
 
-suspend fun findBan(player: PlayerData): PlayerBan? = withContext(Dispatchers.IO) {
+/*override*/ suspend fun findBan(player: PlayerData): PlayerBan? = withContext(Dispatchers.IO) {
     player.ids.firstNotNullOfOrNull { id ->
         if (id == player.uuid && player.authed) return@firstNotNullOfOrNull null //skip uuid if authed
         store.findNotEnd(id)
     }
 }
 
-suspend fun ban(player: PlayerData, time: Int, reason: String, operate: Player?) {
+/*override*/ suspend fun ban(player: PlayerData, time: Int, reason: String, operate: Player?) {
     val ban = withContext(Dispatchers.IO) {
         store.create(
             player.ids,

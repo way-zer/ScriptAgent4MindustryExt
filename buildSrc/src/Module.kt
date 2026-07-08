@@ -1,42 +1,86 @@
 @file:Suppress("unused")
 
+package buildsrc
+
 import org.gradle.api.Project
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.project
 
-class ModuleScope(val moduleId: String, private val project: Project, private val sourceSet: SourceSet) {
-    fun DependencyHandler.dependsModule(module: String, project: Project = this@ModuleScope.project) =
-        add(sourceSet.apiConfigurationName, project(project.path, module + "Exposed"))
+@DslMarker
+internal annotation class ModuleBuilderMarker
 
-    fun DependencyHandler.api(dep: Any) = add(sourceSet.apiConfigurationName, dep)
-    fun DependencyHandler.implementation(dep: Any) = add(sourceSet.implementationConfigurationName, dep)
+@ModuleBuilderMarker
+internal class ModuleScope(val moduleId: String, val project: Project, val sourceSet: SourceSet) {
+    val exposedConfigurationName get() = sourceSet.apiConfigurationName.replace("Api", "Exposed")
+
+    fun dependsOnModule(module: String, project: Project = this.project) {
+        val sourceSet = project.sourceSets.getByName(mapIdToSourceSetName(module))
+        dependsOn(ModuleScope(module, project, sourceSet))
+    }
+
+    fun dependsOn(module: ModuleScope) {
+        project.dependencies {
+            add(
+                sourceSet.apiConfigurationName,
+                project(module.project.path, module.exposedConfigurationName)
+            )
+        }
+    }
+
+    fun api(dep: Any) = project.dependencies.add(sourceSet.apiConfigurationName, dep)
+    fun implementation(dep: Any) = project.dependencies.add(sourceSet.implementationConfigurationName, dep)
 }
 
-fun Project.defineModule(
+private fun mapIdToSourceSetName(id: String) = id.replace('/', '.')
+
+// Child directories with their own `.metadata` become standalone modules,
+// so the parent source set should exclude them from compilation.
+private fun Project.excludeNestedMetadataModules(moduleId: String, sourceSet: SourceSet) {
+    val moduleDir = projectDir.resolve(moduleId)
+    if (!moduleDir.isDirectory) return
+
+    moduleDir.walkTopDown()
+        .filter { it.isDirectory && it != moduleDir && it.resolve(".metadata").isFile }
+        .forEach { childDir ->
+            val relative = childDir.relativeTo(moduleDir).invariantSeparatorsPath
+            sourceSet.java.exclude("$relative/**")
+        }
+}
+
+// Create the backing SourceSet and base configurations for a script module.
+internal fun Project.createModule(
     name: String,
-    srcDir: String = name,
-    body: ModuleScope.() -> Unit,
-) {
-    val sourceSet = sourceSets.create(name) {
-        java.srcDir(srcDir)
+    onlyLibrary: Boolean = false,
+): ModuleScope {
+    val sourceSet = sourceSets.create(mapIdToSourceSetName(name)) {
+        if (!onlyLibrary) {
+            java.srcDir(name)
+            java.exclude("lib/**")
+        }
+        //独立设置成srcDir，这样可以自定义package，不需要包含lib前缀。
+        java.srcDir("$name/lib")
     }
-    val exposed = configurations.create(name + "Exposed") {
-        extendsFrom(configurations.getByName(name + "Api"))
-        isCanBeConsumed = true
-    }
-    dependencies.apply {
-        add(exposed.name, sourceSet.output)
-    }
-    ModuleScope(name, project, sourceSet).apply {
+    excludeNestedMetadataModules(name, sourceSet)
+    return ModuleScope(name, project, sourceSet).apply {
+        configurations.create(exposedConfigurationName) {
+            extendsFrom(configurations.getByName(sourceSet.apiConfigurationName))
+            isCanBeConsumed = true
+            isCanBeResolved = false
+        }
         dependencies.apply {
             implementation(kotlin("script-runtime"))
             implementation(rootProject)
+            add(exposedConfigurationName, sourceSet.output)
         }
-        body()
     }
+}
+
+// Apply additional module wiring after all dependent SourceSets are available.
+internal fun configureModule(scope: ModuleScope, body: ModuleScope.() -> Unit) {
+    scope.body()
 }
 
 private val Project.sourceSets

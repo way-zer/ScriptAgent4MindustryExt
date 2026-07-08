@@ -4,6 +4,7 @@ package mapScript.shared
 
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild
 import mindustry.world.modules.ItemModule
+import wayzer.map.AssignTeamEvent
 import kotlin.time.Duration.Companion.minutes
 
 listen<EventType.BlockDestroyEvent> {
@@ -20,7 +21,7 @@ listen<EventType.BlockBuildEndEvent> {
     }
 }
 
-listenTo<wayzer.map.BetterTeam.AssignTeamEvent> {
+listenTo<AssignTeamEvent> {
     team = HexData.assignTeam(player, group)
 }
 

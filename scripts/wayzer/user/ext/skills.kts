@@ -1,3 +1,5 @@
+@file:Import("wayzer.user.ext.*", defaultImport = true)
+
 package wayzer.user.ext
 
 

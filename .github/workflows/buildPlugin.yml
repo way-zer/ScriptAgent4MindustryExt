@@ -1,45 +1,45 @@
-name: BuildPlugin
+name: Build Plugin
 
 on:
   push:
     branches-ignore:
       - 'private*'
     paths:
-      - 'loader/'
+      - 'loader/**'
       - 'build.gradle.kts'
   pull_request:
     paths:
-      - 'loader/'
+      - 'loader/**'
       - 'build.gradle.kts'
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/cache@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: deps-${{ hashFiles('build.gradle.kts', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            deps-
+          distribution: 'temurin'
+          java-version: '21'
 
-      # Runs a single command using the runners shell
-      - name: Run gradle buildPlugin
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ startsWith(github.ref, 'refs/tags/') }}
+
+      - name: Build plugin
         run: ./gradlew buildPlugin
-      
-      - name: Upload a Build Artifact
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ScriptAgent-beta-${{github.run_num}}.jar
-          path: build/libs
+          name: ScriptAgent-beta-${{ github.run_number }}.jar
+          path: build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 30

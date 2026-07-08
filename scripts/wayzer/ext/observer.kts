@@ -3,18 +3,19 @@
 
 package wayzer.ext
 
-import cf.wayzer.placehold.DynamicVar
 import coreMindustry.MenuBuilder
 import mindustry.game.Team
 import mindustry.gen.PlayerSpawnCallPacket
 import mindustry.world.blocks.storage.CoreBlock
+import wayzer.map.AssignTeamEvent
+import wayzer.map.TeamService
 
-val teams = contextScript<wayzer.map.BetterTeam>()
+val teams by Services.get<TeamService>().notNull
 
 @Savable(serializable = false)
 val obTeam = mutableMapOf<Player, Team>()
 customLoad(::obTeam) {
-    obTeam.putAll(it.filterKeys { it.con != null })
+    obTeam.putAll(it.filterKeys { p -> p.con != null })
 }
 fun getObTeam(player: Player): Team? = obTeam[player]?.takeIf { it != player.team() }
 export(::getObTeam)
@@ -39,7 +40,7 @@ registerVarForType<Player>().apply {
 }
 fun setObTeam(player: Player, team: Team?) {
     if (team == null) {
-        teams.changeTeam(player, teams.spectateTeam)
+        teams.changeTeam(player, AssignTeamEvent.spectateTeam)
         obTeam.remove(player)
         teams.changeTeam(player)
         broadcast(
@@ -49,7 +50,7 @@ fun setObTeam(player: Player, team: Team?) {
         return
     }
 
-    teams.changeTeam(player, teams.spectateTeam)
+    teams.changeTeam(player, AssignTeamEvent.spectateTeam)
     obTeam[player] = team
     broadcast(
         "[yellow]玩家[green]{player.name}[yellow]正在观战{team}"

@@ -22,6 +22,7 @@ fun voteMap(player: Player, map: MapInfo) {
             broadcast("[green]换图成功,当前地图[yellow]{map.name}[green](id: {map.id})".with())
     }
 }
+export(::voteMap)
 
 fun VoteService.register() {
     addSubVote("换图投票", "<地图ID>", "map", "换图") {

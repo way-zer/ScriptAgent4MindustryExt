@@ -1,6 +1,7 @@
 package mapScript.lib
 
 import cf.wayzer.scriptAgent.define.Script
+import cf.wayzer.scriptAgent.define.ScriptInfo
 import mindustry.Vars
 import mindustry.game.Rules
 import kotlin.properties.ReadOnlyProperty
@@ -8,16 +9,16 @@ import kotlin.properties.ReadOnlyProperty
 /**用于注册Tag类的mapScript，通常存放位置为`mapScript/tag/xxx` */
 object TagSupport {
     // tag -> scriptId
-    val knownTags = mutableMapOf<String, String>()
+    val knownTags = mutableMapOf<String, ScriptInfo>()
 
-    fun findTags(rules: Rules): Map<String, String> {
+    fun findTags(rules: Rules): Map<String, ScriptInfo> {
         val mapTags = rules.tags.keys().toSet()
         return knownTags.filterKeys { it in mapTags }
     }
 }
 
 fun Script.registerMapTag(name: String) {
-    TagSupport.knownTags[name] = id
+    TagSupport.knownTags[name] = scriptInfo
     onUnload { TagSupport.knownTags.remove(name) }
 }
 
