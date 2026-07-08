@@ -5,6 +5,7 @@ import arc.struct.StringMap
 import coreLibrary.lib.util.loop
 import mindustry.core.GameState
 import mindustry.io.SaveIO
+import mindustry.io.SaveOptions
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
@@ -50,7 +51,9 @@ onEnable {
                         "description", state.map.description(),
                         "author", state.map.author(),
                     )
-                    SaveIO.write(tmp, extTag)
+                    SaveIO.write(tmp, SaveOptions().apply {
+                        extraTags = extTag
+                    })
                     tmp.moveTo(SaveIO.fileFor(id))
                 } catch (e: Exception) {
                     logger.log(Level.SEVERE, "存档存档出错", e)
