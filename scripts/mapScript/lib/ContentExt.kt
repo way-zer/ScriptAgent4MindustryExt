@@ -5,6 +5,7 @@ import cf.wayzer.scriptAgent.define.ScriptDsl
 import cf.wayzer.scriptAgent.depends
 import cf.wayzer.scriptAgent.import
 import cf.wayzer.scriptAgent.util.DSLBuilder
+import mindustry.mod.data.DataAsset
 
 @ScriptDsl
 fun Script.modeIntroduce(mode: String, introduce: String) {
@@ -15,4 +16,7 @@ fun Script.modeIntroduce(mode: String, introduce: String) {
 }
 
 @ScriptDsl
+@Deprecated("use mapAssets")
 var Script.mapPatches by DSLBuilder.dataKey<List<String>>()
+@ScriptDsl
+var Script.mapAssets by DSLBuilder.dataKey<List<DataAsset>>()

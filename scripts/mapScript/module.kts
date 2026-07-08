@@ -9,6 +9,7 @@
  * */
 package mapScript
 
+import mindustry.mod.data.PatchAsset
 import wayzer.MapManager
 import wayzer.MapRegistry
 
@@ -46,10 +47,13 @@ fun getToLoadMapScripts(): List<ScriptInfo> {
 }
 
 listen<EventType.DataPatchLoadEvent> { e ->
-    val patches = getToLoadMapScripts().flatMap { it.inst?.mapPatches.orEmpty() }
+    val patches = getToLoadMapScripts().flatMap {
+        it.inst?.mapAssets.orEmpty() +
+                it.inst?.mapPatches.orEmpty().map { p -> PatchAsset(p) }
+    }
     if (patches.isEmpty()) return@listen
-    logger.info("Patches loaded: ${patches.size}")
-    e.patches.addAll(patches)
+    logger.info("DataPatches loaded: ${patches.size}")
+    e.assets.addAll(patches)
 }
 
 listen<EventType.WorldLoadEvent> {
