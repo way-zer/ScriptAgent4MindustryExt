@@ -16,7 +16,7 @@ val template by config.key(
     defaultTemplate, "积分榜模板",
     "其中{cK}{cV}{cA}为颜色变量，{listPrefix xx}行供其他插件动态扩展。",
 )
-val id = "scoreboard"
+val labelId = "scoreboard"
 //Color变量 cK - KEY, cV - VALUE, cA - ACTION
 val msg
     get() = template.with(
@@ -51,7 +51,7 @@ onEnable {
             if (disabled.contains(it.uuid())) return@forEach
             val mobile = it.con?.mobile == true
             Call.infoPopup(
-                it.con, msg.with().toPlayer(it), id, 3.0f,
+                it.con, msg.with().toPlayer(it), labelId, 3.0f,
                 Align.topLeft, if (mobile) 210 else 155, 0, 0, 0
             )
         }

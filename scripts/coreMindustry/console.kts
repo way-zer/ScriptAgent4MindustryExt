@@ -9,6 +9,7 @@ import org.jline.reader.*
 import org.jline.terminal.Terminal
 import org.jline.utils.AttributedString
 import java.io.ByteArrayOutputStream
+import java.io.Closeable
 import java.io.InterruptedIOException
 import java.io.PrintStream
 import java.util.logging.Level
@@ -136,11 +137,22 @@ fun start() {
 
 onEnable {
     Core.app.listeners.find { it.javaClass.simpleName == "ServerControl" }?.apply {
-        javaClass.getDeclaredField("serverInput")
-            .set(this, Runnable {
-                logger.info("Overwrite ServerControl.serverInput")
-                start()
-            })
+        javaClass.getDeclaredField("lineReader").apply {
+            isAccessible = true
+        }.get(this).apply {
+            (javaClass.methods.find { it.name == "getTerminal" }!!.invoke(this) as Closeable).apply {
+                close()
+            }
+        }
+        javaClass.getDeclaredField("hasTerminal").apply {
+            isAccessible = true
+        }.set(this, false)
+        javaClass.getDeclaredField("serverInput").apply {
+            isAccessible = true
+        }.set(this, Runnable {
+            logger.info("Overwrite ServerControl.serverInput")
+            start()
+        })
     }
     start()
 }
