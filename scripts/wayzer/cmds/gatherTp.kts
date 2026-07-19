@@ -27,13 +27,13 @@ command("gather", "发出集合请求") {
     attr(SkillCooldown(30_000))
     requirePermission("wayzer.ext.gather")
     skillBody {
-        if (player.dead() || !player.unit().type.targetable)
+        if (caster.dead() || !caster.unit().type.targetable)
             returnReply("[red]当前单位无法使用 集合".with())
         if (Duration.between(lastTime, Instant.now()) < Duration.ofSeconds(10)) {
             returnReply("[red]刚刚有人发起请求,请稍等10s再试".with())
         }
         val message = "[white]\"${arg.firstOrNull() ?: ""}[white]\""
-        val tile = player.tileOn() ?: returnReply("[red]请在地图内使用".with())
+        val tile = caster.tileOn() ?: returnReply("[red]请在地图内使用".with())
         lastPos = tile
         lastTime = Instant.now()
         broadcastSkill("集合(${tile.x},${tile.y})")
@@ -61,9 +61,9 @@ fun check(unit: Unit, tile: Tile): Boolean {
 listen<EventType.PlayerChatEvent> {
     val tile = lastPos ?: return@listen
     if (it.message.equals("go", true)) {
-        it.player.unit()?.apply {
+        it.caster.unit()?.apply {
             if (!check(this, tile)) {
-                it.player.sendMessage("[yellow]目标位置无法安全传送")
+                it.caster.sendMessage("[yellow]目标位置无法安全传送")
                 return@listen
             }
             set(tile)

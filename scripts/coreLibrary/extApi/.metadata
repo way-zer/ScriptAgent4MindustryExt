@@ -4,6 +4,19 @@ FQ_NAME KVStore
 +IMPORT MavenDependsSingle com.h2database:h2-mvstore:2.3.232
 +IMPORT SourceFile ./lib/KVStore.kt
 
+ID coreLibrary/extApi/mongoApi
+FQ_NAME MongoApi
++DEPENDS coreLibrary module
++IMPORT MavenDepends com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.1
++IMPORT MavenDepends org.litote.kmongo:kmongo-coroutine:4.8.0
++IMPORT SourceFile ./lib/Mongo.kt
+
+ID coreLibrary/extApi/redisApi
+FQ_NAME RedisApi
++DEPENDS coreLibrary module
++IMPORT MavenDepends redis.clients:jedis:4.4.3
++IMPORT SourceFile ./lib/RedisApi.kt
+
 ID coreLibrary/extApi/rpcService
 FQ_NAME RpcService
 +DEPENDS coreLibrary module

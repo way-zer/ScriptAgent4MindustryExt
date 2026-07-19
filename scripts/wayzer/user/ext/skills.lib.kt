@@ -76,7 +76,7 @@ object SkillCommands : Commands() {
 data object SkillCommandScope
 
 context(_: SkillCommandScope)
-val CommandContext.player: Player get() = player!!
+val CommandContext.caster: Player get() = player!!
 
 @Suppress("unused")
 context(_: SkillCommandScope)

@@ -122,7 +122,7 @@ listenTo<RequestPermissionEvent> {
 command("login", "统一登录") {
     attr(ClientOnly)
     body {
-        val player = context.player ?: return@body
+        val player = context.caster ?: return@body
         openMenu(player)
     }
 }

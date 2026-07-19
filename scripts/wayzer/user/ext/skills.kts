@@ -19,8 +19,8 @@ command("mono", "技能: 召唤采矿机,一局限一次,PVP禁用".with(), comm
     attr(SkillCooldown())
     requirePermission("wayzer.user.skills.mono")
     skillBody {
-        UnitTypes.mono.create(player.team()).also {
-            it.set(player)
+        UnitTypes.mono.create(caster.team()).also {
+            it.set(caster)
         }.add()
         broadcastSkill("采矿机?")
     }
