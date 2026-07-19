@@ -18,7 +18,7 @@ val enableUpdate by config.key(false, "是否开启自动更新")
 val source by config.key("Anuken/Mindustry", "服务端来源，Github仓库")
 val onlyInNight by config.key(false, "仅在凌晨自动更新", "本地时间1:00到7:00")
 val useMirror by config.key(false, "使用镜像加速下载")
-val mirror by config.key("https://gh.tinylake.tech", "GH镜像源")
+val mirror by config.key("https://gh.tinylake.top", "GH镜像源")
 
 suspend fun download(url: String, file: File): Int = runInterruptible(Dispatchers.IO) {
     val steam = URL(url).openStream()
