@@ -61,9 +61,9 @@ fun check(unit: Unit, tile: Tile): Boolean {
 listen<EventType.PlayerChatEvent> {
     val tile = lastPos ?: return@listen
     if (it.message.equals("go", true)) {
-        it.caster.unit()?.apply {
+        it.player.unit()?.apply {
             if (!check(this, tile)) {
-                it.caster.sendMessage("[yellow]目标位置无法安全传送")
+                it.player.sendMessage("[yellow]目标位置无法安全传送")
                 return@listen
             }
             set(tile)
