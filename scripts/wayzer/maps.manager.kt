@@ -24,6 +24,7 @@ import mindustry.gen.Groups
 import mindustry.io.MapIO
 import mindustry.io.SaveIO
 import mindustry.maps.Map
+import kotlin.time.Duration.Companion.seconds
 
 typealias RuleModifier = Rules.() -> Unit
 
@@ -49,6 +50,7 @@ object MapManager {
         private set
     internal var tmpVarSet: (() -> Unit)? = null
 
+    @Suppress("unused")
     @Deprecated("old", level = DeprecationLevel.HIDDEN)
     fun loadMap(info: MapInfo? = null, isSave: Boolean = false) {
         loadMap(info)
@@ -78,7 +80,7 @@ object MapManager {
                 )
             )
             thisContextScript().launch(Dispatchers.game) {
-                delay(1000)
+                delay(1.seconds)
                 loadMapSync()
             }
             return false
@@ -115,7 +117,10 @@ object MapManager {
                 Vars.state.rules = event.rules
             }
             info.provider.loadMap(info) // EventType.ResetEvent
-            // EventType.WorldLoadBeginEvent : do set state.rules
+            // do set state.rules when save versions < 13
+            // EventType.DataPatchLoadEvent : emit when version >=11
+            // do set state.rules when save versions >= 13
+            // EventType.WorldLoadBeginEvent
             // EventType.WorldLoadEndEvent
             // EventType.WorldLoadEvent
             // Not generator: EventType.SaveLoadEvent
