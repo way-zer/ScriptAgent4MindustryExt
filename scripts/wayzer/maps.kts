@@ -1,14 +1,12 @@
 package wayzer
 
 import arc.Events
-import mindustry.game.EventType.WorldLoadBeginEvent
 import mindustry.game.Gamemode
 import mindustry.game.Team
 import mindustry.io.SaveIO
 import java.time.Duration
+import kotlin.time.toKotlinDuration
 import mindustry.maps.Map as MdtMap
-
-name = "基础: 地图控制与管理"
 
 val configEnableInternMaps by config.key(false, "是否开启原版内置地图")
 val nextSameMode by config.key(false, "自动换图是否选择相同模式地图,否则选择生存模式")
@@ -32,7 +30,7 @@ MapRegistry.register(this, object : MapProvider() {
         }
     }
 
-    private fun bestMode(map: mindustry.maps.Map): Gamemode {
+    private fun bestMode(map: MdtMap): Gamemode {
         return when (map.file.name()[0]) {
             'A' -> Gamemode.attack
             'P' -> Gamemode.pvp
@@ -77,8 +75,9 @@ onEnable {
 val waitingTime by config.key(Duration.ofSeconds(10)!!, "游戏结束换图的等待时间")
 val gameOverMsgType by config.key(MsgType.InfoMessage, "游戏结束消息是显示方式")
 
+@Suppress("unused")
 class GameOverEvent(val winner: Team) : Event, Event.Cancellable {
-    /**After cancelled, there is no broadcast and changeMap */
+    /**After canceled, there is no broadcast and changeMap */
     override var cancelled: Boolean = false
     override val handler: Event.Handler get() = Companion
 
@@ -114,7 +113,7 @@ listen<EventType.GameOverEvent> { event ->
         broadcast(msg, gameOverMsgType, quite = true)
         ContentHelper.logToConsole("Next Map is ${map.name}(ID:${map.id})")
 
-        delay(waitingTime.toMillis())
+        delay(waitingTime.toKotlinDuration())
         if (state.map != now) return@launch//已经通过其他方式换图
         MapManager.loadMap(map)
     }
@@ -122,11 +121,15 @@ listen<EventType.GameOverEvent> { event ->
 //ContentPatchLoad is the first event when loading map or save
 listen<EventType.DataPatchLoadEvent>(insert = true) {
     MapManager.tmpVarSet?.invoke()
+    // no reset, WorldLoadBeginEvent still run
+}
+listen<EventType.WorldLoadBeginEvent>(insert = true) {
+    MapManager.tmpVarSet?.invoke()
     MapManager.tmpVarSet = null
 }
 command("host", "管理指令: 换图") {
     usage = "[mapId]"
-    permission = "wayzer.maps.host"
+    requirePermission("wayzer.maps.host")
     body {
         val map = if (arg.isEmpty()) MapRegistry.nextMapInfo(MapManager.current)
         else arg[0].toIntOrNull()?.let { MapRegistry.findById(it, reply) }
@@ -137,7 +140,7 @@ command("host", "管理指令: 换图") {
 }
 command("load", "管理指令: 加载存档") {
     usage = "<slot>"
-    permission = "wayzer.maps.load"
+    requirePermission("wayzer.maps.load")
     body {
         val file = arg[0].let { saveDirectory.child("$it.$saveExtension") }
         if (!file.exists() || !SaveIO.isSaveValid(file))
@@ -149,7 +152,7 @@ command("load", "管理指令: 加载存档") {
 
 command("gameover", "管理指令: 结束游戏") {
     usage = "[winner]"
-    permission = "wayzer.maps.gameover"
+    requirePermission("wayzer.maps.gameover")
     body {
         val winner = arg.firstOrNull()?.let { Team.all.firstOrNull { t -> t.name == it } }
             ?: state.rules.waveTeam

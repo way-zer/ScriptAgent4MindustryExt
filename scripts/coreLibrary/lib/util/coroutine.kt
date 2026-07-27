@@ -9,6 +9,7 @@ import java.util.logging.Level
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 
 fun Script.loop(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> Unit) {
     launch(context) {
@@ -18,7 +19,7 @@ fun Script.loop(context: CoroutineContext = EmptyCoroutineContext, block: suspen
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 logger.log(Level.WARNING, "Exception inside loop, auto sleep 10s.", e)
-                delay(10000)
+                delay(10.seconds)
             }
         }
     }

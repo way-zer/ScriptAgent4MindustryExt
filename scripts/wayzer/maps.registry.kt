@@ -2,10 +2,10 @@ package wayzer
 
 import arc.struct.StringMap
 import arc.util.Log
+import cf.wayzer.placehold.VarString
 import cf.wayzer.scriptAgent.Event
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.emitAsync
-import coreLibrary.lib.PlaceHoldString
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import mindustry.Vars
@@ -41,7 +41,7 @@ data class MapInfo(
 abstract class MapProvider {
     abstract suspend fun searchMaps(search: String? = null): Collection<MapInfo>
     /**@param id may not exist in getMaps*/
-    open suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)? = null): MapInfo? =
+    open suspend fun findById(id: Int, reply: ((VarString) -> Unit)? = null): MapInfo? =
         searchMaps().find { it.id == id }
 
     open suspend fun lazyGetMap(info: MapInfo): MdtMap =
@@ -51,13 +51,14 @@ abstract class MapProvider {
         //note: don't call this, as it catch Throwable inside, and not give result.
 //        Vars.world.loadMap(info.loadMap())
         val map = info.loadMap()
-        @Suppress("INACCESSIBLE_TYPE")
+        @Suppress("INFERRED_INVISIBLE_RETURN_TYPE_WARNING")
         SaveIO.load(map.file, Vars.world.filterContext(map))
         if (Vars.state.teams.getActive().none { it.hasCore() })
             throw MapException(map, "Map has no cores!")
     }
 }
 
+@Suppress("unused")
 class GetNextMapEvent(val previous: MapInfo?, var mapInfo: MapInfo) : Event, Event.Cancellable {
     override var cancelled: Boolean = false
     override val handler: Event.Handler get() = Companion
@@ -86,7 +87,7 @@ object MapRegistry : MapProvider() {
     }
 
     /**Dispatch should be Dispatchers.game*/
-    override suspend fun findById(id: Int, reply: ((PlaceHoldString) -> Unit)?): MapInfo? {
+    override suspend fun findById(id: Int, reply: ((VarString) -> Unit)?): MapInfo? {
         return providers.firstNotNullOfOrNull { it.findById(id, reply) }
     }
 

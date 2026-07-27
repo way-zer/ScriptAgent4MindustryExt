@@ -1,6 +1,6 @@
 package coreLibrary.lib.util
 
-import coreLibrary.lib.PlaceHoldString
+import cf.wayzer.placehold.VarString
 import coreLibrary.lib.with
 import kotlin.math.ceil
 
@@ -12,7 +12,7 @@ fun calPage(page: Int, prePage: Int, size: Int): Pair<Int, Int> {
     return newPage to totalPage
 }
 
-fun <E> menu(title: String, list: List<E>, page: Int, prePage: Int, handle: (E) -> PlaceHoldString): PlaceHoldString {
+fun <E> menu(title: String, list: List<E>, page: Int, prePage: Int, handle: (E) -> VarString): VarString {
     val (newPage, totalPage) = calPage(page, prePage, list.size)
     val list2 = list.subList((newPage - 1) * prePage, (newPage * prePage).coerceAtMost(list.size))
         .map(handle)

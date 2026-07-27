@@ -1,7 +1,6 @@
 package coreLib.db
 
 import cf.wayzer.scriptAgent.ScriptRegistry
-import cf.wayzer.scriptAgent.define.SAExperimentalApi
 import cf.wayzer.scriptAgent.define.Script
 import cf.wayzer.scriptAgent.util.DSLBuilder
 import cf.wayzer.scriptAgent.util.Services
