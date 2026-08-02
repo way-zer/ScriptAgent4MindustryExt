@@ -184,8 +184,9 @@ command("unload", "卸载一个脚本或者模块".with(), commands = Commands.c
         val script = ScriptRegistry.getScriptInfo(arg[0]) ?: returnReply("[red]找不到模块或者脚本".with())
 
         runIgnoreCancel(!async) {
-            ScriptManager.unloadScript(script)
-            reply("[green]关闭脚本成功".with())
+            ScriptManager.transactionV2 {
+                unload(script)
+            }.printResult()
         }
     }
 }
@@ -202,8 +203,9 @@ command("disable", "关闭一个脚本或者模块".with(), commands = Commands.
         val script = ScriptRegistry.getScriptInfo(arg[0]) ?: returnReply("[red]找不到模块或者脚本".with())
 
         runIgnoreCancel(!async) {
-            ScriptManager.disableScript(script)
-            reply("[green]关闭脚本成功".with())
+            ScriptManager.transactionV2 {
+                disable(script)
+            }.printResult()
         }
     }
 }
