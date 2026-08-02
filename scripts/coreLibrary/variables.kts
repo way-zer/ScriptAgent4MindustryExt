@@ -8,9 +8,11 @@ import io.github.config4k.CustomType
 import io.github.config4k.registerCustomType
 import io.github.config4k.toConfig
 import java.lang.management.ManagementFactory
+import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.Date
 import kotlin.time.toKotlinDuration
 
 name = "基础变量注册"
@@ -19,6 +21,15 @@ registerVar("\\n", "换行符", "\n")
 registerVar("joinLines", "'join \\n'的别名", DynamicVar {
     VarToken("join", VarString.Parameters(it.params + "\n"))
 })
+registerVarForType<Date>().apply {
+    registerToString("格式化") { obj ->
+        DynamicVar { params ->
+            val arg = params.getOrNull<VarString.VarToken>(0)?.name
+                ?: "MM-dd"
+            SimpleDateFormat(arg).format(obj)
+        }
+    }
+}
 registerVarForType<Duration>().apply {
     registerToString("参数设定单位(天,时,分,秒,d,h,m,s,默认m)") { obj ->
         DynamicVar { params ->
