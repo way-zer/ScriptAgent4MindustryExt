@@ -2,7 +2,6 @@ package wayzer.map
 
 import arc.files.Fi
 import arc.struct.StringMap
-import coreLibrary.lib.util.loop
 import mindustry.core.GameState
 import mindustry.io.SaveIO
 import mindustry.io.SaveOptions
@@ -15,7 +14,9 @@ val autoSaveRange = 100 until 106
 command("slots", "列出自动保存的存档") {
     body {
         val list = autoSaveRange.map { it to SaveIO.fileFor(it) }.filter { it.second.exists() }.map { (id, file) ->
-            "[red]{id}[]: [yellow]Save on {date hh:mm}".with("id" to id, "date" to file.lastModified().let(::Date))
+            """[red]{id}[]: [yellow]Save on {t | date "HH:mm"}""".with(
+                "id" to id, "t" to file.lastModified().let(::Date)
+            )
         }
         reply(
             """
