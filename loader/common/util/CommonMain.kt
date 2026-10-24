@@ -1,7 +1,6 @@
 package cf.wayzer.scriptAgent.util
 
 import cf.wayzer.scriptAgent.*
-import kotlinx.coroutines.runBlocking
 import java.io.File
 
 interface CommonMain {
@@ -24,7 +23,7 @@ interface CommonMain {
         ScriptRegistry.registries.add(CASPackScriptRegistry)
         ScriptRegistry.registries.add(BuiltinScriptRegistry)
         ScriptRegistry.scanRoot()
-        val foundMain = runBlocking { doStart() }
+        val foundMain = MainEventLoop.runBlocking { doStart() }
         displayInfo(foundMain)
     }
 
