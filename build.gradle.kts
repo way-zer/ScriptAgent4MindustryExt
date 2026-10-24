@@ -74,7 +74,7 @@ allprojects {
 }
 
 dependencies.constraints {
-    val mindustryVersion = "92c614c3a3" //v159.2
+    val mindustryVersion = "v2026.10.X38" //v160.5
     api("com.github.TinyLake.MindustryX:core:$mindustryVersion")
     val bukkitVersion = "1.21.4-R0.1-SNAPSHOT"
     api("dev.folia:folia-api:$bukkitVersion")
