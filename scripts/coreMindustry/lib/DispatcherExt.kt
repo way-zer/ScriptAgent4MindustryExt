@@ -77,7 +77,12 @@ object MindustryDispatcher : CoroutineDispatcher() {
 }
 
 @Suppress("unused", "UnusedReceiverParameter")
+@Deprecated("return CoroutineDispatcher instead MindustryDispatcher", level = DeprecationLevel.HIDDEN)
 val Dispatchers.game
+    get() = MindustryDispatcher
+@Suppress("unused", "UnusedReceiverParameter")
+val Dispatchers.game: CoroutineDispatcher
+    @JvmName("gameV2")
     get() = MindustryDispatcher
 
 @Suppress("unused", "UnusedReceiverParameter")
