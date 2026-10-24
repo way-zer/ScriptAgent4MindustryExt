@@ -51,6 +51,7 @@ class Main(private val loader: Plugin) : Plugin(), CommonMain {
 
             override fun exit() = MainEventLoop.runBlocking {
                 ScriptManager.disableAll()
+                Log.info("&y======== Good Bye ========")
             }
         })
     }

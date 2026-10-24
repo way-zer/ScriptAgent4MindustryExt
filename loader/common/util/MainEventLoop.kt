@@ -2,6 +2,7 @@ package cf.wayzer.scriptAgent.util
 
 import cf.wayzer.scriptAgent.define.LoaderApi
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -81,7 +82,7 @@ object MainEventLoop : CoroutineDispatcher() {
         if (inBlocking) kotlinx.coroutines.runBlocking(MainEventLoop) { block() }
         inBlocking = true
         return kotlinx.coroutines.runBlocking {
-            launch {
+            val sideJob = launch {
                 while (inBlocking) {
                     when (val item = queue.poll()) {
                         null -> awake.receive()
@@ -94,6 +95,7 @@ object MainEventLoop : CoroutineDispatcher() {
                 withContext(MainEventLoop) { block() }
             } finally {
                 inBlocking = false
+                sideJob.cancelAndJoin()
             }
         }
     }
