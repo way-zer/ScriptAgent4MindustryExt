@@ -9,7 +9,7 @@ import cf.wayzer.scriptAgent.*
 import cf.wayzer.scriptAgent.define.LoaderApi
 import cf.wayzer.scriptAgent.util.CommonMain
 import cf.wayzer.scriptAgent.util.DSLBuilder
-import kotlinx.coroutines.runBlocking
+import cf.wayzer.scriptAgent.util.MainEventLoop
 import mindustry.Vars
 import mindustry.mod.Plugin
 import java.io.File
@@ -40,12 +40,16 @@ class Main(private val loader: Plugin) : Plugin(), CommonMain {
 
         bootstrap()
         Core.app.addListener(object : ApplicationListener {
+            override fun update() {
+                MainEventLoop.runTurn()
+            }
+
             override fun pause() {
                 if (Vars.headless)
                     exit()
             }
 
-            override fun exit() = runBlocking {
+            override fun exit() = MainEventLoop.runBlocking {
                 ScriptManager.disableAll()
             }
         })
