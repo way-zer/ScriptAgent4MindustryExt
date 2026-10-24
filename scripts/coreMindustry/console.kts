@@ -95,8 +95,12 @@ suspend fun handleInput(reader: LineReader) {
                 continue
             }
             reader.printAbove("exit")
-            ScriptManager.disableAll()
-            exitProcess(1)
+            @Suppress("CoroutineContextWithJob")//detach
+            launch(Job()) {
+                ScriptManager.disableAll()
+                exitProcess(1)
+            }
+            return
         }
         last = 0
         if (line.isEmpty()) continue
