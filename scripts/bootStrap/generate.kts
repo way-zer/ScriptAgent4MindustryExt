@@ -1,9 +1,5 @@
-package bootStrap
-
 import cf.wayzer.scriptAgent.state.ConditionState
 import cf.wayzer.scriptAgent.util.CASScriptPacker
-import cf.wayzer.scriptAgent.util.DependencyManager
-import cf.wayzer.scriptAgent.util.maven.Dependency
 import java.io.File
 import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
@@ -22,11 +18,6 @@ onEnable {
     ScriptManager.afterTransaction { main() }
 }
 suspend fun main() {
-    DependencyManager {
-        addRepository("https://www.jitpack.io/")
-        require(Dependency.parse("com.github.TinyLake.MindustryX:core:92c614c3a3"))
-        loadToClassLoader(Config.mainClassloader)
-    }
     ScriptManager.transactionV2 {
         //Load Kcp
         enable("kcp")
