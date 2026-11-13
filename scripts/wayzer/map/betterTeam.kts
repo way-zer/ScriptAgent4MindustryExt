@@ -87,7 +87,7 @@ fun randomTeam(player: Player, group: Iterable<Player> = Groups.player): Team {
     val allTeam = allTeam
     val bak = (savedTeams.remove(player.uuid()) ?: player.team().takeUnless { player.dead() })
         ?.takeIf { it in allTeam }
-    val fromEvent = Dispatchers.game.safeBlocking { AssignTeamEvent(player, group, bak).emitAsync() }.team
+    val fromEvent = MindustryDispatcher.safeBlocking { AssignTeamEvent(player, group, bak).emitAsync() }.team
     if (fromEvent != null) return fromEvent
     if (!state.rules.pvp) return state.rules.defaultTeam
     return allTeam.shuffled()
